@@ -24,7 +24,13 @@
 pip install pdm poetry
 ```
 
-环境管理工具是快捷管理python运行环境的工具，可以创建出独立的python运行环境，各个运行环境内安装的软件包不会干扰其他环境，也不会影响到默认的python环境。`pdm`是一款国人创建的环境管理工具，语法简单，操作方便，因此教程采用此工具。`poetry`也是一款环境管理工具，是nicegui官方仓库采用的，可以基于官方源代码自己编译安装包，也用于后续自托管文档，因此需要安装。但是，`poetry`的检查依赖速度比`pdm`慢太多，故这里采用`pdm`作为学习工具，如果读者有能力，可以只使用`poetry`。
+环境管理工具是快捷管理python运行环境的工具，可以创建出独立的python运行环境，各个运行环境内安装的软件包不会干扰其他环境，也不会影响到默认的python环境。
+
+`pdm`是一款国人创建的环境管理工具，语法简单，操作方便，因此教程采用此工具。
+
+`poetry`也是一款环境管理工具，是nicegui官方仓库采用的，可以基于官方源代码自己编译安装包，也用于后续自托管文档，因此需要安装。
+
+但是，`poetry`的检查依赖速度比`pdm`慢太多，故这里采用`pdm`作为学习工具，如果读者有能力，可以只使用`poetry`。
 
 #### 1.1.1 基础环境初始化
 
@@ -110,15 +116,53 @@ pdm add pywebview
 
 VSCode或者PyCharm，其中VSCode比PyCharm轻量，但需要手动安装python插件，而PyCharm自带插件，操作简单。这里推荐使用VSCode，比较流畅，如果是使用PyCharm，后续操作根据VSCode对应即可。
 
+对于VSCode，建议安装以下插件：
+
+```
+ms-python.python
+ms-python.autopep8
+ms-python.black-formatter
+```
+
 ### 1.3 自托管文档[可选]
 
+因为官网文档是可交互的，只有连接到官网才能操作。但是，部分地区的访问官网存在网络不佳的情况，如果需要自托管官网文档，可以遵循以下步骤。
+
+首先要安装`git`，具体可以看[Git - 安装 Git](https://git-scm.com/book/zh/v2/%E8%B5%B7%E6%AD%A5-%E5%AE%89%E8%A3%85-Git)。
+
+安装完成后，额外找一个空白文件夹，打开终端，执行以下命令：
+
+```shell
+git clone https://github.com/zauberzeug/nicegui.git
+```
+
+没有git，可以打开以下链接：
+
+```shell
+https://github.com/zauberzeug/nicegui/archive/refs/heads/main.zip
+```
+
+下载压缩包之后解压，结果一样。对于GItHub难以访问的问题，可以自行搜索GitHub加速的方法。
+
+使用以下命令进入nicegui的源代码文件夹，并执行安装操作：
+
+```shell
+cd nicegui
+poetry install
+```
+
+等安装完成之后（poetry的install时间会比较长），执行以下命令，会自动调用浏览器打开自托管的官网：
+
+```shell
+poetry run python .\main.py
+```
+
+每次运行这条命令就可以开启自托管的官网文档。
+
+如果官方有源代码更新，后续将源代码解压覆盖之后，执行一次安装操作即可更新。
+
+## 2 入门基础（更新中）
 
 
-## 入门基础
-
-
-
-## 高阶技巧
-
-
+## 3 高阶技巧（更新中）
 
