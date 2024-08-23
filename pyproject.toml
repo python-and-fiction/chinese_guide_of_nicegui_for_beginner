@@ -1,0 +1,18 @@
+[project]
+name = "chinese_guide_of_nicegui_for_beginner"
+version = "0.1.0"
+description = "Default template for PDM package"
+authors = [
+    {name = "Peter", email = "peter@linux"},
+]
+dependencies = [
+    "nicegui>=1.4.36",
+    "pywebview>=5.2",
+]
+requires-python = "==3.12.*"
+readme = "README.md"
+license = {text = "MIT"}
+
+
+[tool.pdm]
+distribution = false
