@@ -16,6 +16,8 @@
 
 ### 1.1 运行环境
 
+为了保证最佳开发体验，所有的环境准备优先使用Windows系统，使用Linux、Mac的话，请自己根据系统变通。
+
 首先，我们需要准备python解释器和`pip`。其中，Python解释器是运行后续代码、工具的基础，只需到官网安装最新稳定版（当前为3.12.*）即可；`pip`是Python官方的包管理工具，安装解释器时务必勾选此选项，如果没有勾选或者想要后续单独安装`pip`，可以到[pypi](https://pypi.org/)官方查看安装方法，这里不在赘述。
 
 环境管理工具有`pdm`和`poetry`,我们需要使用以下命令全部安装：
@@ -112,6 +114,8 @@ pdm add nicegui
 pdm add pywebview
 ```
 
+对于没有安装过Microsoft Edge WebView2或者版本较旧的Windows系统，建议访问 [ Microsoft Edge WebView2下载 ](https://developer.microsoft.com/zh-cn/microsoft-edge/webview2 ) 安装最新版本。
+
 ### 1.2 开发工具
 
 VSCode或者PyCharm，其中VSCode比PyCharm轻量，但需要手动安装python插件，而PyCharm自带插件，操作简单。这里推荐使用VSCode，比较流畅，如果是使用PyCharm，后续操作根据VSCode对应即可。
@@ -151,13 +155,13 @@ cd nicegui
 poetry install
 ```
 
-等安装完成之后（poetry的install时间会比较长），执行以下命令，会自动调用浏览器打开自托管的官网：
+等安装完成之后（poetry的install时间会比较长），执行以下命令，会开启一个服务器托管官网文档，并自动调用浏览器打开自托管的官网：
 
 ```shell
 poetry run python .\main.py
 ```
 
-每次运行这条命令就可以开启自托管的官网文档。
+关掉终端就可以关闭服务器，下次运行这条命令就可以直接开启自托管的官网文档，无需再次安装。
 
 如果官方有源代码更新，后续将源代码解压覆盖之后，执行一次安装操作即可更新。
 
