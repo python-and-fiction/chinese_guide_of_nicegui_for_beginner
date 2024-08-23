@@ -73,7 +73,7 @@ PS E:\PSF\git\chinese_guide_of_nicegui_for_beginner>
 
 `Project version (0.1.0):`为设置当前项目的版本号，该版本号符合语义化规则，不懂或者不想了解的可以直接回车。
 
-`If yes, it will be installed by default when running `pdm install`. [y/n] (n):`这一步是问你要不要将项目构建成分发包（可以用pip安装的），如果选择`y`，使用`pdm install`就会默认安装项目。这里我们不是创建分发包，所以直接回车。
+`If yes, it will be installed by default when running pdm install. [y/n] (n):`这一步是问你要不要将项目构建成分发包（可以用pip安装的），如果选择`y`，使用`pdm install`就会默认安装项目。这里我们不是创建分发包，所以直接回车。
 
 `License(SPDX name) (MIT):`、`Author name (): `、`Author email ():`分别是许可协议、作者名字、作者邮箱地址，了解、知道的可以修改，不清楚或者不想写的可以直接回车。
 
