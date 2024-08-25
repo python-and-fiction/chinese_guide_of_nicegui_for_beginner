@@ -8,7 +8,7 @@
 
 对于python语言的使用者来说，nicegui是一款优秀的WebUI、GUI框架，只需学习一定量的前端知识，就能使用nicegui快速搭建出美观的UI界面。但是，由于官方作者不提供系统性的入门、中文教程，很多中文初学者望而却步。于是，本教程应运而生。
 
-本教程旨在用中文提供官方文档没有的系统性入门教程（不含所有控件单独、详细学习）和部分高阶技巧（能够解决常见问题），并将部分社区讨论问题汉化、简化，方便中文学习者尽快上手并解决常见难题。
+本教程旨在用中文提供官方文档没有的系统性入门教程，并将部分社区讨论问题汉化、简化，方便中文学习者尽快上手并解决常见难题。虽然教程的名字叫入门教程，但我们并没有停留在翻译官网文档的阶段，能够解决常见问题的高阶技巧也有。对于官方提供的各个控件的详细API，我们并不会照本宣科，而是在提供思路之后，由读者自行查阅。正所谓“授人以鱼不如授人以渔”，掌握方法比掌握结果更有效。
 
 本教程基于 nicegui  1.4.*  制作， nicegui  2.0版本很快发布。虽然版本变动较大，但大部分用法相通，如果后续代码出现不兼容的情况，请自行根据版本兼容情况修改。
 
@@ -166,6 +166,50 @@ poetry run python .\main.py
 如果官方有源代码更新，后续将源代码解压覆盖之后，执行一次安装操作即可更新。
 
 ## 2 入门基础（更新中）
+
+### 2.1 认识nicegui
+
+nicegui 是一个开源的python库，可以搭建运行在浏览器的图形界面，也就是WebUI，也可以理解为和网站一样。nicegui的学习过程并不难，但不意味着你可以零基础入门。对于开发nicegui的开发者而言，python的基础是必须的；如果掌握python不常用语法和用法更好，后续在使用nicegui的过程中，可以很方便理解一些为了达成效果而使用的骚操作。尽管大部分python的学习者是零基础入门，除了转全栈、爬虫的开发者，后续学习过程中很少接触前端（HTML、CSS、JavaScript），但还是在使用nicegui之前，要有学习前端的心理准备。nicegui为了方便python工程师快速搭建图形界面，专注于python代码本身，做了不少前端细节的隐藏。不过，默认的样式不一定符合预期效果，为了达成效果，还是需要了解一些前端知识，才能让界面完全符合心意。
+
+nicegui的底层使用了`fastapi`作为运行服务器，`Quasar`作为前端框架，支持`tailwindcss`的CSS语法，因为`Quasar`的内部使用`VUE`搭建，nicegui也不可避免地用到了`VUE`的语法。因此，对于想要用好nicegui的开发者，在后续使用nicegui的过程中，需要对上述提到的项目有一定了解。想要对后端部分定制、修改的，需要了解`fastapi`以及其基于的其他组件；想要让界面美化、随心的，需要掌握`Quasar`、`tailwindcss`基础；对于有能力和需求完全定制界面的，则需要掌握`VUE`基础。
+
+相关链接：
+
+nicegui官方文档：https://nicegui.io/documentation
+
+Quasar官方文档：https://quasar.dev/docs
+
+tailwindcss官方文档：https://tailwindcss.com/
+
+VUE官方文档：https://cn.vuejs.org/guide/introduction
+
+#### 2.1.1 nicegui的`Hello World!`
+
+如果你能看到这里，证明你有学好nicegui的基础和能力，并不畏惧上一节提到的那么多基础知识。那么，就让我们用一段简单的`Hello World!`代码开启nicegui的入门之旅。
+
+使用VSCode在我们的项目文件夹下的`src\chinese_guide_of_nicegui_for_beginner`内，新建以`py`为后缀的python代码文件，复制以下代码到代码文件中，保存。
+
+```python3
+from nicegui import ui
+
+ui.button('Say Hi',on_click=lambda :ui.notify('Hello World!'))
+
+ui.run(native=True)
+```
+
+注意vscode的右下角，务必确保使用的是`venv`下的python解释器，如果不是，点击右下角`3.12.4{'.venv'}`对应位置，选择输入解释器路径-查找，选择`.venv\Scripts\`下的`python.exe`。
+
+<img src="README.assets/hello_world_vscode.png" alt="hello_world_vscode" style="zoom:50%;" />
+
+点击VSCode右上角的运行按钮（三角形），就可以看到一个窗口弹出，点击`SAY HI`按钮，就能看到窗口底部弹出的`Hello World!`。
+
+<img src="README.assets/hello_world.png" alt="hello_world" style="zoom:50%;" />
+
+从`Hello World!`示例可以看到，基于nicegui的python程序寥寥三行代码，除去导入语句和必不可少的`ui.run`，主体只有一行代码，就能实现一个完整的交互过程，足见nicegui的强大、简洁。后续我们的很多例子都可以做到几行代码实现不错的效果，这也是我学习nicegui的原因和动力。
+
+### 2.2 nicegui的基本结构
+
+
 
 
 ## 3 高阶技巧（更新中）
