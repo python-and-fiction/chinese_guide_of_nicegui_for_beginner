@@ -4,11 +4,15 @@
 
 # nicegui的中文入门教程
 
+[TOC]
+
+
+
 ## 0 前言
 
-对于python语言的使用者来说，nicegui是一款优秀的WebUI、GUI框架，只需学习一定量的前端知识，就能使用nicegui快速搭建出美观的UI界面。但是，由于官方作者不提供系统性的入门、中文教程，很多中文初学者望而却步。于是，本教程应运而生。
+对于python语言的使用者来说，[nicegui](https://nicegui.io/)是一款优秀的WebUI、GUI框架，只需学习一定量的前端知识，就能使用nicegui快速搭建出美观的UI界面。但是，由于官方作者不提供系统性的入门、中文教程，很多中文初学者望而却步。于是，本教程应运而生。
 
-本教程旨在用中文提供官方文档没有的系统性入门教程，并将部分社区讨论问题汉化、简化，方便中文学习者尽快上手并解决常见难题。虽然教程的名字叫入门教程，但我们并没有停留在翻译官网文档的阶段，能够解决常见问题的高阶技巧也有。对于官方提供的各个控件的详细API，我们并不会照本宣科，而是在提供思路之后，由读者自行查阅。正所谓“授人以鱼不如授人以渔”，掌握方法比掌握结果更有效。
+本教程旨在用中文提供官方文档没有的系统性入门教程，并将部分社区讨论问题汉化、简化，方便中文学习者尽快上手并解决常见难题。虽然教程的名字叫入门教程，但本教程并没有停留在翻译官网文档的阶段，能够解决常见问题的高阶技巧也有。对于官方提供的各个控件的详细API，本教程并不会照本宣科，而是在提供思路之后，由读者自行查阅。正所谓“授人以鱼不如授人以渔”，掌握方法比掌握结果更有效。
 
 本教程基于 nicegui  1.4.*  制作， nicegui  2.0版本很快发布。虽然版本变动较大，但大部分用法相通，如果后续代码出现不兼容的情况，请自行根据版本兼容情况修改。
 
@@ -18,9 +22,9 @@
 
 为了保证最佳开发体验，所有的环境准备优先使用Windows系统，使用Linux、Mac的话，请自己根据系统变通。
 
-首先，我们需要准备python解释器和`pip`。其中，Python解释器是运行后续代码、工具的基础，只需到官网安装最新稳定版（当前为3.12.*）即可；`pip`是Python官方的包管理工具，安装解释器时务必勾选此选项，如果没有勾选或者想要后续单独安装`pip`，可以到[pypi](https://pypi.org/)官方查看安装方法，这里不在赘述。
+首先，需要准备python解释器和`pip`。其中，Python解释器是运行后续代码、工具的基础，只需到官网安装最新稳定版（当前为3.12.*）即可；`pip`是Python官方的包管理工具，安装解释器时务必勾选此选项，如果没有勾选或者想要后续单独安装`pip`，可以到[pypi](https://pypi.org/)官方查看安装方法，这里不在赘述。
 
-环境管理工具有`pdm`和`poetry`,我们需要使用以下命令全部安装：
+环境管理工具有`pdm`和`poetry`,使用以下命令全部安装：
 
 ```shell
 pip install pdm poetry
@@ -69,19 +73,19 @@ PS E:\PSF\git\chinese_guide_of_nicegui_for_beginner>
 
 过程为交互式，需要自己输入之后回车才能继续，不输入直接回车则采用默认。
 
-`Please select (0):`为选择python版本，pdm会自动识别当前电脑安装的所有python解释器，部分工具（如gcc）也会自带python解释器，我们需要正确选择自己安装的、可以直接运行pip命令的python解释器，这一步根据实际情况选择，一般默认第一个，可以直接回车。
+`Please select (0):`为选择python版本，pdm会自动识别当前电脑安装的所有python解释器，部分工具（如gcc）也会自带python解释器，需要正确选择自己安装的、可以直接运行pip命令的python解释器，这一步根据实际情况选择，一般默认第一个，可以直接回车。
 
 `Project name (chinese_guide_of_nicegui_for_beginner):`为设置项目名称，通常为当前文件夹名字，可以自己输入来修改。这个不会修改当前文件夹名字，只会影响项目描述文件中的项目名称和后续创建的源代码文件夹名称。这里可以直接回车。
 
 `Project version (0.1.0):`为设置当前项目的版本号，该版本号符合语义化规则，不懂或者不想了解的可以直接回车。
 
-`If yes, it will be installed by default when running pdm install. [y/n] (n):`这一步是问你要不要将项目构建成分发包（可以用pip安装的），如果选择`y`，使用`pdm install`就会默认安装项目。这里我们不是创建分发包，所以直接回车。
+`If yes, it will be installed by default when running pdm install. [y/n] (n):`这一步是问你要不要将项目构建成分发包（可以用pip安装的），如果选择`y`，使用`pdm install`就会默认安装项目。这里选择不创建分发包，所以直接回车。
 
 `License(SPDX name) (MIT):`、`Author name (): `、`Author email ():`分别是许可协议、作者名字、作者邮箱地址，了解、知道的可以修改，不清楚或者不想写的可以直接回车。
 
 `Python requires('*' to allow any) (==3.12.*):`为python的版本要求，如果后续要用低版本或者高版本python运行，这里需要修改，否则此项目会限制python的版本。这个后续可以自己了解，这里直接回车即可。
 
-至此，基础环境已经准备完毕，我们得到以下目录结构：
+至此，基础环境已经准备完毕，可以得到以下目录结构：
 
 ```shell
 chinese_guide_of_nicegui_for_beginner
@@ -94,7 +98,7 @@ chinese_guide_of_nicegui_for_beginner
 └─tests
 ```
 
-`./src/chinese_guide_of_nicegui_for_beginner/`下存放我们的源代码，后续的代码操作（创建修改）均在此目录。此外，项目根目录下有`pyproject.toml`（项目描述文件）和`README.md`（自述文件），本教程不涉及手动修改。
+`./src/chinese_guide_of_nicegui_for_beginner/`下存放项目的源代码，后续的代码操作（创建修改）均在此目录。此外，项目根目录下有`pyproject.toml`（项目描述文件）和`README.md`（自述文件），本教程不涉及手动修改。
 
 #### 1.1.2 nicegui运行环境
 
@@ -106,7 +110,7 @@ pdm add nicegui
 
 安装过程取决于网速，耐心等待。
 
-如果后续项目中需要使用其他库，可以使用`pdm add 库对应的pip安装命令中的名字`来添加到我们的项目环境中。
+如果后续项目中需要使用其他库，可以使用`pdm add 库对应的pip安装命令中的名字`来添加到项目环境中。
 
 对于调试使用nicegui的程序，通常在`native mode`下比较方便，因此，建议安装`pywebview`来增加`native mode`的支持，命令是：
 
@@ -118,7 +122,7 @@ pdm add pywebview
 
 ### 1.2 开发工具
 
-VSCode或者PyCharm，其中VSCode比PyCharm轻量，但需要手动安装python插件，而PyCharm自带插件，操作简单。这里推荐使用VSCode，比较流畅，如果是使用PyCharm，后续操作根据VSCode对应即可。
+[VSCode](https://code.visualstudio.com/)或者[PyCharm](https://www.jetbrains.com/pycharm/download/)，其中VSCode比PyCharm轻量，但需要手动安装python插件，而PyCharm自带插件，操作简单。这里推荐使用VSCode，比较流畅，如果是使用PyCharm，后续操作根据VSCode对应即可。
 
 对于VSCode，建议安装以下插件：
 
@@ -187,9 +191,9 @@ VUE官方文档：https://cn.vuejs.org/guide/introduction
 
 #### 2.1.1 nicegui的`Hello World!`
 
-如果你能看到这里，证明你有学好nicegui的基础和能力，并不畏惧上一节提到的那么多基础知识。那么，就让我们用一段简单的`Hello World!`代码开启nicegui的入门之旅。
+如果你能看到这里，证明你有学好nicegui的基础和能力，并不畏惧上一节提到的那么多基础知识。那么，就用一段简单的`Hello World!`代码开启nicegui的入门之旅。
 
-使用VSCode在我们的项目文件夹下的`src\chinese_guide_of_nicegui_for_beginner`内，新建以`py`为后缀的python代码文件，复制以下代码到代码文件中，保存。
+使用VSCode在项目文件夹下的`src\chinese_guide_of_nicegui_for_beginner`内，新建以`py`为后缀的python代码文件，复制以下代码到代码文件中，保存。
 
 ```python3
 from nicegui import ui
@@ -207,7 +211,7 @@ ui.run(native=True)
 
 <img src="README.assets/hello_world.png" alt="hello_world" style="zoom:50%;" />
 
-从`Hello World!`示例可以看到，基于nicegui的python程序寥寥三行代码，除去导入语句和必不可少的`ui.run`，主体只有一行代码，就能实现一个完整的交互过程，足见nicegui的强大、简洁。后续我们的很多例子都可以做到几行代码实现不错的效果，这也是我学习nicegui的原因和动力。
+从`Hello World!`示例可以看到，基于nicegui的python程序寥寥三行代码，除去导入语句和必不可少的`ui.run`，主体只有一行代码，就能实现一个完整的交互过程，足见nicegui的强大、简洁。后续教程中很多例子都可以做到几行代码实现不错的效果，这也是nicegui大受欢迎的原因。
 
 ### 2.2 nicegui的基本结构
 
