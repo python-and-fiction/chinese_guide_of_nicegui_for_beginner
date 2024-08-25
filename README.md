@@ -177,6 +177,8 @@ nicegui的底层使用了`fastapi`作为运行服务器，`Quasar`作为前端�
 
 nicegui官方文档：https://nicegui.io/documentation
 
+fastapi官方文档：https://fastapi.tiangolo.com/zh/
+
 Quasar官方文档：https://quasar.dev/docs
 
 tailwindcss官方文档：https://tailwindcss.com/
