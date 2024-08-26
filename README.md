@@ -24,9 +24,9 @@
 
 为了保证最佳开发体验，所有的环境准备优先使用Windows系统，使用Linux、Mac的话，请自己根据系统变通。
 
-首先，需要准备python解释器和`pip`。其中，Python解释器是运行后续代码、工具的基础，只需到官网安装最新稳定版（当前为3.12.*）即可；`pip`是Python官方的包管理工具，安装解释器时务必勾选此选项，如果没有勾选或者想要后续单独安装`pip`，可以到[pypi](https://pypi.org/)官方查看安装方法，这里不在赘述。
+首先，需要准备python解释器和pip。其中，Python解释器是运行后续代码、工具的基础，只需到官网安装最新稳定版（当前为3.12.*）即可；pip是Python官方的包管理工具，安装解释器时务必勾选此选项，如果没有勾选或者想要后续单独安装pip，可以到[pypi](https://pypi.org/)官方查看安装方法，这里不在赘述。
 
-环境管理工具有`pdm`和`poetry`,使用以下命令全部安装：
+环境管理工具有pdm和poetry，使用以下命令全部安装：
 
 ```shell
 pip install pdm poetry
@@ -34,11 +34,11 @@ pip install pdm poetry
 
 环境管理工具是快捷管理python运行环境的工具，可以创建出独立的python运行环境，各个运行环境内安装的软件包不会干扰其他环境，也不会影响到默认的python环境。
 
-`pdm`是一款国人创建的环境管理工具，语法简单，操作方便，因此教程采用此工具。
+pdm是一款国人创建的环境管理工具，语法简单，操作方便，因此教程采用此工具。
 
-`poetry`也是一款环境管理工具，是nicegui官方仓库采用的，可以基于官方源代码自己编译安装包，也用于后续自托管文档，因此需要安装。
+poetry也是一款环境管理工具，是nicegui官方仓库采用的，可以基于官方源代码自己编译安装包，也用于后续自托管文档，因此需要安装。
 
-但是，`poetry`的检查依赖速度比`pdm`慢太多，故这里采用`pdm`作为学习工具，如果读者有能力，可以只使用`poetry`。
+但是，poetry的检查依赖速度比pdm慢太多，故这里采用pdm作为学习工具，如果读者有能力，可以只使用poetry。
 
 #### 1.1.1 基础环境初始化
 
@@ -114,7 +114,7 @@ pdm add nicegui
 
 如果后续项目中需要使用其他库，可以使用`pdm add 库对应的pip安装命令中的名字`来添加到项目环境中。
 
-对于调试使用nicegui的程序，通常在`native mode`下比较方便，因此，建议安装`pywebview`来增加`native mode`的支持，命令是：
+对于调试使用nicegui的程序，通常在 native mode 下比较方便，因此，建议安装`pywebview`来增加 native mode 的支持，命令是：
 
 ```shell
 pdm add pywebview
@@ -138,7 +138,7 @@ ms-python.black-formatter
 
 因为官网文档是可交互的，只有连接到官网才能操作。但是，部分地区的访问官网存在网络不佳的情况，如果需要自托管官网文档，可以遵循以下步骤。
 
-首先要安装`git`，具体可以看[Git - 安装 Git](https://git-scm.com/book/zh/v2/%E8%B5%B7%E6%AD%A5-%E5%AE%89%E8%A3%85-Git)。
+首先要安装git，具体可以看[Git - 安装 Git](https://git-scm.com/book/zh/v2/%E8%B5%B7%E6%AD%A5-%E5%AE%89%E8%A3%85-Git)。
 
 安装完成后，额外找一个空白文件夹，打开终端，执行以下命令：
 
@@ -179,7 +179,7 @@ poetry run python .\main.py
 
 nicegui 是一个开源的python库，可以搭建运行在浏览器的图形界面，也就是WebUI，也可以理解为和网站一样。nicegui的学习过程并不难，但不意味着你可以零基础入门。对于开发nicegui的开发者而言，python的基础是必须的；如果掌握python不常用语法和用法更好，后续在使用nicegui的过程中，可以很方便理解一些为了达成效果而使用的骚操作。尽管大部分python的学习者是零基础入门，除了转全栈、爬虫的开发者，后续学习过程中很少接触前端（HTML、CSS、JavaScript），但还是在使用nicegui之前，要有学习前端的心理准备。nicegui为了方便python工程师快速搭建图形界面，专注于python代码本身，做了不少前端细节的隐藏。不过，默认的样式不一定符合预期效果，为了达成效果，还是需要了解一些前端知识，才能让界面完全符合心意。
 
-nicegui的底层使用了`fastapi`作为运行服务器，`Quasar`作为前端框架，支持`tailwindcss`的CSS语法，因为`Quasar`的内部使用`VUE`搭建，nicegui也不可避免地用到了`VUE`的语法。因此，对于想要用好nicegui的开发者，在后续使用nicegui的过程中，需要对上述提到的项目有一定了解。想要对后端部分定制、修改的，需要了解`fastapi`以及其基于的其他组件；想要让界面美化、随心的，需要掌握`Quasar`、`tailwindcss`基础；对于有能力和需求完全定制界面的，则需要掌握`VUE`基础。
+nicegui的底层使用了fastapi作为运行服务器，Quasar作为前端框架，支持tailwindcss的CSS语法，因为Quasar的内部使用VUE搭建，nicegui也不可避免地用到了VUE的语法。因此，对于想要用好nicegui的开发者，在后续使用nicegui的过程中，需要对上述提到的项目有一定了解。想要对后端部分定制、修改的，需要了解fastapi以及其基于的其他组件；想要让界面美化、随心的，需要掌握Quasar、tailwindcss基础；对于有能力和需求完全定制界面的，则需要掌握VUE基础。
 
 相关链接：
 
@@ -249,7 +249,7 @@ ui.run(native=True)
 
 在`Hello World!`示例中，使用了导入语句`from nicegui import ui`导入了`ui`，顾名思义，ui就是用户界面，这也是nicegui调用控件的模块，也可以调用布局。具体的控件和布局用法可以参考下一节[nicegui中不得不学的功能](#2.3 nicegui中不得不学的功能)，下一节将选取一些nicegui中常用、不好理解的功能重点讲解。
 
-因为nicegui是基于`Quasar`这个Web框架做的python调用绑定，因此，nicegui的交互部分，很大程度与Web结合。在Web设计中，基于CSS实现的美化效果，基于JavaScript的event做的事件响应，都能在nicegui中看到。所以，如果用好nicegui，对Web三件套HTML、CSS、JavaScript的学习不可避免。此外，因为nicegui与`Quasar`这个Web框架的深度集成的关系，`Quasar`中的属性、slot、事件也需要掌握，才能让交互设计更加得心应手。
+因为nicegui是基于Quasar这个Web框架做的python调用绑定，因此，nicegui的交互部分，很大程度与Web结合。在Web设计中，基于CSS实现的美化效果，基于JavaScript的event做的事件响应，都能在nicegui中看到。所以，如果用好nicegui，对Web三件套HTML、CSS、JavaScript的学习不可避免。此外，因为nicegui与Quasar这个Web框架的深度集成的关系，Quasar中的属性、slot、事件也需要掌握，才能让交互设计更加得心应手。
 
 关于美化，下一节中的[外观美化](#2.3.7 外观美化)将会详细介绍，也可以查阅对应的官方文档。事件的学习，可以参阅下一节的[事件和执行](#2.3.8 事件和执行)，也可以查阅对应的官方文档。
 
@@ -297,6 +297,30 @@ ui.html
 
 
 #### 2.3.7 外观美化
+
+
+
+无需死记硬背tailwindcss，也不需要反复查询官网，直接使用`.tailwindcss`属性或者使用`Tailwind`对象，会有自动提示。
+
+比如：
+
+```python3
+from nicegui import ui,app
+from nicegui.tailwind import Tailwind
+
+#设定标签的字体颜色为红色
+label = ui.label('Style')
+red_style = Tailwind().text_color('red-400')
+red_style.apply(label)
+#上述代码可以简化为一行，但是调用tailwind必须放到最后。
+#因为tailwind的函数返回的是tailwind对象，不是element对象。
+#调用完tailwind之后没法继续调用基于element的方法。
+ui.label('Style').tailwind.text_color('red-400')
+#以上方法等同于设定class为text-red-400
+ui.label('Style').classes('text-red-400')
+
+ui.run(native=True)
+```
 
 
 
@@ -357,26 +381,32 @@ with ui.button('button_').add_slot('default'):
 
 ### 3.3 tailwindcss的技巧
 
-无需死记硬背tailwindcss，也不需要反复查询官网，直接使用`.tailwindcss`属性或者使用`Tailwind`对象，会有自动提示。
-
-比如：
+不同于CSS定义中伪类在冒号之后来定义效果，在tailwindcss中，美化悬停（hover）和激活（active），需要放在冒号之前，冒号后紧随着要对状态应用的效果。比如，要实现标签背景颜色的悬停为红色、点击为黄色，代码如下：
 
 ```python3
-from nicegui import ui,app
-from nicegui.tailwind import Tailwind
+ui.label('label').classes('w-16 h-8 bg-green-400 hover:bg-red-400 active:bg-yellow-400')
+```
 
-#设定标签的字体颜色为红色
-label = ui.label('Style')
-red_style = Tailwind().text_color('red-400')
-red_style.apply(label)
-#上述代码可以简化为一行，但是调用tailwind必须放到最后。
-#因为tailwind的函数返回的是tailwind对象，不是element对象。
-#调用完tailwind之后没法继续调用基于element的方法。
-ui.label('Style').tailwind.text_color('red-400')
-#以上方法等同于设定class为text-red-400
-ui.label('Style').classes('text-red-400')
+类似的，还可以实现暗黑模式（dark）下的颜色定义，点击switch来切换暗黑模式的开关，可以看到标签在暗黑模式下的背景颜色为红色，非暗黑模式下的背景颜色为绿色，代码如下：
 
-ui.run(native=True)
+```python3
+ui.label('label').classes('w-16 h-8 bg-green-400 dark:bg-red-400')
+dark_mode = ui.dark_mode()
+switch = ui.switch('Dark Mode',on_change=lambda :dark_mode.set_value(switch.value))
+```
+
+在此基础上，还有一种根据屏幕宽度调整显示的技巧，就是将冒号前的单词换成代表屏幕宽度的断点`sm`、`md`、`lg`、`xl`、`2xl`。如果要让标签的宽度随窗口大小变化自适应，也就是小窗口宽度小一些，窗口越大，宽度越大，那么，代码可以这样写：
+
+```python3
+ui.label('label').classes('w-64 h-8 bg-green-400 sm:w-8 md:w-16 lg:w-32')
+```
+
+然而，运行之后，可以看到上面的代码其实有问题，按照理解这样写是没错，但断点代表的含义是，大于这个屏幕宽度值才会应用这个样式，而且一次写这么多条，等屏幕宽度同时符合两条以上条件的时候，CSS就会处于竞争选择的状态，虽然样式上表现可能没问题，但规范要求应该明确断点范围，就好像写分段函数一样，必须明确区间。
+
+所以，正确的根据屏幕宽度使用不同的样式应该这样写。使用`max-*`来表示最大到什么大小使用什么样式，使用冒号表示区间范围。于是，可以用`sm:max-md:w-16`来表示`sm`到`md`的范围内使用`w-16`的宽度样式，具体代码如下：
+
+```python3
+ui.label('label').classes('h-8 bg-green-400 max-sm:w-8 sm:max-md:w-16 md:max-lg:w-32 lg:w-64')
 ```
 
 ### 3.4 具体示例【随时更新】
@@ -399,7 +429,7 @@ ui.run(native=True)
 
 1，在native mode下，`ui.download`不能下载怎么办？
 
-因为`pywebview`默认不允许网页弹出下载，需要使用`app.native.settings['ALLOW_DOWNLOADS'] = True`修改`pywebview`的配置，代码如下：
+因为pywebview默认不允许网页弹出下载，需要使用`app.native.settings['ALLOW_DOWNLOADS'] = True`修改pywebview的配置，代码如下：
 
 ```python3
 from nicegui import ui, app
@@ -416,3 +446,16 @@ ui.run(native=True)
 
 修改`ui.run()`的默认参数`show`为`False`，使用`ui.run(show=False)`。
 
+#### 3.4.4 ui.button
+
+1，想要在定义之后修改button的颜色，但是`bg-*`的tailwindcss样式没有用，怎么实现？
+
+button的默认颜色由Quasar控制，而Quasar的颜色应用使用最高优先级的`!important`，tailwindcss的颜色样式默认比这个低，所以无法成功。如果想修改颜色可以，修改button的`color`属性。或者使用`!bg-*`来强制应用。代码如下：
+
+```python3
+ui.button('button').props('color="red-10"')
+#或者强制应用tailwindcss
+ui.button('button').classes('!bg-red-700')
+```
+
+注意：Quasar的颜色体系和tailwindcss的颜色体系不同。Quasar中，使用`color-[1-14]`来表示颜色，数字表示颜色程度，可选。tailwindcss中，使用`type-color-[50-950]`表示颜色，type为功能类别，数字表示颜色程序，可选。需要注意代码中不同方式使用的颜色体系。
