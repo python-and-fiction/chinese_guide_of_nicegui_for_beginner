@@ -18,6 +18,8 @@
 
 ## 1 环境准备
 
+本章主要介绍运行和开发nicegui程序的环境准备，包括虚拟环境的建立、开发工具的选择、如何自托管文档。
+
 ### 1.1 运行环境
 
 为了保证最佳开发体验，所有的环境准备优先使用Windows系统，使用Linux、Mac的话，请自己根据系统变通。
@@ -132,7 +134,7 @@ ms-python.autopep8
 ms-python.black-formatter
 ```
 
-### 1.3 自托管文档[可选]
+### 1.3 自托管文档【可选】
 
 因为官网文档是可交互的，只有连接到官网才能操作。但是，部分地区的访问官网存在网络不佳的情况，如果需要自托管官网文档，可以遵循以下步骤。
 
@@ -170,6 +172,8 @@ poetry run python .\main.py
 如果官方有源代码更新，后续将源代码解压覆盖之后，执行一次安装操作即可更新。
 
 ## 2 入门基础（更新中）
+
+本章主要介绍nicegui的基础知识，系统性了解nicegui的基本结构，在自学nicegui、查阅官网文档时有方向。
 
 ### 2.1 认识nicegui
 
@@ -215,8 +219,165 @@ ui.run(native=True)
 
 ### 2.2 nicegui的基本结构
 
+#### 2.2.1 图形界面的基础概念
+
+在正式学习nicegui之前，需要先对图形界面有个基础的理解。
+
+一般来说，搭建图形界面理解三个概念：控件、布局、交互。
+
+控件：
+
+控件是搭建图形界面的基本元素，就像是盖房子用的砖、门、窗等最小搭建单位。控件通常是图形界面框架提供、直接可用的。如果使用过程中发现基本元素不够，可以结合布局功能，用基本元素组合出新的控件。
+
+布局：
+
+布局是排布控件的方式，就像是房屋的基本框架。用砖可以铺地，也可以垒墙，对于砖而言，墙或是地，就是布局。控件是横向排列还是竖向排列，是像网格一样一一对应，还是大控件套着小控件，都是由布局控制。大部分图形程序框架提供的布局类似，除了基本的几种布局之外，部分图形程序框架还提供额外的组合布局。
+
+交互：
+
+交互是图形界面的重中之重，也是一个程序最难的部分。论难度的话，前面的控件和布局的学习只是对照文档，按图索骥，交互则需要身经百战，不断积累经验。
+
+事件机制是目前大部分图形界面采用的交互反馈机制，也就是基于特定的事件触发，执行对应的函数。在微软winform中采用的消息机制，Qt的信号与槽，现代网页开发中的event事件监听，都可以理解为事件机制，只是对于winform和Qt而言，他们框架内的事件分别叫做消息和信号而已。
+
+除了事件机制，美化也是交互的一部分。大部分现代图形界面框架。如Qt、WPF以及一系列基于网页开发的图形界面框架，支持CSS或者类似语法的美化功能，让图形界面变得更加美观，也让控件的动画效果更加丰富，这个极大提升了用户的使用体验。
+
+此外，基于图形界面框架的特性，后端的处理逻辑以及数据的传递也是交互的一部分。在函数内，对于控件的控制，如何做到符合要求，毕竟有的框架、编程语言不支持没有定义或者声明函数就调用，而有的语言不支持声明函数。如果需要让控件显示的文本与另一个控件的文本一致，如何处理数据同步过程也需要技巧。
+
+#### 2.2.2 nicegui与基础概念的对应（更新中）
+
+对图形界面有基础的理解之后，下面就可以根据nicegui与基础概念的对应，进一步理解nicegui的设计理念。
+
+在`Hello World!`示例中，使用了导入语句`from nicegui import ui`导入了`ui`，顾名思义，ui就是用户界面，这也是nicegui调用控件的模块，也可以调用布局。
 
 
 
-## 3 高阶技巧（更新中）
+
+
+### 2.2.3 nicegui中不得不学的功能（更新中）
+
+以下是官网文档对于nicegui提供的功能做了大致的划分，本教程将会对不好掌握、需要重点学习的部分进行剖析：
+
+文本元件：https://nicegui.io/documentation/section_text_elements
+
+常用控件：https://nicegui.io/documentation/section_controls
+
+多媒体元件：https://nicegui.io/documentation/section_audiovisual_elements
+
+数据展示：https://nicegui.io/documentation/section_data_elements
+
+属性绑定：https://nicegui.io/documentation/section_binding_properties
+
+图形布局：https://nicegui.io/documentation/section_page_layout
+
+外观定制：https://nicegui.io/documentation/section_styling_appearance
+
+事件和运行器：https://nicegui.io/documentation/section_action_events
+
+网站页面：https://nicegui.io/documentation/section_pages_routing
+
+部署与配置：https://nicegui.io/documentation/section_configuration_deployment
+
+
+
+
+
+## 3 高阶技巧
+
+本章主要介绍一些高阶技巧和常见问题，读者可以根据标题查阅。
+
+### 3.1 with的技巧
+
+with可以嵌套使用，来实现类似HTML中div嵌套的效果，比如：
+
+```python3
+with ui.element('div') as div1:
+    with ui.element('div') as div2:
+        ui.label('div in div')
+```
+
+也可以缩减一行，让代码更加紧凑：
+
+```python3
+with ui.element('div') as div1, ui.element('div') as div2:
+    ui.label('div in div')
+```
+
+### 3.2 slot的技巧
+
+其实，所有的`with element`都是修改了 element 中名为`default`的slot。基于这个操作原理，可以借用`add_slot`的方法，结合`wiht`的用法，优雅、快捷地美化元素，实现复杂的布局。
+
+比如，`ui.dropdown_button`有两个slot，`default`和`label`；其中，`default`就是默认的slot，常规方法就可以嵌入元素到弹出的下拉列表里，如果想要像修改`ui.button`一样修改`ui.dropdown_button`本身，则要修改`ui.dropdown_button`的`label`这个slot，代码如下：
+
+```python3
+with ui.dropdown_button('button_'):
+     ui.label('default slot')
+#和上面的代码相同，主要是为了和下面的代码对比
+with ui.dropdown_button('button_').add_slot('default'):
+     ui.label('default slot')
+#修改另一个slot，可以查看不同的效果
+with ui.dropdown_button('button_').add_slot('label'):
+     ui.label('default slot')
+#可以对比 dropdown_button 和 button 的显示效果
+with ui.button('button_').add_slot('default'):
+     ui.label('default slot')
+```
+
+### 3.3 tailwindcss的技巧
+
+无需死记硬背tailwindcss，也不需要反复查询官网，直接使用`.tailwindcss`属性或者使用`Tailwind`对象，会有自动提示。
+
+比如：
+
+```python3
+from nicegui import ui,app
+from nicegui.tailwind import Tailwind
+
+#设定标签的字体颜色为红色
+label = ui.label('Style')
+red_style = Tailwind().text_color('red-400')
+red_style.apply(label)
+#上述代码可以简化为一行，但是调用tailwind必须放到最后。
+#因为tailwind的函数返回的是tailwind对象，不是element对象。
+#调用完tailwind之后没法继续调用基于element的方法。
+ui.label('Style').tailwind.text_color('red-400')
+
+ui.run(native=True)
+```
+
+### 3.4 具体示例（随时更新）
+
+#### 3.4.1 app.*
+
+1，每次关闭程序都要在终端按下`Ctrl+C`，能不能在用户界面添加一个关闭整个程序的按钮？
+
+通常情况下，nicegui程序作为一个网站，不需要关闭。但是，如果是当做桌面程序使用或者有不得不关闭的情况，让用户在终端按下`Ctrl+C`不太方便，如果程序是以无终端的方式运行，在终端按下`Ctrl+C`就更不可能。这个时候，可以调用`app.shutdown()`来关闭整个程序，代码如下：
+
+```python3
+from nicegui import ui,app
+
+ui.button('shutdown',on_click=app.shutdown)
+
+ui.run(native=True)
+```
+
+#### 3.4.2 app.native
+
+1，在native mode下，`ui.download`不能下载怎么办？
+
+因为`pywebview`默认不允许网页弹出下载，需要使用`app.native.settings['ALLOW_DOWNLOADS'] = True`修改`pywebview`的配置，代码如下：
+
+```python3
+from nicegui import ui, app
+
+app.native.settings['ALLOW_DOWNLOADS'] = True
+ui.button("Download", on_click=lambda: ui.download(b'Demo text','demo_file.txt'))
+
+ui.run(native=True)
+```
+
+#### 3.4.3 ui.*
+
+1，默认运行会弹出浏览器窗口，如何做到不让浏览器弹出？
+
+修改`ui.run()`的默认参数`show`为`False`，使用`ui.run(show=False)`。
 
