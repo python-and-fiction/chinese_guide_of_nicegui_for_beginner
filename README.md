@@ -171,7 +171,7 @@ poetry run python .\main.py
 
 如果官方有源代码更新，后续将源代码解压覆盖之后，执行一次安装操作即可更新。
 
-## 2 入门基础（更新中）
+## 2 入门基础
 
 本章主要介绍nicegui的基础知识，系统性了解nicegui的基本结构，在自学nicegui、查阅官网文档时有方向。
 
@@ -225,15 +225,15 @@ ui.run(native=True)
 
 一般来说，搭建图形界面理解三个概念：控件、布局、交互。
 
-控件：
+##### 2.2.1.1 控件
 
 控件是搭建图形界面的基本元素，就像是盖房子用的砖、门、窗等最小搭建单位。控件通常是图形界面框架提供、直接可用的。如果使用过程中发现基本元素不够，可以结合布局功能，用基本元素组合出新的控件。
 
-布局：
+##### 2.2.1.2 布局
 
 布局是排布控件的方式，就像是房屋的基本框架。用砖可以铺地，也可以垒墙，对于砖而言，墙或是地，就是布局。控件是横向排列还是竖向排列，是像网格一样一一对应，还是大控件套着小控件，都是由布局控制。大部分图形程序框架提供的布局类似，除了基本的几种布局之外，部分图形程序框架还提供额外的组合布局。
 
-交互：
+##### 2.2.1.3 交互
 
 交互是图形界面的重中之重，也是一个程序最难的部分。论难度的话，前面的控件和布局的学习只是对照文档，按图索骥，交互则需要身经百战，不断积累经验。
 
@@ -243,39 +243,72 @@ ui.run(native=True)
 
 此外，基于图形界面框架的特性，后端的处理逻辑以及数据的传递也是交互的一部分。在函数内，对于控件的控制，如何做到符合要求，毕竟有的框架、编程语言不支持没有定义或者声明函数就调用，而有的语言不支持声明函数。如果需要让控件显示的文本与另一个控件的文本一致，如何处理数据同步过程也需要技巧。
 
-#### 2.2.2 nicegui与基础概念的对应（更新中）
+#### 2.2.2 nicegui与基础概念的对应
 
 对图形界面有基础的理解之后，下面就可以根据nicegui与基础概念的对应，进一步理解nicegui的设计理念。
 
-在`Hello World!`示例中，使用了导入语句`from nicegui import ui`导入了`ui`，顾名思义，ui就是用户界面，这也是nicegui调用控件的模块，也可以调用布局。
+在`Hello World!`示例中，使用了导入语句`from nicegui import ui`导入了`ui`，顾名思义，ui就是用户界面，这也是nicegui调用控件的模块，也可以调用布局。具体的控件和布局用法可以参考下一节[nicegui中不得不学的功能](#2.3 nicegui中不得不学的功能)，下一节将选取一些nicegui中常用、不好理解的功能重点讲解。
+
+因为nicegui是基于`Quasar`这个Web框架做的python调用绑定，因此，nicegui的交互部分，很大程度与Web结合。在Web设计中，基于CSS实现的美化效果，基于JavaScript的event做的事件响应，都能在nicegui中看到。所以，如果用好nicegui，对Web三件套HTML、CSS、JavaScript的学习不可避免。此外，因为nicegui与`Quasar`这个Web框架的深度集成的关系，`Quasar`中的属性、slot、事件也需要掌握，才能让交互设计更加得心应手。
+
+关于美化，下一节中的[外观美化](#2.3.7 外观美化)将会详细介绍，也可以查阅对应的官方文档。事件的学习，可以参阅下一节的[事件和执行](#2.3.8 事件和执行)，也可以查阅对应的官方文档。
+
+### 2.3 nicegui中不得不学的功能（更新中）
+
+以下是官网文档对于nicegui提供的功能做了大致的划分，本教程将会对每个部分中不好掌握、需要重点学习的控件、功能进行剖析：
+
+1.   文本控件：https://nicegui.io/documentation/section_text_elements
+2.   常用控件：https://nicegui.io/documentation/section_controls
+3.   多媒体控件：https://nicegui.io/documentation/section_audiovisual_elements
+4.   数据控件：https://nicegui.io/documentation/section_data_elements
+5.   属性绑定：https://nicegui.io/documentation/section_binding_properties
+6.   图形布局：https://nicegui.io/documentation/section_page_layout
+7.   外观美化：https://nicegui.io/documentation/section_styling_appearance
+8.   事件和执行：https://nicegui.io/documentation/section_action_events
+9.   网站页面：https://nicegui.io/documentation/section_pages_routing
+10.   部署与配置：https://nicegui.io/documentation/section_configuration_deployment
+
+#### 2.3.1 文本控件
+
+ui.element
+
+ui.markdown
+
+ui.html
+
+#### 2.3.2 常用控件
 
 
 
+#### 2.3.3 多媒体控件
 
 
-### 2.2.3 nicegui中不得不学的功能（更新中）
 
-以下是官网文档对于nicegui提供的功能做了大致的划分，本教程将会对不好掌握、需要重点学习的部分进行剖析：
+#### 2.3.4 数据控件
 
-文本元件：https://nicegui.io/documentation/section_text_elements
 
-常用控件：https://nicegui.io/documentation/section_controls
 
-多媒体元件：https://nicegui.io/documentation/section_audiovisual_elements
+#### 2.3.5 属性绑定
 
-数据展示：https://nicegui.io/documentation/section_data_elements
 
-属性绑定：https://nicegui.io/documentation/section_binding_properties
 
-图形布局：https://nicegui.io/documentation/section_page_layout
+#### 2.3.6 图形布局
 
-外观定制：https://nicegui.io/documentation/section_styling_appearance
 
-事件和运行器：https://nicegui.io/documentation/section_action_events
 
-网站页面：https://nicegui.io/documentation/section_pages_routing
+#### 2.3.7 外观美化
 
-部署与配置：https://nicegui.io/documentation/section_configuration_deployment
+
+
+#### 2.3.8 事件和执行
+
+
+
+#### 2.3.9 网站页面
+
+
+
+#### 2.3.10 部署与配置
 
 
 
@@ -340,11 +373,13 @@ red_style.apply(label)
 #因为tailwind的函数返回的是tailwind对象，不是element对象。
 #调用完tailwind之后没法继续调用基于element的方法。
 ui.label('Style').tailwind.text_color('red-400')
+#以上方法等同于设定class为text-red-400
+ui.label('Style').classes('text-red-400')
 
 ui.run(native=True)
 ```
 
-### 3.4 具体示例（随时更新）
+### 3.4 具体示例【随时更新】
 
 #### 3.4.1 app.*
 
@@ -377,7 +412,7 @@ ui.run(native=True)
 
 #### 3.4.3 ui.*
 
-1，默认运行会弹出浏览器窗口，如何做到不让浏览器弹出？
+1，非native mode的话，默认运行会弹出浏览器窗口，如何做到不让浏览器弹出？
 
 修改`ui.run()`的默认参数`show`为`False`，使用`ui.run(show=False)`。
 
