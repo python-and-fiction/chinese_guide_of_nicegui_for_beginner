@@ -114,7 +114,7 @@ pdm add nicegui
 
 如果后续项目中需要使用其他库，可以使用`pdm add 库对应的pip安装命令中的名字`来添加到项目环境中。
 
-对于调试使用nicegui的程序，通常在 native mode 下比较方便，因此，建议安装`pywebview`来增加 native mode 的支持，命令是：
+对于调试使用nicegui的程序，通常在native mode下比较方便，因此，建议安装`pywebview`来增加native mode的支持，命令是：
 
 ```shell
 pdm add pywebview
@@ -237,7 +237,7 @@ ui.run(native=True)
 
 交互是图形界面的重中之重，也是一个程序最难的部分。论难度的话，前面的控件和布局的学习只是对照文档，按图索骥，交互则需要身经百战，不断积累经验。
 
-事件机制是目前大部分图形界面采用的交互反馈机制，也就是基于特定的事件触发，执行对应的函数。在微软winform中采用的消息机制，Qt的信号与槽，现代网页开发中的event事件监听，都可以理解为事件机制，只是对于winform和Qt而言，他们框架内的事件分别叫做消息和信号而已。
+事件机制是目前大部分图形界面采用的交互反馈机制，也就是基于特定的事件触发，执行对应的函数。微软的winform中采用的消息机制，Qt的信号与槽，现代网页开发中的event事件监听，都可以理解为事件机制，只是对于winform和Qt而言，他们框架内的事件分别叫做消息和信号而已。
 
 除了事件机制，美化也是交互的一部分。大部分现代图形界面框架。如Qt、WPF以及一系列基于网页开发的图形界面框架，支持CSS或者类似语法的美化功能，让图形界面变得更加美观，也让控件的动画效果更加丰富，这个极大提升了用户的使用体验。
 
@@ -272,9 +272,43 @@ ui.run(native=True)
 
 ui.element
 
-ui.markdown
+通用元素，也是nicegui大部分界面控件的基类。很多控件都是通过继承这个类来调用自定义标签、JavaScript代码实现。通过继承实现自定义控件、修改默认风格属于高级用法，后续在高阶技巧中补充示例，这里只说基本用法。
 
-ui.html
+`tag`参数，默认为`div`，表示生成的元素用什么标签，实际使用时可以根据需要修改为其他HTML标签或者Quasar标签。代码如下：
+
+```python3
+with ui.element('div').classes('p-2 bg-blue-100'):
+    ui.label('inside a colored div')
+```
+
+`move`方法，将控件移动到指定控件之内，默认为`default`slot，也可以传递`target_slot`参数，指定slot。代码如下：
+
+```python3
+with ui.card() as card:
+    name = ui.input('Name', value='Paul')
+    name.add_slot('append')
+    icon = ui.icon('face')
+
+ui.button('Move into input default slot', on_click=lambda: icon.move(name))
+ui.button('Move into input append slot', on_click=lambda: icon.move(name, target_slot='append'))
+ui.button('Move out of input', on_click=lambda: icon.move(card))
+```
+
+ui.markdown和ui.html
+
+与`ui.label`类似，`ui.markdown`和`ui.html`，都可以用来展示文本，只是后两者支持markdown语法和HTML语法，因为markdown语法支持一部分HTML的标签，可以看到放在`ui.markdown`里的HTML标签也能被解析。以下是三种控件解析同一内容的代码：
+
+```python3
+content = '''
+This is **Markdown**.
+This is <u>emphasized</u>
+'''
+ui.label(content)
+ui.markdown(content)
+ui.html(content)
+```
+
+此外，`ui.html`还支持传入`tag`参数给基类`ui.element`，用于修改生成`ui.html`用的标签。
 
 #### 2.3.2 常用控件
 
