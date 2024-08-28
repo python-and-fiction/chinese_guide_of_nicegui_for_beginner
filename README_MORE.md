@@ -6,8 +6,6 @@
 
 [TOC]
 
-
-
 ## 3 高阶技巧
 
 本章主要介绍一些高阶技巧，需要一定的基础。
@@ -49,6 +47,8 @@ with ui.button('button_').add_slot('default'):
      ui.label('default slot')
 ```
 
+![slot](README_MORE.assets/slot.png)
+
 ### 3.3 tailwindcss的技巧
 
 不同于CSS定义中伪类在冒号之后来定义效果，在tailwindcss中，美化悬停（hover）和激活（active），需要放在冒号之前，冒号后紧随着要对状态应用的效果。比如，要实现标签背景颜色的悬停为红色、点击为黄色，代码如下：
@@ -79,11 +79,21 @@ ui.label('label').classes('w-64 h-8 bg-green-400 sm:w-8 md:w-16 lg:w-32')
 ui.label('label').classes('h-8 bg-green-400 max-sm:w-8 sm:max-md:w-16 md:max-lg:w-32 lg:w-64')
 ```
 
-### 3.4 自定义控件（更新中）
+### 3.4 自定义控件
 
-#### 3.4.1 通过继承nicegui现有控件来创建新控件（更新中）
+#### 3.4.1 通过继承nicegui现有控件来创建新控件
 
+在python中，可以通过继承来扩展现有类的功能，这个操作对于nicegui同样适用。
 
+如果想要基于button实现一个可以通过点击切换颜色的按钮，可以这样做：
+
+继承现有的控件类`ui.button`，先在`__init__`内调用父类的初始化方法；然后增加`_state`属性，默认为`False`，用于保存状态；最后定义点击事件的响应调用自身的`toggle`方法。
+
+增加`toggle`方法，在方法内实现每次调用就翻转`_state`属性，并调用自身的`update`方法来更新显示。
+
+重写`update`方法，先要根据`_state`属性设定button的显示颜色（动态更新`color`属性，详见Quasar提供的API），调用父类的`update`方法更新显示。
+
+代码如下：
 
 ```python3
 class ToggleButton(ui.button):
@@ -105,25 +115,32 @@ class ToggleButton(ui.button):
 ToggleButton('Toggle me')
 ```
 
+![toggle_button](README_MORE.assets/toggle_button.gif)
 
+#### 3.4.2 使用Quasar的标签定义新控件
 
-#### 3.4.2 使用Quasar的标签定义新控件（更新中）
+如果想要实现的功能比较复杂，但是Quasar提供了nicegui没有实现的组件，还有一种简单的方法创建新控件。
 
+Quasar有一个浮动功能按钮[Floating Action Button](https://quasar.dev/vue-components/floating-action-button#introduction)，但nicegui没有实现。浮动功能按钮在Quasar的使用代码是：
 
+```html
+<q-fab color="green" icon="navigation" >
+    <q-fab-action color="green-5" icon="train" />
+    <q-fab-action color="green-5" icon="sailing" />
+    <q-fab-action color="green-5" icon="rocket" />
+</q-fab>
+```
+
+对应地，将HTML标签嵌套关系转换为python代码，`q-fab`标签就变成了`ui.element('q-fab')`，代码如下：
 
 ```python3
 with ui.element('q-fab').props('icon=navigation color=green'):
-    ui.element('q-fab-action').props('icon=train color=green-5') \
-        .on('click', lambda: ui.notify('train'))
-    ui.element('q-fab-action').props('icon=sailing color=green-5') \
-        .on('click', lambda: ui.notify('boat'))
-    ui.element('q-fab-action').props('icon=rocket color=green-5') \
-        .on('click', lambda: ui.notify('rocket'))
+    ui.element('q-fab-action').props('icon=train color=green-5').on('click', lambda: ui.notify('train'))
+    ui.element('q-fab-action').props('icon=sailing color=green-5').on('click', lambda: ui.notify('boat'))
+    ui.element('q-fab-action').props('icon=rocket color=green-5').on('click', lambda: ui.notify('rocket'))
 ```
 
-
-
-
+![ui_element_q_fab](README_MORE.assets/ui_element_q_fab.gif)
 
 ## 4 具体示例【随时更新】
 
@@ -177,21 +194,26 @@ ui.run(native=True)
 button的默认颜色由Quasar控制，而Quasar的颜色应用使用最高优先级的`!important`，tailwindcss的颜色样式默认比这个低，所以无法成功。如果想修改颜色，可以修改button的`color`属性。或者使用`!bg-*`来强制应用。代码如下：
 
 ```python3
+from nicegui import ui
+
 ui.button('button').props('color="red-10"')
 #或者强制应用tailwindcss
 ui.button('button').classes('!bg-red-700')
+
+ui.run(native=True)
 ```
 
 注意：Quasar的颜色体系和tailwindcss的颜色体系不同。Quasar中，使用`color-[1-14]`来表示颜色，数字表示颜色程度，可选。tailwindcss中，使用`type-color-[50-950]`表示颜色，type为功能类别，数字表示颜色程序，可选。需要注意代码中不同方式使用的颜色体系。
 
-### 4.5 ui.page_sticky（更新中）
+2，不擅长CSS的话，怎么用ui.button实现一个 Floating Action Button？
 
-1，不知道Quasar标签的话，怎么实现一个 Floating Action Button？
+Floating Action Button是特定最小尺寸的圆角按钮，如果熟悉CSS样式的话，可以将普通的按钮改成类似样式，但是，ui.button自带一个`fab`属性，可以一步完成，省去调整CSS的过程，代码如下：
 
 ```python3
-ui.colors(accent='#6AD4DD')
-with ui.page_sticky(x_offset=18, y_offset=18):
-    ui.button(icon='home', on_click=lambda: ui.notify('home')) \
-        .props('fab color=accent')
+from nicegui import ui
+
+ui.button(icon='home', on_click=lambda: ui.notify('home')).props('fab')
+
+ui.run(native=True)
 ```
 

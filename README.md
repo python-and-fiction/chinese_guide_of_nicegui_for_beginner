@@ -272,6 +272,8 @@ ui.run(native=True)
 
 #### 2.3.1 文本控件
 
+文本类控件主要是一些静态展示可复制文本的控件，是构成网页显示效果的主要控件。
+
 ##### 2.3.1.1 ui.element
 
 通用元素，也是nicegui大部分界面控件的基类。很多控件都是通过继承这个类来调用自定义标签、JavaScript代码实现。通过继承实现自定义控件、修改默认风格属于高级用法，这里只说基本用法。
@@ -296,6 +298,8 @@ ui.button('Move into input append slot', on_click=lambda: icon.move(name, target
 ui.button('Move out of input', on_click=lambda: icon.move(card))
 ```
 
+![ui_element_move](README.assets/ui_element_move.gif)
+
 ##### 2.3.1.2 ui.markdown和ui.html
 
 与`ui.label`类似，`ui.markdown`和`ui.html`，都可以用来展示文本，只是后两者支持markdown语法和HTML语法，因为markdown语法支持一部分HTML的标签，可以看到放在`ui.markdown`里的HTML标签也能被解析。以下是三种控件解析同一内容的代码：
@@ -310,9 +314,15 @@ ui.markdown(content)
 ui.html(content)
 ```
 
-此外，`ui.html`还支持传入`tag`参数给基类`ui.element`，用于修改生成`ui.html`用的标签。
+此外，`ui.html`还支持传入`tag`参数给基类`ui.element`，用于修改生成`ui.html`用的标签，比如：
 
-#### 2.3.2 常用控件
+```python3
+ui.html('This is <u>emphasized</u>.', tag='em')
+```
+
+#### 2.3.2 常用控件（更新中）
+
+常用控件主要是一些支持点击、输入、拖动等交互功能的控件。
 
 ##### 2.3.2.1 ui.button
 
@@ -334,7 +344,7 @@ ui.html(content)
 
 
 
-#### 2.3.7 外观美化
+#### 2.3.7 外观美化（更新中）
 
 
 
