@@ -260,25 +260,59 @@ ui.run(native=True)
 以下是官网文档对于nicegui提供的功能做了大致的划分，本教程将会对每个部分中不好掌握、需要重点学习的控件、功能进行剖析：
 
 1.   文本控件：https://nicegui.io/documentation/section_text_elements
+
 2.   常用控件：https://nicegui.io/documentation/section_controls
+
 3.   多媒体控件：https://nicegui.io/documentation/section_audiovisual_elements
+
 4.   数据控件：https://nicegui.io/documentation/section_data_elements
+
 5.   属性绑定：https://nicegui.io/documentation/section_binding_properties
+
 6.   图形布局：https://nicegui.io/documentation/section_page_layout
+
 7.   外观美化：https://nicegui.io/documentation/section_styling_appearance
+
 8.   事件和执行：https://nicegui.io/documentation/section_action_events
+
 9.   网站页面：https://nicegui.io/documentation/section_pages_routing
+
 10.   部署与配置：https://nicegui.io/documentation/section_configuration_deployment
+
+
+这部分对于官方内容的解析并不会完全覆盖，主要讲经常用到的参数、属性、方法，对于某些隐藏参数和不常用的属性方法，会在后面用到的时候详细介绍，这里最多提一嘴。
 
 #### 2.3.1 文本控件
 
 文本类控件主要是一些静态展示可复制文本的控件，是构成网页显示效果的主要控件。
 
-##### 2.3.1.1 ui.element
+##### 2.3.1.1 ui.label
+
+文本标签，用法很简单，通过传入一个字符串类型的参数`text`，让网页显示字符串内的文字。注意，虽然参数支持多行文字，但是输出只能一行，需要原样输出多行文字的话，可以使用下面介绍的`ui.html`，将`tag`设置为`pre`。
+
+```python3
+ui.label(text='some label')
+```
+
+##### 2.3.1.2 ui.link
+
+超链接，一种点击之后跳转到指定地址的文本元素。可以传入`text`、`target`、`new_tab`三个参数。代码如下：
+
+```python3
+ui.link(text='NiceGUI on GitHub',target= 'https://github.com/zauberzeug/nicegui',new_tab=False)
+```
+
+`text`参数，字符串类型，表示超链接显示什么文字。
+
+`target`参数，字符串类型、`page function`、`ui.element`类型，表示超链接跳转到什么位置，这里只介绍字符串类型用法，其他类型可以自行探索或者后续需要用到的时候补充。字符串类型参数表示超链接跳转的url地址，可以使用协议开头的完整地址，也可以使用省略主机的绝对路径、相对路径。
+
+`new_tab`参数，布尔类型，默认为`False`，表示要不要在新建标签页中打开超链接。
+
+##### 2.3.1.3 ui.element
 
 通用元素，也是nicegui大部分界面控件的基类。很多控件都是通过继承这个类来调用自定义标签、JavaScript代码实现。通过继承实现自定义控件、修改默认风格属于高级用法，这里只说基本用法。
 
-`tag`参数，默认为`div`，表示生成的元素用什么标签，实际使用时可以根据需要修改为其他HTML标签或者Quasar标签。代码如下：
+`tag`参数，字符串类型，默认为`div`，表示生成的元素用什么标签，实际使用时可以根据需要修改为其他HTML标签或者Quasar标签。代码如下：
 
 ```python3
 with ui.element('div').classes('p-2 bg-blue-100'):
@@ -300,7 +334,7 @@ ui.button('Move out of input', on_click=lambda: icon.move(card))
 
 ![ui_element_move](README.assets/ui_element_move.gif)
 
-##### 2.3.1.2 ui.markdown和ui.html
+##### 2.3.1.4 ui.markdown和ui.html
 
 与`ui.label`类似，`ui.markdown`和`ui.html`，都可以用来展示文本，只是后两者支持markdown语法和HTML语法，因为markdown语法支持一部分HTML的标签，可以看到放在`ui.markdown`里的HTML标签也能被解析。以下是三种控件解析同一内容的代码：
 
@@ -314,17 +348,60 @@ ui.markdown(content)
 ui.html(content)
 ```
 
-此外，`ui.html`还支持传入`tag`参数给基类`ui.element`，用于修改生成`ui.html`用的标签，比如：
+此外，`ui.html`还支持传入字符串类型参数`tag`给基类`ui.element`，用于修改生成`ui.html`用的标签，比如：
 
 ```python3
 ui.html('This is <u>emphasized</u>.', tag='em')
 ```
 
-#### 2.3.2 常用控件（更新中）
+#### 2.3.2 常用控件
 
 常用控件主要是一些支持点击、输入、拖动等交互功能的控件。
 
 ##### 2.3.2.1 ui.button
+
+按钮作是网页交互设计中最常见的基本元素，在移动互联网没有普及之前，使用鼠标点击为主要交互方式的时代，除了用于跳转网页的超链接，按钮就是网页中用的最多的可交互元素。在nicegui中，按钮控件可以传入位置参数`text`，关键字参数`on_click`、`color`和`icon`。
+
+以下代码就是一个定义了基本交互的按钮，点击会弹出一个通知提示：
+
+```python3
+ui.button('Click me!',color='green',icon='thumb_up', on_click=lambda: ui.notify('You clicked me!'))
+```
+
+`text`参数，字符串类型，表示显示在按钮上的文字，如果是英文的话，默认全部大写。该参数默认只支持字符串类型，但是整数和小数可以直接使用，其他类型需要先转换为字符串类型才能传入。
+
+`color`参数，字符串类型或者None，表示按钮的颜色，支持传入字符串类型的颜色类（Quasar、 Tailwind、CSS的颜色名）或者None（即让按钮变成默认颜色）。
+
+`icon`参数，字符串类型，表示按钮额外显示的图标，支持传入字符串类型的图标名，具体名字会在`ui.icon`中介绍，这里不做详细介绍。
+
+`on_click`参数，可调用类型，表示点击按钮调用的函数，可以使用`lambda`表达式，也可以使用函数名。
+
+如果觉得对按钮传入参数来自定义按钮内容的方法太死板，也可以使用以下语法，使用`with`来进入按钮的`default slot`，随意组合按钮内的内容：
+
+```python3
+with ui.button(color='green',on_click=lambda: ui.notify('You clicked me!')):
+    ui.icon('thumb_up')
+    ui.label('Click me!')
+```
+
+![button](README.assets/ui_button.png)
+
+对于`on_click`参数、后续会涉及到的on开头的`on_*`参数、on开头的`on_*`方法和`on`方法里的callback或者handler参数，均为可调用类型参数，既可以在创建控件时定义lambda表达式，也可以提前定义。对于复杂一点逻辑操作，应该定义函数而不是lambda表达式，比如：
+
+```python3
+test = lambda :...
+#如果要执行的操作比较多、复杂，应该定义函数
+def test():
+    pass
+#在控件中调用可以直接使用test
+ui.button('Click me!',on_click=test)
+```
+
+##### 2.3.2.2 ui.input（更新中）
+
+
+
+
 
 
 
@@ -381,5 +458,4 @@ ui.run(native=True)
 
 
 #### 2.3.10 部署与配置
-
 
