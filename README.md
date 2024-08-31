@@ -393,37 +393,113 @@ test = lambda :...
 #如果要执行的操作比较多、复杂，应该定义函数
 def test():
     pass
-#在控件中调用可以直接使用test
+#在控件中传参可以直接使用test
 ui.button('Click me!',on_click=test)
 ```
 
-##### 2.3.2.2 ui.input（更新中）
+对于button等控件而言，除了支持通过传参创建响应动作，还支持调用对应的`on_*`方法（比如on_click）创建，这个方法极大提高了响应动作的灵活性，上面的例子就可以借助这个方法调整函数定义与按钮创建的先后顺序，代码如下：
 
+```python3
+button = ui.button('Click me!')
+def test():
+    pass
+button.on_click(test)
+```
 
+##### 2.3.2.2 ui.input
 
+输入框，大概是网页中仅次于按钮和超链接，用得最多的控件。HTML中输入框的变体很多，在nicegui中，输入框的参数也很多，基于输入框扩展的控件也多，使用输入框的逻辑设计、注意事项一样很多。不过，在这一节，针对输入框的学习并不会那么深入，只要能掌握常用的参数和基础的方法，那些疑难点会放到进阶和需要的时候细讲，以免一时不好理解而记混。
 
+以下代码定义了一个名字输入框和密码输入框，并在输入名字的时候，自动弹出通知显示名字和密码：
 
+```python3
+name = ui.input(label='Name:',value='Peter',on_change=lambda :ui.notify(f'{name.value=},{password.value=}'))
+password = ui.input(label='Password:',value='123456',password=True,password_toggle_button=True)
+```
 
+![input](README.assets/ui_input.png)
+
+`label`参数，字符串类型，直译的话是标签，表示显示在输入框上方的文本，但不是输入的文本，如果输入的内容是空的，点击输入的之前会显示在输入框内，点击之后会移动到输入框上方。
+
+`value`参数，字符串类型，表示输入框内的内容，也就是输入框的值。对于后续介绍的以及其他支持交互输入的控件，都会有这么一个参数、属性、相关方法，来设置控件的值，这一点上，nicegui的设计倒是很统一。
+
+`on_change`参数，可调用类型，表示输入框的值变化时执行的函数。
+
+`password`参数，布尔类型，表示输入框是否设置为密码输入框，如果设置为`True`，输入的内容将不显示明文，转而显示统一的密码符号。
+
+`password_toggle_button`参数，布尔类型，表示输入框内是否显示密码按钮，密码按钮可以切换输入框内的密码、明文状态。
+
+输入框控件还有很多参数和方法，就留给读者自己探索了，后续如有相关案例，到时候再细讲。
 
 #### 2.3.3 多媒体控件
+
+ui.image和ui.interactive_image
+
+
+
+ui.icon和ui.avatar
+
+
+
+ui.audio和ui.video
 
 
 
 #### 2.3.4 数据控件
 
+table
 
+echart
+
+pyplot
+
+progress（线性和圆形）只用来展示但不能输入的，输入要用slider和knob
+
+spinner
+
+tree
+
+editor
+
+code
 
 #### 2.3.5 属性绑定
 
-
+这一节只介绍绑定的用法（bind，from，to），提一嘴注意事项和性能问题（其他内容在高阶部分）
 
 #### 2.3.6 图形布局
 
+在默认首页下的布局
 
+常用布局 row column gird，
+
+列表布局list与column的差别
+
+可以展开的风琴控件expansion
+
+空白填充 space
+
+splitter和separator
+
+选项卡tabs
+
+轮播图carousel
+
+分页控件pagination
+
+菜单menu和context_menu
+
+工具提示tooltip
+
+通知控件notify和notification
+
+对话框dialog和搭配使用的card布局
 
 #### 2.3.7 外观美化（更新中）
 
+需要记住具体名字的style classes props方法
 
+稍微好记一点的tailwindcss属性
 
 无需死记硬背tailwindcss，也不需要反复查询官网，直接使用`.tailwindcss`属性或者使用`Tailwind`对象，会有自动提示。
 
@@ -449,13 +525,46 @@ ui.run(native=True)
 
 
 
+暗黑模式dark_mode
+
+
+
 #### 2.3.8 事件和执行
 
+通用事件
 
+常用事件app.on\_\*
+
+定时器timer
+
+键盘keyboard
+
+ui更新
+
+可刷新方法
+
+运行JavaScript代码
+
+异步事件处理器
 
 #### 2.3.9 网站页面
+
+ui.page和auto-index的区别
+
+页面布局三大块，header、footer和左右drawer
+
+page_title设置
+
+navigate函数
+
+ui.download
 
 
 
 #### 2.3.10 部署与配置
 
+ui.run端口、ip的配置，native mode的开启，reload的关闭
+
+native mode初始参数设置，窗口大小，是否运行调整窗口大小，是否允许下载，是否启用调试工具，调整窗口大小、设置窗口标题的api等
+
+nicegui-pack工具

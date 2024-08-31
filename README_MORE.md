@@ -148,6 +148,20 @@ with ui.element('q-fab').props('icon=navigation color=green'):
 
 #### 3.5.2 与lambda组合使用时的问题
 
+
+
+属性绑定的技巧：绑定全局变量和字典，性能优化
+
+
+
+（ui.query和ui.teleport放到高阶内容）
+
+
+
+（ui.add\_\* 和app.add\_\*属于高阶内容，在高阶部分讲）
+
+
+
 ## 4 具体示例【随时更新】
 
 本节主要介绍常见问题，读者可以根据所属模块、函数查阅。
