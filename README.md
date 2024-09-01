@@ -14,8 +14,6 @@
 
 本教程旨在用中文提供官方文档没有的系统性入门教程，并将部分社区讨论问题汉化、简化，方便中文学习者尽快上手并解决常见难题。虽然教程的名字叫入门教程，但本教程并没有停留在翻译官网文档的阶段，能够解决常见问题的高阶技巧也有。对于官方提供的各个控件的详细API，本教程并不会照本宣科，而是在提供思路之后，由读者自行查阅。正所谓“授人以鱼不如授人以渔”，掌握方法比掌握结果更有效。
 
-本教程基于 nicegui  1.4.*  制作， nicegui  2.0版本很快发布。虽然版本变动较大，但大部分用法相通，如果后续代码出现不兼容的情况，请自行根据版本兼容情况修改。
-
 ->[教程全文详见仓库](https://github.com/python-and-fiction/chinese_guide_of_nicegui_for_beginner)
 
 ## 1 环境准备
@@ -433,15 +431,54 @@ password = ui.input(label='Password:',value='123456',password=True,password_togg
 
 #### 2.3.3 多媒体控件
 
-ui.image和ui.interactive_image
+##### 2.3.3.1 ui.image和ui.interactive_image
+
+点开一个网页，最抓人眼球的是什么内容？没错，是图片。既然用nicegui设计网页，没有图片元素怎么行？在nicegui中，有两种显示图片的控件：ui.image和ui.interactive_image。前者可以简单理解为显示图片的简单标签，后者是基于前者扩展了很多交互功能的plus版本。两者的第一个参数都是`source`，支持字符串类型的本地图像路径、网络图像路径，或者base64编码的图像本身，这个没什么难点，这里不做细讲，接下来要重点讲的是ui.interactive_image的其他参数的用法，因为这个控件有时候比看似简单的ui.image更加好用趁手。
+
+先看一段代码：
+
+```python3
+src = 'https://picsum.photos/id/377/640/360'
+img = ui.image(src)
+img2 = ui.interactive_image(src)
+```
+
+<img src="README.assets/ui_img.png" alt="ui_img" style="zoom:50%;" />
+
+可以看到，同样的图片地址，都是不传入其他参数的情况下，即使可用空间大于图片大小，ui.interactive_image也不会随着页面大小而缩放图片，始终保持图片的原始大小，这个有别于ui.image的特性，可以在日后想要保持图片真实大小时使用。
+
+除了`source`参数外，ui.interactive_image还有以下参数：
+
+`content`参数，字符串类型，表示覆盖在图片之上的SVG内容，SVG的画布大小就是图片的大小。当然，不太理解SVG的话也没关系，后面用到会详细介绍，也可以专门找一下资料。这里可以简单理解为一种用定义描述的几何图形，这种图形不会因为缩放变成马赛克，因为它是基于定义绘制的。
+
+`size`参数，元组类型（宽度，高度），表示如果`source`没有设置的话，这就是默认图形的尺寸。这个对于绘制上面的SVG内容来说比较重要，因为这个尺寸就是画布的大小。对于想要交互创建SVG内容的操作，指定画布大小很重要。
+
+`on_mouse`参数，可调用类型，表示触发鼠标事件之后要执行的操作，默认包含一个鼠标事件的参数，参数字典内的image_x和image_y的值是以像素为单位表示的鼠标交互位置。
+
+`events`参数，字符串列表，表示JavaScript订阅的事件，默认订阅点击事件，即`['click']`，也可以自己指定要订阅的事件内容。
+
+`cross`参数，字符串类型或者布尔类型，表示要不要显示十字线来指示鼠标位置，默认为`False`。如果为`True`或者表示颜色的字符串，就会显示指定颜色（即字符串表示的颜色）的十字线。
+
+`force_reload`方法，强制重新载入图片，这个方法两者图片控件都有，对于某些时候网络不好造成图片加载失败、支持随机刷新图片的接口，这个方法还是很实用的。
+
+对于图片控件，一样可以使用`with`嵌入其他内容。比如，下面的代码就嵌入了一个按钮，实现了点击图片和按钮有不同的通知内容：
+
+```python3
+src = 'https://picsum.photos/id/377/640/360'
+with ui.interactive_image(src,on_mouse=lambda :ui.notify('You clicked interactive_image.')):
+    ui.button(on_click=lambda: ui.notify('You clicked button.'), icon='thumb_up')\
+        .props('flat color=white').classes('absolute bottom-0 left-0 m-2')
+```
+
+<img src="README.assets/ui_interactive_image.png" alt="ui_interactive_image" style="zoom: 67%;" />
 
 
 
-ui.icon和ui.avatar
+##### 2.3.3.2 ui.icon和ui.avatar（更新中）
 
 
 
-ui.audio和ui.video
+##### 2.3.3.3 ui.audio和ui.video（更新中）
 
 
 

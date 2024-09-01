@@ -142,23 +142,37 @@ with ui.element('q-fab').props('icon=navigation color=green'):
 
 ![ui_element_q_fab](README_MORE.assets/ui_element_q_fab.gif)
 
-### 3.5 for循环的技巧
+### 3.5 for循环的技巧（更新中）
 
 #### 3.5.1 用for创建多个有规律的控件
+
+
 
 #### 3.5.2 与lambda组合使用时的问题
 
 
 
+### 3.6 binding的技巧（更新中）
+
 属性绑定的技巧：绑定全局变量和字典，性能优化
 
 
+
+### 3.7 CSS选择器的技巧（更新中）
 
 （ui.query和ui.teleport放到高阶内容）
 
 
 
+### 3.8 ui.add\_\* 和app.add\_\*的技巧（更新中）
+
 （ui.add\_\* 和app.add\_\*属于高阶内容，在高阶部分讲）
+
+
+
+### 3.9 ui.interactive_image与SVG的事件处理技巧（更新中）
+
+在ui.interactive_image上创建SVG图形，以及处理SVG事件，
 
 
 
