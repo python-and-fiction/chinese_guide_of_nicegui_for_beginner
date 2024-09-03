@@ -297,7 +297,7 @@ ui.label(text='some label')
 超链接，一种点击之后跳转到指定地址的文本元素。可以传入`text`、`target`、`new_tab`三个参数。代码如下：
 
 ```python3
-ui.link(text='NiceGUI on GitHub',target= 'https://github.com/zauberzeug/nicegui',new_tab=False)
+ui.link(text='NiceGUI on GitHub', target= 'https://github.com/zauberzeug/nicegui', new_tab=False)
 ```
 
 `text`参数，字符串类型，表示超链接显示什么文字。
@@ -363,12 +363,12 @@ ui.html('This is <u>emphasized</u>.', tag='em')
 以下代码就是一个定义了基本交互的按钮，点击会弹出一个通知提示：
 
 ```python3
-ui.button('Click me!',color='green',icon='thumb_up', on_click=lambda: ui.notify('You clicked me!'))
+ui.button('Click me!', color='green', icon='thumb_up', on_click=lambda: ui.notify('You clicked me!'))
 ```
 
 `text`参数，字符串类型，表示显示在按钮上的文字，如果是英文的话，默认全部大写。该参数默认只支持字符串类型，但是整数和小数可以直接使用，其他类型需要先转换为字符串类型才能传入。
 
-`color`参数，字符串类型或者None，表示按钮的颜色，支持传入字符串类型的颜色类（Quasar、 Tailwind、CSS的颜色名）或者None（即让按钮变成默认颜色）。
+`color`参数，字符串类型或者None，表示按钮的颜色，支持传入字符串类型的颜色类（Quasar、 Tailwind、CSS的颜色名）或者`None`（即让按钮变成默认颜色）。
 
 `icon`参数，字符串类型，表示按钮额外显示的图标，支持传入字符串类型的图标名，具体名字会在`ui.icon`中介绍，这里不做详细介绍。
 
@@ -377,7 +377,7 @@ ui.button('Click me!',color='green',icon='thumb_up', on_click=lambda: ui.notify(
 如果觉得对按钮传入参数来自定义按钮内容的方法太死板，也可以使用以下语法，使用`with`来进入按钮的`default slot`，随意组合按钮内的内容：
 
 ```python3
-with ui.button(color='green',on_click=lambda: ui.notify('You clicked me!')):
+with ui.button(color='green', on_click=lambda: ui.notify('You clicked me!')):
     ui.icon('thumb_up')
     ui.label('Click me!')
 ```
@@ -411,8 +411,8 @@ button.on_click(test)
 以下代码定义了一个名字输入框和密码输入框，并在输入名字的时候，自动弹出通知显示名字和密码：
 
 ```python3
-name = ui.input(label='Name:',value='Peter',on_change=lambda :ui.notify(f'{name.value=},{password.value=}'))
-password = ui.input(label='Password:',value='123456',password=True,password_toggle_button=True)
+name = ui.input(label='Name:', value='Peter', on_change=lambda :ui.notify(f'{name.value=},{password.value=}'))
+password = ui.input(label='Password:', value='123456', password=True, password_toggle_button=True)
 ```
 
 ![input](README.assets/ui_input.png)
@@ -428,6 +428,31 @@ password = ui.input(label='Password:',value='123456',password=True,password_togg
 `password_toggle_button`参数，布尔类型，表示输入框内是否显示密码按钮，密码按钮可以切换输入框内的密码、明文状态。
 
 输入框控件还有很多参数和方法，就留给读者自己探索了，后续如有相关案例，到时候再细讲。
+
+##### 2.3.2.3 ui.slider和ui.knob
+
+ui.slider是滑动条，这个比较简单，参数也不多，按理说不用专门讲一下，自学即可。至于ui.knob——旋钮，这个的样式参数比较多，也有很大的自定义自由度，值得一讲。不过，这些都不是这里要专门放在一起介绍的原因，具体原因是什么，这里先卖个关子，后面再做解释。
+
+先看一段代码：
+
+```python3
+slider = ui.slider(min=0, max=100, step=1, value=50)
+ui.knob(min=0, max=100, step=1, value=50,
+        color='orange', center_color='blue', track_color='black',
+        size='3.5em',
+        show_value=True
+        ).bind_value(slider, 'value')
+```
+
+![ui_knob](README.assets/ui_knob.png)
+
+可以看到，ui.knob的前四个参数和ui.slider的一样，都是浮点类型，分别代表最小值、最大值、每次调整的最小步长、当前值。
+
+在ui.knob中，有`color`、`center_color`、 `track_color`三种可以传参修改的颜色，分别代表旋钮边缘的颜色、旋钮中间的颜色、旋钮边缘没有覆盖之前的颜色，支持传入字符串类型的颜色类（Quasar、 Tailwind、CSS的颜色名）、`None`（即让按钮变成默认颜色）或者`"primary"`（跟随主题颜色）。
+
+`size`是旋钮的整体大小，字符串类型，采用CSS语法的大小表示方式。
+
+`show_value`参数，布尔类型，是否在旋钮中间显示当前值。
 
 #### 2.3.3 多媒体控件
 
@@ -449,7 +474,7 @@ img2 = ui.interactive_image(src)
 
 除了`source`参数外，ui.interactive_image还有以下参数：
 
-`content`参数，字符串类型，表示覆盖在图片之上的SVG内容，SVG的画布大小就是图片的大小。当然，不太理解SVG的话也没关系，后面用到会详细介绍，也可以专门找一下资料。这里可以简单理解为一种用定义描述的几何图形，这种图形不会因为缩放变成马赛克，因为它是基于定义绘制的。
+`content`参数，字符串类型，表示覆盖在图片之上的SVG内容，SVG的画布大小就是图片的大小。当然，不太理解SVG的话也没关系，后面用到会详细介绍，也可以专门找一下资料。这里可以简单理解SVG为一种用定义描述的几何图形，这种图形不会因为缩放变成马赛克，因为它是基于定义绘制的。
 
 `size`参数，元组类型（宽度，高度），表示如果`source`没有设置的话，这就是默认图形的尺寸。这个对于绘制上面的SVG内容来说比较重要，因为这个尺寸就是画布的大小。对于想要交互创建SVG内容的操作，指定画布大小很重要。
 
