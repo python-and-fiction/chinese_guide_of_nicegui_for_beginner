@@ -499,9 +499,65 @@ with ui.interactive_image(src,on_mouse=lambda :ui.notify('You clicked interactiv
 
 
 
-##### 2.3.3.2 ui.icon和ui.avatar（更新中）
+##### 2.3.3.2 ui.icon和ui.avatar
 
+在[ui.button](#2.3.2.1 ui.button)中挖了一个有关ui.icon的坑，现在，终于到了填坑的时候。先看一个简单的示例，了解一下ui.icon控件的用法：
 
+```python3
+ui.icon(name='home', color='blue', size='xl')
+ui.icon(name='o_home', color='blue', size='xl')
+ui.icon(name='r_home', color='blue', size='xl')
+ui.icon(name='sym_o_home', color='blue', size='xl')
+ui.icon(name='sym_r_home', color='blue', size='xl')
+```
+
+<img src="README.assets/ui_icon.png" alt="ui_icon" style="zoom:67%;" />
+
+ui.icon的参数不多，就三个：
+
+`name`参数，字符串类型，表示图标字体中的图标名，ui.icon通过给定的图标名，从字体中加载图标，默认支持Material Icons图标字体。也可以自己添加其他图标字体，并结合对应图标字体的用法加载。这一部分需要根据具体情况灵活变通，这里不做详解。
+
+`color`参数，字符串类型，表示图标的颜色。
+
+`size`参数，字符串类型，表示图标的大小。
+
+理解参数不难，但是，给出的示例代码并没有看上去那么简单。这个时候，聪明的读者已经发现了猫腻：几个图标看上去很像，但不完全一样。再仔细看的话就会发现，它们的后缀都是一样的，只有前缀不同。没错，这组图标本质上都是一个，只是名字的前缀有特定的风格含义，需要特别注意一下。
+
+无前缀代表实心填充风格，"o\_" 前缀表示轮廓线风格，"r\_" 前缀表示圆角风格，"s\_"前缀表示锐化风格，"sym\_o\_"前缀表示轮廓线符号，"sym\_r\_"前缀表示圆角符号，"sym\_s\_" 前缀表示锐化符号。
+
+这个时候，有的读者就要头疼了，前缀就这么几个，还好记，可图标那么多，每个图标名字怎么记得住，有没有方便查询的网站？有，不过国内没法直接访问，那就是官网：
+
+ Material Icons查询网站（非中国大陆地区）：https://fonts.google.com/icons?icon.set=Material+Icons
+
+当然，国内也有很多渠道查询，为了避免广告嫌疑，这里就不具体指明了。
+
+不过，只是提供一个404网站，教程就失去了意义，这里还有一个备用方法，那就是小工具：
+
+ Material Icons查询器：`src\chinese_guide_of_nicegui_for_beginner\2_3_3_2_ui_icon.py`
+
+<img src="README.assets/ui_icon_query.png" alt="ui_icon_query" style="zoom:67%;" />
+
+在输入框输入关键字，选定需要的名字，然后在下面查看各个风格的图标预览，最后确定要使用的图标名称。要注意的是，图标名是遍历字体库源代码下的文件夹名字，有的图标不支持全部风格，如果发现下面的预览存在图标异常或者各个风格没有区分，证明这个图标不支持全部风格，读者需酌情调整。
+
+这一节到这里还没结束，还有一个控件要一并讲解。之所以放在一起讲，是因为这个控件主要参数和ui.icon一样，实际应用也不少，那就是头像控件——ui.avatar。
+
+按照惯例先看代码：
+
+```python3
+ui.avatar(icon='favorite_border', color='green-5', text_color='blue-10',
+          size='60px', font_size='50px', square=False, rounded=True)
+ui.avatar(icon='favorite_border', color='green-5', text_color='blue-10',
+          size='60px', font_size='50px', square=True, rounded=False)
+# 使用图片地址作为头像
+url = 'https://nicegui.io/logo_square.png'
+ui.avatar(f'img:{url}')
+with ui.avatar():
+    ui.image(url)
+```
+
+![ui_avatar](README.assets/ui_avatar.png)
+
+从参数上看，`icon`就是ui.icon的`name`；颜色这里不太一样，`color`和`text_color`分别代表头像的背景颜色、图标颜色；`size`是头像大小，`font_size`是图标大小。此外，还有两个布尔类型的参数决定头像框的形状：`square`是方形， `rounded`是圆角方形，如果两个都是`False`，头像框就是圆形。
 
 ##### 2.3.3.3 ui.audio和ui.video（更新中）
 
@@ -515,7 +571,9 @@ echart
 
 pyplot
 
-progress（线性和圆形）只用来展示但不能输入的，输入要用slider和knob
+progress:ui.和ui.（线性和圆形）只用来展示但不能输入的，输入要用slider和knob
+
+前面[ui.slider和ui.knob](#2.3.2.3 ui.slider和ui.knob)介绍过滑动条和旋钮，肯定有聪明的读者想用这两个控件做条形进度条和环形进度条，但是，这一节的标题已经表明，有专门的进度条控件，使用滑动条和旋钮充当进度条就未免有些画蛇添足。更关键的是，滑动条和旋钮接受用户输入，如果想避免用户输入影响数据展示，还要将控件禁用，具体样式又要做诸多调整，很不方便。然而，进度条控件没有这些弊端，使用起来更加简单。显然，这一节要介绍的进度条控件更适合展示进度。
 
 spinner
 
