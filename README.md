@@ -253,7 +253,7 @@ ui.run(native=True)
 
 关于美化，下一节中的[外观美化](#2.3.7 外观美化)将会详细介绍，也可以查阅对应的官方文档。事件的学习，可以参阅下一节的[事件和执行](#2.3.8 事件和执行)，也可以查阅对应的官方文档。
 
-### 2.3 nicegui中不得不学的功能（更新中）
+### 2.3 nicegui中不得不学的功能
 
 以下是官网文档对于nicegui提供的功能做了大致的划分，本教程将会对每个部分中不好掌握、需要重点学习的控件、功能进行剖析：
 
@@ -289,7 +289,11 @@ ui.run(native=True)
 文本标签，用法很简单，通过传入一个字符串类型的参数`text`，让网页显示字符串内的文字。注意，虽然参数支持多行文字，但是输出只能一行，需要原样输出多行文字的话，可以使用下面介绍的`ui.html`，将`tag`设置为`pre`。
 
 ```python3
+from nicegui import ui
+
 ui.label(text='some label')
+
+ui.run(native=True)
 ```
 
 ##### 2.3.1.2 ui.link
@@ -297,7 +301,11 @@ ui.label(text='some label')
 超链接，一种点击之后跳转到指定地址的文本元素。可以传入`text`、`target`、`new_tab`三个参数。代码如下：
 
 ```python3
+from nicegui import ui
+
 ui.link(text='NiceGUI on GitHub', target= 'https://github.com/zauberzeug/nicegui', new_tab=False)
+
+ui.run(native=True)
 ```
 
 `text`参数，字符串类型，表示超链接显示什么文字。
@@ -313,6 +321,8 @@ ui.link(text='NiceGUI on GitHub', target= 'https://github.com/zauberzeug/nicegui
 `tag`参数，字符串类型，默认为`div`，表示生成的元素用什么标签，实际使用时可以根据需要修改为其他HTML标签或者Quasar标签。代码如下：
 
 ```python3
+from nicegui import ui
+
 with ui.element('div').classes('p-2 bg-blue-100'):
     ui.label('inside a colored div')
 ```
@@ -320,6 +330,8 @@ with ui.element('div').classes('p-2 bg-blue-100'):
 `move`方法，将控件移动到指定控件之内，默认为`default`slot，也可以传递`target_slot`参数，指定slot。代码如下：
 
 ```python3
+from nicegui import ui
+
 with ui.card() as card:
     name = ui.input('Name', value='Paul')
     name.add_slot('append')
@@ -328,6 +340,8 @@ with ui.card() as card:
 ui.button('Move into input default slot', on_click=lambda: icon.move(name))
 ui.button('Move into input append slot', on_click=lambda: icon.move(name, target_slot='append'))
 ui.button('Move out of input', on_click=lambda: icon.move(card))
+
+ui.run(native=True)
 ```
 
 ![ui_element_move](README.assets/ui_element_move.gif)
@@ -337,6 +351,8 @@ ui.button('Move out of input', on_click=lambda: icon.move(card))
 与`ui.label`类似，`ui.markdown`和`ui.html`，都可以用来展示文本，只是后两者支持markdown语法和HTML语法，因为markdown语法支持一部分HTML的标签，可以看到放在`ui.markdown`里的HTML标签也能被解析。以下是三种控件解析同一内容的代码：
 
 ```python3
+from nicegui import ui
+
 content = '''
 This is **Markdown**.
 This is <u>emphasized</u>
@@ -344,12 +360,18 @@ This is <u>emphasized</u>
 ui.label(content)
 ui.markdown(content)
 ui.html(content)
+
+ui.run(native=True)
 ```
 
 此外，`ui.html`还支持传入字符串类型参数`tag`给基类`ui.element`，用于修改生成`ui.html`用的标签，比如：
 
 ```python3
+from nicegui import ui
+
 ui.html('This is <u>emphasized</u>.', tag='em')
+
+ui.run(native=True)
 ```
 
 #### 2.3.2 常用控件
@@ -363,7 +385,11 @@ ui.html('This is <u>emphasized</u>.', tag='em')
 以下代码就是一个定义了基本交互的按钮，点击会弹出一个通知提示：
 
 ```python3
+from nicegui import ui
+
 ui.button('Click me!', color='green', icon='thumb_up', on_click=lambda: ui.notify('You clicked me!'))
+
+ui.run(native=True)
 ```
 
 `text`参数，字符串类型，表示显示在按钮上的文字，如果是英文的话，默认全部大写。该参数默认只支持字符串类型，但是整数和小数可以直接使用，其他类型需要先转换为字符串类型才能传入。
@@ -377,9 +403,13 @@ ui.button('Click me!', color='green', icon='thumb_up', on_click=lambda: ui.notif
 如果觉得对按钮传入参数来自定义按钮内容的方法太死板，也可以使用以下语法，使用`with`来进入按钮的`default slot`，随意组合按钮内的内容：
 
 ```python3
+from nicegui import ui
+
 with ui.button(color='green', on_click=lambda: ui.notify('You clicked me!')):
     ui.icon('thumb_up')
     ui.label('Click me!')
+
+ui.run(native=True)
 ```
 
 ![button](README.assets/ui_button.png)
@@ -387,21 +417,29 @@ with ui.button(color='green', on_click=lambda: ui.notify('You clicked me!')):
 对于`on_click`参数、后续会涉及到的on开头的`on_*`参数、on开头的`on_*`方法和`on`方法里的callback或者handler参数，均为可调用类型参数，既可以在创建控件时定义lambda表达式，也可以提前定义。对于复杂一点逻辑操作，应该定义函数而不是lambda表达式，比如：
 
 ```python3
+from nicegui import ui
+
 test = lambda :...
 #如果要执行的操作比较多、复杂，应该定义函数
 def test():
     pass
 #在控件中传参可以直接使用test
 ui.button('Click me!',on_click=test)
+
+ui.run(native=True)
 ```
 
 对于button等控件而言，除了支持通过传参创建响应动作，还支持调用对应的`on_*`方法（比如on_click）创建，这个方法极大提高了响应动作的灵活性，上面的例子就可以借助这个方法调整函数定义与按钮创建的先后顺序，代码如下：
 
 ```python3
+from nicegui import ui
+
 button = ui.button('Click me!')
 def test():
     pass
 button.on_click(test)
+
+ui.run(native=True)
 ```
 
 ##### 2.3.2.2 ui.input
@@ -411,8 +449,12 @@ button.on_click(test)
 以下代码定义了一个名字输入框和密码输入框，并在输入名字的时候，自动弹出通知显示名字和密码：
 
 ```python3
+from nicegui import ui
+
 name = ui.input(label='Name:', value='Peter', on_change=lambda :ui.notify(f'{name.value=},{password.value=}'))
 password = ui.input(label='Password:', value='123456', password=True, password_toggle_button=True)
+
+ui.run(native=True)
 ```
 
 ![input](README.assets/ui_input.png)
@@ -436,12 +478,16 @@ ui.slider是滑动条，这个比较简单，参数也不多，按理说不用�
 先看一段代码：
 
 ```python3
+from nicegui import ui
+
 slider = ui.slider(min=0, max=100, step=1, value=50)
 ui.knob(min=0, max=100, step=1, value=50,
         color='orange', center_color='blue', track_color='black',
         size='3.5em',
         show_value=True
         ).bind_value(slider, 'value')
+
+ui.run(native=True)
 ```
 
 ![ui_knob](README.assets/ui_knob.png)
@@ -463,9 +509,13 @@ ui.knob(min=0, max=100, step=1, value=50,
 先看一段代码：
 
 ```python3
+from nicegui import ui
+
 src = 'https://picsum.photos/id/377/640/360'
 img = ui.image(src)
 img2 = ui.interactive_image(src)
+
+ui.run(native=True)
 ```
 
 <img src="README.assets/ui_img.png" alt="ui_img" style="zoom:50%;" />
@@ -489,10 +539,14 @@ img2 = ui.interactive_image(src)
 对于图片控件，一样可以使用`with`嵌入其他内容。比如，下面的代码就嵌入了一个按钮，实现了点击图片和按钮有不同的通知内容：
 
 ```python3
+from nicegui import ui
+
 src = 'https://picsum.photos/id/377/640/360'
 with ui.interactive_image(src,on_mouse=lambda :ui.notify('You clicked interactive_image.')):
     ui.button(on_click=lambda: ui.notify('You clicked button.'), icon='thumb_up')\
         .props('flat color=white').classes('absolute bottom-0 left-0 m-2')
+
+ui.run(native=True)
 ```
 
 <img src="README.assets/ui_interactive_image.png" alt="ui_interactive_image" style="zoom: 67%;" />
@@ -504,11 +558,15 @@ with ui.interactive_image(src,on_mouse=lambda :ui.notify('You clicked interactiv
 在[ui.button](#2.3.2.1 ui.button)中挖了一个有关ui.icon的坑，现在，终于到了填坑的时候。先看一个简单的示例，了解一下ui.icon控件的用法：
 
 ```python3
+from nicegui import ui
+
 ui.icon(name='home', color='blue', size='xl')
 ui.icon(name='o_home', color='blue', size='xl')
 ui.icon(name='r_home', color='blue', size='xl')
 ui.icon(name='sym_o_home', color='blue', size='xl')
 ui.icon(name='sym_r_home', color='blue', size='xl')
+
+ui.run(native=True)
 ```
 
 <img src="README.assets/ui_icon.png" alt="ui_icon" style="zoom:67%;" />
@@ -544,72 +602,304 @@ ui.icon的参数不多，就三个：
 按照惯例先看代码：
 
 ```python3
+from nicegui import ui
+
 ui.avatar(icon='favorite_border', color='green-5', text_color='blue-10',
           size='60px', font_size='50px', square=False, rounded=True)
 ui.avatar(icon='favorite_border', color='green-5', text_color='blue-10',
           size='60px', font_size='50px', square=True, rounded=False)
-# 使用图片地址作为头像
+# 使用图片文件当做头像
 url = 'https://nicegui.io/logo_square.png'
 ui.avatar(f'img:{url}')
 with ui.avatar():
     ui.image(url)
+
+ui.run(native=True)
 ```
 
 ![ui_avatar](README.assets/ui_avatar.png)
 
 从参数上看，`icon`就是ui.icon的`name`；颜色这里不太一样，`color`和`text_color`分别代表头像的背景颜色、图标颜色；`size`是头像大小，`font_size`是图标大小。此外，还有两个布尔类型的参数决定头像框的形状：`square`是方形， `rounded`是圆角方形，如果两个都是`False`，头像框就是圆形。
 
-##### 2.3.3.3 ui.audio和ui.video（更新中）
+除了使用图标字体外，头像当然可以使用图片。一种是用以`img:`开头的图片地址，另一种是在`defalut slot`中加入图片控件。要注意的是，两种方法呈现的图片不一样，后者使用的是ui.image的样式，实际图片显示会有差别。
 
+##### 2.3.3.3 ui.audio和ui.video
 
+ui.audio和ui.video从本质上讲是一样的，参数、方法基本一致，所以，只需学会其中一个的用法，另一个就是改个名字的事儿。
+
+顾名思义，ui.audio和ui.video，分别代表着音频、视频控件，对于需要再网页播放音频、视频的需求，这两个控件再合适不过。
+
+先看示例代码：
+
+```python3
+from nicegui import ui
+
+v = ui.video(src='https://test-videos.co.uk/vids/bigbuckbunny/mp4/h264/360/Big_Buck_Bunny_360_10s_1MB.mp4',
+             controls=True, autoplay=False, muted=False, loop=False)
+ui.button('Play', on_click=v.play)
+ui.button('Pause', on_click=v.pause)
+ui.button('Jump to 0:05', on_click=lambda: v.seek(5))
+
+ui.run(native=True)
+```
+
+<img src="README.assets/ui_video.png" alt="ui_video" style="zoom:50%;" />
+
+控件通过字符串类型参数`src`传入视频地址，四个布尔类型参数`controls`、`autoplay`、 `muted`、 `loop`分别代表着是否显示内置工具栏、是否自动开始播放、是否静音、是否循环播放。
+
+当然，除了上面代码里用按钮在外面控制播放暂停，还可以监听播放、暂停、播放结束的事件，执行特定的操作。
+
+```python3
+from nicegui import ui
+
+v = ui.video(src='https://test-videos.co.uk/vids/bigbuckbunny/mp4/h264/360/Big_Buck_Bunny_360_10s_1MB.mp4',
+             controls=True, autoplay=False, muted=False, loop=False)
+v.on('play', lambda _: ui.notify('Started'))
+v.on('pause', lambda _: ui.notify('Paused'))
+v.on('ended', lambda _: ui.notify('Completed'))
+
+ui.run(native=True)
+```
 
 #### 2.3.4 图形布局
 
-在默认首页下的布局
+盖房子不是把砖简单地垒砌，做图形界面一样不是简单地添加控件，美观、简洁的布局除了让图形界面整体风格更加整齐，也让用户使用时更加方便、快捷，这才是图形界面的意义。在掌握了一定数量的常用控件之后，在继续深入学习其他控件之前，是时候了解一下NiceGUI支持的布局控件了。
 
-常用布局 row column gird，
+在NiceGUI中，有一个概念非常重要，那就是上下文。前面代码中使用的`with`就是Python的上下文管理器关键字，而在NiceGUI中，进入某个控件的上下文，就意味着后续添加控件的操作都是在这个控件的上下文内，直观感受的话，就是后续添加的控件都在这个控件内部。
 
-列表布局list与column的差别
+以代码为例：
 
-可以展开的风琴控件expansion
+```python3
+from nicegui import ui
 
-空白填充 space
+with ui.card():
+    ui.label('Card content')
+    ui.button('Add label1', on_click=lambda: ui.label('Click!'))
+ui.button('Add label2', on_click=lambda: ui.label('Click!'))
 
-splitter和separator
+ui.run(native=True)
+```
 
-选项卡tabs
+`Add label1`按钮在ui.card内部，它添加的ui.label就在ui.card内。`Add label2`按钮在ui.card外，它添加的ui.label就在ui.card外。所以点击两个按钮的效果是这样的：
 
-轮播图carousel
+![auto_context](README.assets/auto_context.png)
 
-分页控件pagination
+##### 2.3.4.1 ui.row、ui.column和ui.grid
 
-菜单menu和context_menu
+在图形界面的布局设计中，最常用也是最基本的布局，就是行布局、列布局和网格布局，几乎所有的现代GUI框架都提供了这三种布局。说来神奇，哪怕不用框架提供的其他布局，只是这三种布局相互组合，就能构成了用户在程序里看到的各种控件排布，真可谓“三生万物”。
 
-工具提示tooltip
+行（ui.row）布局，即所有控件排成一行。
 
-通知控件notify和notification
+列（ui.column）布局，即所有控件排成一列。
 
-对话框dialog和搭配使用的card布局
+网格（ui.grid）布局，即所有控件按照给定的网格排布（几行几列），依次占据每个单元格，就和表格一样。
 
+<img src="README.assets/layout_sketch.png" alt="layout_sketch" style="zoom:67%;" />
 
+在NiceGUI中，想要让指定的控件按照给定的布局排布，就要在布局的上下文内创建控件，因此，这三个常用布局的代码就要这样写：
 
-#### 2.3.5 属性绑定和数据控件
+```python3
+from nicegui import ui
 
-这一节只介绍绑定的用法（bind，from，to），提一嘴注意事项和性能问题（其他内容在高阶部分）
+with ui.column().classes('border-4 border-black p-2'):
+    ui.label('label 1')
+    ui.label('label 2')
+    ui.label('label 3')
 
-table
+with ui.row().classes('border-4 border-black p-2'):
+    ui.label('label 1')
+    ui.label('label 2')
+    ui.label('label 3')
 
-echart
+with ui.grid(columns=2,rows=2).classes('border-4 border-black p-2'):
+    ui.label('label 1')
+    ui.label('label 2')
+    ui.label('label 3')
 
-pyplot
+ui.run(native=True)
+```
 
-progress:ui.和ui.（线性和圆形）只用来展示但不能输入的，输入要用slider和knob
+![ui_layout](README.assets/ui_layout.png)
+
+##### 2.3.4.2 ui.space
+
+在布局控件的时候，如果想要一些控件放在末尾，可按照布局控件的规则，内部的控件总是像排队一样一个挨着一个，似乎需要调整CSS才行。其实，还有一种不用CSS的方法，那就是使用ui.space。
+
+ui.space可以默认填充浮动布局的可用空间，让布局不会因为默认的排列规则而显得末尾空空如也。
+
+```python3
+from nicegui import ui
+
+with ui.row().classes('w-96 border-4 border-black p-2'):
+    ui.label('label 1')
+    ui.label('label 2')
+    ui.space()
+    ui.label('label 3')
+
+with ui.column().classes('h-96 border-4 border-black p-2'):
+    ui.label('label 1')
+    ui.label('label 2')
+    ui.space()
+    ui.label('label 3')
+
+ui.run(native=True)
+```
+
+<img src="README.assets/ui_space.png" alt="ui_space" style="zoom:67%;" />
+
+##### 2.3.4.3 ui.separator
+
+用ui.space可以填充空白，但是有读者担心，目的是达到了，能不能画条线在末尾的控件前，用来区分一下这个位置的控件与其他位置控件的区别？没问题，ui.separator就是用来干这个的，不管是水平还是垂直，都可以。代码如下：
+
+```python3
+from nicegui import ui
+
+with ui.column().classes('border-4 border-black p-2'):
+    ui.label('text above')
+    ui.separator()
+    ui.label('text below')
+
+with ui.row().classes('border-4 border-black p-2'):
+    ui.label('text above')
+    ui.separator().props('vertical')
+    ui.label('text below')
+
+ui.run(native=True)
+```
+
+![ui_separator](README.assets/ui_separator.png)
+
+##### 2.3.4.4 ui.menu和ui.context_menu
+
+有用过图形程序的读者看到前面的内容，肯定联想到，ui.separator好像菜单里面用来分割退出功能与其他功能的分割符，NiceGUI有没有菜单？当然也有，普通的点击菜单ui.menu和右键菜单ui.context_menu。两个菜单的语法一致，只是触发方式不同。菜单的内部一般使用ui.menu_item当菜单项，一般可以当做按钮处理，因为它们的触发操作都是传给点击事件。
+
+下面的代码给`menu`按钮创建点击菜单和右键菜单，可以分别用鼠标左击和右击查看弹出的菜单的异同，除了菜单内文字为了作出区分专门修改了之外，菜单的布局和样式一模一样，因此两种菜单可以很方便复用相同的内容：
+
+```python3
+from nicegui import ui
+
+with ui.row().classes('w-full items-center'):
+    result = ui.label().classes('mr-auto')
+    with ui.button(text='menu', icon='menu'):
+        with ui.context_menu() as menu1:
+            ui.menu_item('Context Menu item 1', lambda: result.set_text('Selected item 1'))
+            ui.menu_item('Context Menu item 2', lambda: result.set_text('Selected item 2'))
+            ui.menu_item('Context Menu item 3 (keep open)',
+                         lambda: result.set_text('Selected item 3'), auto_close=False)
+            ui.separator()
+            ui.menu_item('Close', menu1.close)
+        with ui.menu() as menu2:
+            ui.menu_item('Menu item 1', lambda: result.set_text('Selected item 1'))
+            ui.menu_item('Menu item 2', lambda: result.set_text('Selected item 2'))
+            ui.menu_item('Menu item 3 (keep open)',
+                         lambda: result.set_text('Selected item 3'), auto_close=False)
+            ui.separator()
+            ui.menu_item('Close', menu2.close)
+
+ui.run(native=True)
+```
+
+<img src="README.assets/ui_menu.png" alt="ui_menu" style="zoom:67%;" />
+
+##### 2.3.4.5 ui.tooltip
+
+ui.tooltip可以给控件添加一种光标悬停之后弹出的提示。一般是在给定控件的上下文添加，也可以用给定控件的`tooltip`方法来添加，代码如下：
+
+```python3
+from nicegui import ui
+
+with ui.button(icon='thumb_up'):
+    ui.tooltip('I like this')
+
+button = ui.button(icon='thumb_up')
+button.tooltip('I like this')
+
+ui.run(native=True)
+```
+
+但是要注意，如果想要美化ui.tooltip，只能给上下文添加的ui.tooltip美化，如果是用`tooltip`方法添加的，则不能美化。因为`tooltip`方法返回的是控件本身，而不是tooltip。可以看到，下面代码的`tooltip`方法后添加的美化，在按钮本身生效了，实际上ui_tooltip并没有生效。
+
+```python3
+from nicegui import ui
+
+with ui.button(icon='thumb_up'):
+    ui.tooltip('I like this').classes('bg-green')
+
+button = ui.button(icon='thumb_up')
+button.tooltip('I like this').classes('bg-green')
+
+ui.run(native=True)
+```
+
+![ui_tooltip](README.assets/ui_tooltip.png)
+
+##### 2.3.4.6 ui.notify
+
+通知提示控件，在前面[ui.button](#2.3.2.1 ui.button)中已经用过，虽然简单传递一个字符串参数的用法很好用，但是到这一节结束都不说一下的话，实在是对不起读者。毕竟，这个控件的参数可不止看上去那么少，隐藏在其中的参数也很有用。
+
+代码如下：
+
+```python3
+from nicegui import ui
+
+ui.button('Notify',
+          on_click=lambda: ui.notify(
+              message='Hi!',
+              position='bottom',
+              close_button='OK',
+              type=None,
+              color='black-5',
+              multi_line=False,
+              progress=True,
+              caption='5 minutes ago',
+              timeout=5*1000,
+              spinner= True
+          ))
+
+ui.run(native=True)
+```
+
+<img src="README.assets/ui_notify.png" alt="ui_notify" style="zoom:67%;" />
+
+参数有点多，但不必害怕，习惯用法只需记住第一个参数，用起来也简单，其他参数只做了解。
+
+ `message`参数，字符串类型，信息文本，显示在通知中的主要内容。
+
+`position`参数，字符串类型，通知出现的位置，有"top-left"、 "top-right"、"bottom-left"、 "bottom-right"、 "top"、 "bottom"、 "left"、 "right"、 "center"可选，默认为 "bottom"。
+
+`close_button`参数，字符串类型或者布尔型，是否显示关闭按钮，如果是字符串类型，关闭按钮的文字就是给定的文字。
+
+`type`参数，字符串类型，通知的类型，有"positive"、 "negative"、 "warning"、 "info"、 "ongoing"，默认为`None`，不是其中的任何一种。
+
+`color`参数，字符串类型，通知的背景颜色。
+
+`multi_line`参数，布尔类型，是否让通知内容以多行格式显示。
+
+ `progress`参数，布尔类型，是否显示通知消失的进度条。
+
+`caption`参数，字符串类型，显示在信息文本下的说明文字。
+
+`timeout`参数，整数型，通知自动消失的时间，单位毫秒，为0就是不消失，但是要确保`close_button`不是`False`，否则通知没法正常消除，影响用户体验。
+
+`spinner`参数，布尔类型，是否显示转盘动画。
+
+#### 2.3.5 属性绑定和数据控件（更新中）
+
+##### 2.3.5.1 binding
+
+​	这一节只介绍绑定的用法（bind，from，to），提一嘴注意事项和性能问题（其他内容在高阶部分）
+
+##### 2.3.5.2 progress:ui.和ui.（线性和圆形）只用来展示但不能输入的，输入要用slider和knob
 
 前面[ui.slider和ui.knob](#2.3.2.3 ui.slider和ui.knob)介绍过滑动条和旋钮，肯定有聪明的读者想用这两个控件做条形进度条和环形进度条，但是，这一节的标题已经表明，有专门的进度条控件，使用滑动条和旋钮充当进度条就未免有些画蛇添足。更关键的是，滑动条和旋钮接受用户输入，如果想避免用户输入影响数据展示，还要将控件禁用，具体样式又要做诸多调整，很不方便。然而，进度条控件没有这些弊端，使用起来更加简单。显然，这一节要介绍的进度条控件更适合展示进度。
 
-spinner
 
-tree
+
+table
+
+pyplot
+
+spinner 放个spinner查询器的工具链接
 
 editor
 
@@ -621,14 +911,16 @@ code
 
 需要记住具体名字的style classes props方法
 
+
+
 稍微好记一点的tailwindcss属性
 
-无需死记硬背tailwindcss，也不需要反复查询官网，直接使用`.tailwindcss`属性或者使用`Tailwind`对象，会有自动提示。
+​	无需死记硬背tailwindcss，也不需要反复查询官网，直接使用`.tailwindcss`属性或者使用`Tailwind`对象，会有自动提示。
 
 比如：
 
 ```python3
-from nicegui import ui,app
+from nicegui import ui
 from nicegui.tailwind import Tailwind
 
 #设定标签的字体颜色为红色
@@ -659,8 +951,6 @@ ui.run(native=True)
 
 定时器timer
 
-键盘keyboard
-
 ui更新
 
 可刷新方法
@@ -686,5 +976,3 @@ ui.download
 ui.run端口、ip的配置，native mode的开启，reload的关闭
 
 native mode初始参数设置，窗口大小，是否运行调整窗口大小，是否允许下载，是否启用调试工具，调整窗口大小、设置窗口标题的api等
-
-nicegui-pack工具

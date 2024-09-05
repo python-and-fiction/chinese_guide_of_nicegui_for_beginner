@@ -15,16 +15,24 @@
 with可以嵌套使用，来实现类似HTML中div嵌套的效果，比如：
 
 ```python3
+from nicegui import ui
+
 with ui.element('div') as div1:
     with ui.element('div') as div2:
         ui.label('div in div')
+
+ui.run(native=True)
 ```
 
 也可以缩减一行，让代码更加紧凑：
 
 ```python3
+from nicegui import ui
+
 with ui.element('div') as div1, ui.element('div') as div2:
     ui.label('div in div')
+
+ui.run(native=True)
 ```
 
 ### 3.2 slot的技巧
@@ -34,6 +42,8 @@ with ui.element('div') as div1, ui.element('div') as div2:
 比如，`ui.dropdown_button`有两个slot，`default`和`label`；其中，`default`就是默认的slot，常规方法就可以嵌入元素到弹出的下拉列表里，如果想要像修改`ui.button`一样修改`ui.dropdown_button`本身，则要修改`ui.dropdown_button`的`label`这个slot，代码如下：
 
 ```python3
+from nicegui import ui
+
 with ui.dropdown_button('button_'):
      ui.label('default slot')
 #和上面的代码相同，主要是为了和下面的代码对比
@@ -45,6 +55,8 @@ with ui.dropdown_button('button_').add_slot('label'):
 #可以对比 dropdown_button 和 button 的显示效果
 with ui.button('button_').add_slot('default'):
      ui.label('default slot')
+
+ui.run(native=True)
 ```
 
 ![slot](README_MORE.assets/slot.png)
@@ -54,21 +66,33 @@ with ui.button('button_').add_slot('default'):
 不同于CSS定义中伪类在冒号之后来定义效果，在tailwindcss中，美化悬停（hover）和激活（active），需要放在冒号之前，冒号后紧随着要对状态应用的效果。比如，要实现标签背景颜色的悬停为红色、点击为黄色，代码如下：
 
 ```python3
+from nicegui import ui
+
 ui.label('label').classes('w-16 h-8 bg-green-400 hover:bg-red-400 active:bg-yellow-400')
+
+ui.run(native=True)
 ```
 
 类似的，还可以实现暗黑模式（dark）下的颜色定义，点击switch来切换暗黑模式的开关，可以看到标签在暗黑模式下的背景颜色为红色，非暗黑模式下的背景颜色为绿色，代码如下：
 
 ```python3
+from nicegui import ui
+
 ui.label('label').classes('w-16 h-8 bg-green-400 dark:bg-red-400')
 dark_mode = ui.dark_mode()
 switch = ui.switch('Dark Mode',on_change=lambda :dark_mode.set_value(switch.value))
+
+ui.run(native=True)
 ```
 
 在此基础上，还有一种根据屏幕宽度调整显示的技巧，就是将冒号前的单词换成代表屏幕宽度的断点`sm`、`md`、`lg`、`xl`、`2xl`。如果要让标签的宽度随窗口大小变化自适应，也就是小窗口宽度小一些，窗口越大，宽度越大，那么，代码可以这样写：
 
 ```python3
+from nicegui import ui
+
 ui.label('label').classes('w-64 h-8 bg-green-400 sm:w-8 md:w-16 lg:w-32')
+
+ui.run(native=True)
 ```
 
 然而，运行之后，可以看到上面的代码其实有问题，按照理解这样写是没错，但断点代表的含义是，大于这个屏幕宽度值才会应用这个样式，而且一次写这么多条，等屏幕宽度同时符合两条以上条件的时候，CSS就会处于竞争选择的状态，虽然样式上表现可能没问题，但规范要求应该明确断点范围，就好像写分段函数一样，必须明确区间。
@@ -76,7 +100,11 @@ ui.label('label').classes('w-64 h-8 bg-green-400 sm:w-8 md:w-16 lg:w-32')
 所以，正确的根据屏幕宽度使用不同的样式应该这样写。使用`max-*`来表示最大到什么大小使用什么样式，使用冒号表示区间范围。于是，可以用`sm:max-md:w-16`来表示`sm`到`md`的范围内使用`w-16`的宽度样式，具体代码如下：
 
 ```python3
+from nicegui import ui
+
 ui.label('label').classes('h-8 bg-green-400 max-sm:w-8 sm:max-md:w-16 md:max-lg:w-32 lg:w-64')
+
+ui.run(native=True)
 ```
 
 ### 3.4 自定义控件
@@ -96,6 +124,8 @@ ui.label('label').classes('h-8 bg-green-400 max-sm:w-8 sm:max-md:w-16 md:max-lg:
 代码如下：
 
 ```python3
+from nicegui import ui
+
 class ToggleButton(ui.button):
 
     def __init__(self, *args, **kwargs) -> None:
@@ -113,6 +143,8 @@ class ToggleButton(ui.button):
         super().update()
 
 ToggleButton('Toggle me')
+
+ui.run(native=True)
 ```
 
 ![toggle_button](README_MORE.assets/toggle_button.gif)
@@ -134,10 +166,14 @@ Quasar有一个浮动功能按钮[Floating Action Button](https://quasar.dev/vue
 对应地，将HTML标签嵌套关系转换为python代码，`q-fab`标签就变成了`ui.element('q-fab')`，代码如下：
 
 ```python3
+from nicegui import ui
+
 with ui.element('q-fab').props('icon=navigation color=green'):
     ui.element('q-fab-action').props('icon=train color=green-5').on('click', lambda: ui.notify('train'))
     ui.element('q-fab-action').props('icon=sailing color=green-5').on('click', lambda: ui.notify('boat'))
     ui.element('q-fab-action').props('icon=rocket color=green-5').on('click', lambda: ui.notify('rocket'))
+    
+ui.run(native=True)
 ```
 
 ![ui_element_q_fab](README_MORE.assets/ui_element_q_fab.gif)
@@ -175,6 +211,48 @@ with ui.element('q-fab').props('icon=navigation color=green'):
 在ui.interactive_image上创建SVG图形，以及处理SVG事件，
 
 
+
+### 3.10 ui.keyboard的事件处理技巧（更新中）
+
+完整介绍keyboard事件、组合键的识别与处理方法
+
+
+
+### 3.11 3D场景的处理技巧（更新中）
+
+ui.scene的完整学习
+
+
+
+### 3.12 其他布局的使用技巧（更新中）
+
+ui.list
+
+ui.tabs
+
+ui.scroll_area
+
+ui.skeleton
+
+ui.carousel
+
+ui.expansion
+
+ui.pagination
+
+ui.stepper
+
+ui.timeline
+
+ui.splitter
+
+ui.notification
+
+ui.dialog
+
+ui.menu 菜单内容用别的控件
+
+ui.tooltip 其他内容
 
 ## 4 具体示例【随时更新】
 
