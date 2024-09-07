@@ -883,7 +883,7 @@ ui.run(native=True)
 
 `spinner`参数，布尔类型，是否显示转盘动画。
 
-#### 2.3.5 属性绑定和数据控件（更新中）
+#### 2.3.5 属性绑定和数据控件
 
 ##### 2.3.5.1 binding
 
@@ -1000,17 +1000,28 @@ ui.run(native=True)
 
 ![ui_spinner](README.assets/ui_spinner.gif)
 
-table
+##### 2.3.5.4 ui.code
 
-pyplot
+如果想要在网页上显示有语法高亮的代码块，除了截图之外，惯用的做法是将代码放到代码块里。在NiceGUI中，ui.code就是用来展示代码的。ui.code有两个字符串参数，`content`参数是代码主体，`language`参数是代码的语言类型。
 
+```python3
+from nicegui import ui
 
+code ='''
+    from nicegui import ui
 
-editor
+    ui.label('Code inception!')
 
-code
+    ui.run()
+'''
+ui.code(content=code, language='python').classes('w-full')
 
+ui.run(native=True)
+```
 
+![ui_code](README.assets/ui_code.png)
+
+用于数据展示的控件还有很多，比如：表格ui.table，树形图ui.tree，基于AG Grid的ui.aggrid，用于绘制图表ui.echart、ui.highchart、ui.pyplot、ui.line_plot、ui.plotly，展示3D模型的ui.scene等。因为用法稍微有点复杂，有能力的读者可以自己了解或者等基础学完之后学习后续的进阶教程，这里就不做讲解了。
 
 #### 2.3.6 外观美化（更新中）
 
