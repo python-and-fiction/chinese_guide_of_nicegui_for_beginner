@@ -887,19 +887,124 @@ ui.run(native=True)
 
 ##### 2.3.5.1 binding
 
-​	这一节只介绍绑定的用法（bind，from，to），提一嘴注意事项和性能问题（其他内容在高阶部分）
+在[ui.slider和ui.knob](#2.3.2.3 ui.slider和ui.knob)一节中，为了让ui.slider和ui.knob联动，使用了`bind_value`方法来实现，现在是时候详细了解了。
 
-##### 2.3.5.2 progress:ui.和ui.（线性和圆形）只用来展示但不能输入的，输入要用slider和knob
+对于大部分控件来说，都有几个可以bind的属性，以ui.button为例，有icon、text、visibility、enabled几个属性可以bind。在下面的代码中，就将ui.button这四个属性绑定到ui.select上，可以手动选择每个ui.select的值，让按钮实时发生变化：
+
+```python3
+from nicegui import ui
+
+icon = ui.select(['home','menu'],value='menu',label='icon:').classes('w-32')
+text = ui.select(['home','menu'],value='menu',label='text:').classes('w-32')
+visibility = ui.select([True,False],value=True,label='visibility:').classes('w-32')
+enabled = ui.select([True,False],value=True,label='enabled:').classes('w-32')
+ui.button()\
+    .bind_icon(icon,'value')\
+    .bind_text(text,'value')\
+    .bind_visibility(visibility,'value')\
+    .bind_enabled(enabled,'value')
+
+ui.run(native=True)
+```
+
+![ui_binding](README.assets/ui_binding.gif)
+
+`bind_{属性名}`方法有四个参数`target_object`、 `target_name`、`forward`、`backward`：
+
+`target_object`参数，任意对象，是被绑定的对象。
+
+`target_name`参数，字符串类型，是被绑定对象的属性名，以被绑定的ui.select为例，它的值就对应`value`属性。
+
+`forward`参数和`backward`参数，可调用类型，是正向绑定和反向绑定的转换函数。因为绑定是双向的，除了在目标值改变的时候同步过来，本身的值改变还要同步过去，是两个方向的操作。两个参数的默认值都是`lambda x:x`，意思是双向传递过程不改变值，如果有需要，可以修改这两个参数，在传递的时候实现数据的转换和映射的改变。
+
+要注意的是，`bind_{属性名}`方法返回的是控件本身，因此可以实现连续bind的操作，不需要每次bind都要写一次控件对象，NiceGUI的这一点非常方便。
+
+除了`bind_{属性名}`方法，对于同一属性，还有`bind_{属性名}_to`方法和`bind_{属性名}_from`方法。相比之下，后两者方法就像是把前者的两个方向拆分，分别对应着正向和反向，参数自然分别去掉了不需要的反向绑定`backward`参数和正向绑定`forward`参数。而NiceGUI实际上内部的实现，是`bind_{属性名}`方法执行了`bind_{属性名}_to`方法和`bind_{属性名}_from`方法，因此，三者的关系更像下面这张图：
+
+<img src="README.assets/binding_sketch.png" alt="binding_sketch" style="zoom:80%;" />
+
+`bind_{属性名}_to`方法和`bind_{属性名}_from`方法的特性，可以参照下面代码的演示：
+
+```python3
+from nicegui import ui
+
+text_from = ui.select(['home','menu'],value='menu',label='text_from:').classes('w-32')
+text_from2 = ui.select(['home','menu'],value='menu',label='text_from2:').classes('w-32')
+text_to = ui.select(['home','menu'],value='menu',label='text_to:').classes('w-32')
+ui.button()\
+    .bind_text_from(text_from,'value')\
+    .bind_text_from(text_from2,'value')\
+    .bind_text_to(text_to,'value')
+
+ui.run(native=True)
+```
+
+![ui_binding2](README.assets/ui_binding2.gif)
+
+代码中做了两个反向绑定和一个正向绑定到ui.button。实际操作的话就会发现，因为两个反向绑定的控件都是单向绑定，任意操作其中一个反向绑定的控件，都只会影响到ui.button和正向绑定的控件，不会影响到另一个反向绑定的控件。对于正向绑定的控件，只有ui.button的`text`发生变化之后，正向绑定的控件才会发生变化，只是操作正向绑定的控件，ui.button和两个反向绑定的控件不会受影响。
+
+##### 2.3.5.2 ui.linear_progress和ui.circular_progress
 
 前面[ui.slider和ui.knob](#2.3.2.3 ui.slider和ui.knob)介绍过滑动条和旋钮，肯定有聪明的读者想用这两个控件做条形进度条和环形进度条，但是，这一节的标题已经表明，有专门的进度条控件，使用滑动条和旋钮充当进度条就未免有些画蛇添足。更关键的是，滑动条和旋钮接受用户输入，如果想避免用户输入影响数据展示，还要将控件禁用，具体样式又要做诸多调整，很不方便。然而，进度条控件没有这些弊端，使用起来更加简单。显然，这一节要介绍的进度条控件更适合展示进度。
 
+ui.linear_progress和ui.circular_progress分别是线性进度条和环形进度条，样子看上去就像滑动条和旋钮，但与滑动条和旋钮不同，这两个控件不支持交互输入，只接受数据输入，所以，要想实现简单的交互演示，需要用到上一节的bind方法，这里用的是`bind_value_from`。当然，如果有其他控件作为该控件的下游，还可以使用`bind_value_to`串联下去。
 
+```python3
+from nicegui import ui
+
+slider = ui.slider(min=0, max=1, step=0.01, value=0.5)
+ui.linear_progress().bind_value_from(slider, 'value')
+ui.circular_progress().bind_value_from(slider, 'value')
+
+ui.run(native=True)
+```
+
+![ui_progress](README.assets/ui_progress.gif)
+
+##### 2.3.5.3 ui.spinner
+
+spinner直译的话是陀螺，在实际使用中，其实是加载中常见的动画图标，这里就称之为加载动画控件。
+
+先看代码：
+
+```python3
+from nicegui import ui
+
+ui.spinner(type='default',size='xl',color='red',thickness=5)
+
+ui.run(native=True)
+```
+
+![ui_spinner](README.assets/ui_spinner.png)
+
+ui.spinner有`type`、`size`、`color`、`thickness`四个参数，分别是字符串类型的动画类型、字符串类型的整体尺寸大小、字符串类型的颜色和浮点类型的厚度（这个只有`type`为`default`时生效）。
+
+下面的代码展示了所有动画类型的ui.spinner，读者可以根据需要选择合适的ui.spinner：
+
+```python3
+from nicegui import ui
+
+spinner_type = ['default','audio','ball','bars','box','clock',
+                'comment','cube','dots','facebook','gears','grid',
+                'hearts','hourglass','infinity','ios','orbit','oval',
+                'pie','puff','radio','rings','tail'] 
+
+with ui.card().classes('w-96'),ui.label('All Spinners:'),ui.row():
+    for i in spinner_type:
+        with ui.element():
+            ui.spinner(i,size='lg')
+            ui.tooltip(i)
+
+ui.run(native=True)
+```
+
+![ui_spinner](README.assets/ui_spinner.gif)
 
 table
 
 pyplot
 
-spinner 放个spinner查询器的工具链接
+
 
 editor
 
