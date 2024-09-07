@@ -198,6 +198,8 @@ ui.run(native=True)
 
 （ui.query和ui.teleport放到高阶内容）
 
+ElementFilter，另一种选择方式，更pythonic
+
 
 
 ### 3.8 ui.add\_\* 和app.add\_\*的技巧（更新中）

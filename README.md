@@ -325,6 +325,8 @@ from nicegui import ui
 
 with ui.element('div').classes('p-2 bg-blue-100'):
     ui.label('inside a colored div')
+    
+ui.run(native=True)
 ```
 
 `move`方法，将控件移动到指定控件之内，默认为`default`slot，也可以传递`target_slot`参数，指定slot。代码如下：
@@ -1025,11 +1027,15 @@ ui.run(native=True)
 
 #### 2.3.6 外观美化（更新中）
 
-需要记住具体名字的style classes props方法
+哪怕控件的默认样式好看，总有人觉得厌烦，调整颜色、大小、排列方式，或者一点小小的位移，都能让人眼前一亮。可是，对于前端来说的改变很小，需要涉及到的经验、代码很多，不去深入学习的话似乎很难达到效果。好在有NiceGUI，它的前端样式可以使用tailwindcss，提前定义的一系列样式省去不少麻烦。当然，它也提供了多种自定义的接口，也没有因为降低难度而限制了前端的自由。
 
 
 
-稍微好记一点的tailwindcss属性
+##### 需要记住具体名字的style classes props方法
+
+
+
+##### 稍微好记一点的tailwindcss属性
 
 ​	无需死记硬背tailwindcss，也不需要反复查询官网，直接使用`.tailwindcss`属性或者使用`Tailwind`对象，会有自动提示。
 
@@ -1055,7 +1061,9 @@ ui.run(native=True)
 
 
 
-暗黑模式dark_mode
+##### 暗黑模式dark_mode
+
+##### 设置主题颜色ui.colors
 
 
 
