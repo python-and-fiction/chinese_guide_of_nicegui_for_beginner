@@ -209,11 +209,11 @@ ui.run(native=True)
 
 注意vscode的右下角，务必确保使用的是`venv`下的python解释器，如果不是，点击右下角`3.12.4{'.venv'}`对应位置，选择输入解释器路径-查找，选择`.venv\Scripts\`下的`python.exe`。
 
-<img src="README.assets/hello_world_vscode.png" alt="hello_world_vscode" style="zoom:50%;" />
+<img src="README_INDEX.assets/hello_world_vscode.png" alt="hello_world_vscode" style="zoom:50%;" />
 
 点击VSCode右上角的运行按钮（三角形），就可以看到一个窗口弹出，点击`SAY HI`按钮，就能看到窗口底部弹出的`Hello World!`。
 
-<img src="README.assets/hello_world.png" alt="hello_world" style="zoom:50%;" />
+<img src="README_INDEX.assets/hello_world.png" alt="hello_world" style="zoom:50%;" />
 
 从`Hello World!`示例可以看到，基于nicegui的python程序寥寥三行代码，除去导入语句和必不可少的`ui.run`，主体只有一行代码，就能实现一个完整的交互过程，足见nicegui的强大、简洁。后续教程中很多例子都可以做到几行代码实现不错的效果，这也是nicegui大受欢迎的原因。
 
@@ -346,7 +346,7 @@ ui.button('Move out of input', on_click=lambda: icon.move(card))
 ui.run(native=True)
 ```
 
-![ui_element_move](README.assets/ui_element_move.gif)
+![ui_element_move](README_INDEX.assets/ui_element_move.gif)
 
 ##### 2.3.1.4 ui.markdown和ui.html
 
@@ -414,7 +414,7 @@ with ui.button(color='green', on_click=lambda: ui.notify('You clicked me!')):
 ui.run(native=True)
 ```
 
-![button](README.assets/ui_button.png)
+![button](README_INDEX.assets/ui_button.png)
 
 对于`on_click`参数、后续会涉及到的on开头的`on_*`参数、on开头的`on_*`方法和`on`方法里的callback或者handler参数，均为可调用类型参数，既可以在创建控件时定义lambda表达式，也可以提前定义。对于复杂一点逻辑操作，应该定义函数而不是lambda表达式，比如：
 
@@ -459,7 +459,7 @@ password = ui.input(label='Password:', value='123456', password=True, password_t
 ui.run(native=True)
 ```
 
-![input](README.assets/ui_input.png)
+![input](README_INDEX.assets/ui_input.png)
 
 `label`参数，字符串类型，直译的话是标签，表示显示在输入框上方的文本，但不是输入的文本，如果输入的内容是空的，点击输入的之前会显示在输入框内，点击之后会移动到输入框上方。
 
@@ -492,7 +492,7 @@ ui.knob(min=0, max=100, step=1, value=50,
 ui.run(native=True)
 ```
 
-![ui_knob](README.assets/ui_knob.png)
+![ui_knob](README_INDEX.assets/ui_knob.png)
 
 可以看到，ui.knob的前四个参数和ui.slider的一样，都是浮点类型，分别代表最小值、最大值、每次调整的最小步长、当前值。
 
@@ -520,7 +520,7 @@ img2 = ui.interactive_image(src)
 ui.run(native=True)
 ```
 
-<img src="README.assets/ui_img.png" alt="ui_img" style="zoom:50%;" />
+<img src="README_INDEX.assets/ui_img.png" alt="ui_img" style="zoom:50%;" />
 
 可以看到，同样的图片地址，都是不传入其他参数的情况下，即使可用空间大于图片大小，ui.interactive_image也不会随着页面大小而缩放图片，始终保持图片的原始大小，这个有别于ui.image的特性，可以在日后想要保持图片真实大小时使用。
 
@@ -551,7 +551,7 @@ with ui.interactive_image(src,on_mouse=lambda :ui.notify('You clicked interactiv
 ui.run(native=True)
 ```
 
-<img src="README.assets/ui_interactive_image.png" alt="ui_interactive_image" style="zoom: 67%;" />
+<img src="README_INDEX.assets/ui_interactive_image.png" alt="ui_interactive_image" style="zoom: 67%;" />
 
 
 
@@ -571,7 +571,7 @@ ui.icon(name='sym_r_home', color='blue', size='xl')
 ui.run(native=True)
 ```
 
-<img src="README.assets/ui_icon.png" alt="ui_icon" style="zoom:67%;" />
+<img src="README_INDEX.assets/ui_icon.png" alt="ui_icon" style="zoom:67%;" />
 
 ui.icon的参数不多，就三个：
 
@@ -595,7 +595,7 @@ ui.icon的参数不多，就三个：
 
  Material Icons查询器：`src\chinese_guide_of_nicegui_for_beginner\2_3_3_2_ui_icon.py`
 
-<img src="README.assets/ui_icon_query.png" alt="ui_icon_query" style="zoom:67%;" />
+<img src="README_INDEX.assets/ui_icon_query.png" alt="ui_icon_query" style="zoom:67%;" />
 
 在输入框输入关键字，选定需要的名字，然后在下面查看各个风格的图标预览，最后确定要使用的图标名称。要注意的是，图标名是遍历字体库源代码下的文件夹名字，有的图标不支持全部风格，如果发现下面的预览存在图标异常或者各个风格没有区分，证明这个图标不支持全部风格，读者需酌情调整。
 
@@ -619,7 +619,7 @@ with ui.avatar():
 ui.run(native=True)
 ```
 
-![ui_avatar](README.assets/ui_avatar.png)
+![ui_avatar](README_INDEX.assets/ui_avatar.png)
 
 从参数上看，`icon`就是ui.icon的`name`；颜色这里不太一样，`color`和`text_color`分别代表头像的背景颜色、图标颜色；`size`是头像大小，`font_size`是图标大小。此外，还有两个布尔类型的参数决定头像框的形状：`square`是方形， `rounded`是圆角方形，如果两个都是`False`，头像框就是圆形。
 
@@ -645,7 +645,7 @@ ui.button('Jump to 0:05', on_click=lambda: v.seek(5))
 ui.run(native=True)
 ```
 
-<img src="README.assets/ui_video.png" alt="ui_video" style="zoom:50%;" />
+<img src="README_INDEX.assets/ui_video.png" alt="ui_video" style="zoom:50%;" />
 
 控件通过字符串类型参数`src`传入视频地址，四个布尔类型参数`controls`、`autoplay`、 `muted`、 `loop`分别代表着是否显示内置工具栏、是否自动开始播放、是否静音、是否循环播放。
 
@@ -684,7 +684,7 @@ ui.run(native=True)
 
 `Add label1`按钮在ui.card内部，它添加的ui.label就在ui.card内。`Add label2`按钮在ui.card外，它添加的ui.label就在ui.card外。所以点击两个按钮的效果是这样的：
 
-![auto_context](README.assets/auto_context.png)
+![auto_context](README_INDEX.assets/auto_context.png)
 
 ##### 2.3.4.1 ui.row、ui.column和ui.grid
 
@@ -696,7 +696,7 @@ ui.run(native=True)
 
 网格（ui.grid）布局，即所有控件按照给定的网格排布（几行几列），依次占据每个单元格，就和表格一样。
 
-<img src="README.assets/layout_sketch.png" alt="layout_sketch" style="zoom:67%;" />
+<img src="README_INDEX.assets/layout_sketch.png" alt="layout_sketch" style="zoom:67%;" />
 
 在NiceGUI中，想要让指定的控件按照给定的布局排布，就要在布局的上下文内创建控件，因此，这三个常用布局的代码就要这样写：
 
@@ -721,7 +721,7 @@ with ui.grid(columns=2,rows=2).classes('border-4 border-black p-2'):
 ui.run(native=True)
 ```
 
-![ui_layout](README.assets/ui_layout.png)
+![ui_layout](README_INDEX.assets/ui_layout.png)
 
 ##### 2.3.4.2 ui.space
 
@@ -747,7 +747,7 @@ with ui.column().classes('h-96 border-4 border-black p-2'):
 ui.run(native=True)
 ```
 
-<img src="README.assets/ui_space.png" alt="ui_space" style="zoom:67%;" />
+<img src="README_INDEX.assets/ui_space.png" alt="ui_space" style="zoom:67%;" />
 
 ##### 2.3.4.3 ui.separator
 
@@ -769,7 +769,7 @@ with ui.row().classes('border-4 border-black p-2'):
 ui.run(native=True)
 ```
 
-![ui_separator](README.assets/ui_separator.png)
+![ui_separator](README_INDEX.assets/ui_separator.png)
 
 ##### 2.3.4.4 ui.menu和ui.context_menu
 
@@ -801,7 +801,7 @@ with ui.row().classes('w-full items-center'):
 ui.run(native=True)
 ```
 
-<img src="README.assets/ui_menu.png" alt="ui_menu" style="zoom:67%;" />
+<img src="README_INDEX.assets/ui_menu.png" alt="ui_menu" style="zoom:67%;" />
 
 ##### 2.3.4.5 ui.tooltip
 
@@ -833,7 +833,7 @@ button.tooltip('I like this').classes('bg-green')
 ui.run(native=True)
 ```
 
-![ui_tooltip](README.assets/ui_tooltip.png)
+![ui_tooltip](README_INDEX.assets/ui_tooltip.png)
 
 ##### 2.3.4.6 ui.notify
 
@@ -861,7 +861,7 @@ ui.button('Notify',
 ui.run(native=True)
 ```
 
-<img src="README.assets/ui_notify.png" alt="ui_notify" style="zoom:67%;" />
+<img src="README_INDEX.assets/ui_notify.png" alt="ui_notify" style="zoom:67%;" />
 
 参数有点多，但不必害怕，习惯用法只需记住第一个参数，用起来也简单，其他参数只做了解。
 
@@ -909,7 +909,7 @@ ui.button()\
 ui.run(native=True)
 ```
 
-![ui_binding](README.assets/ui_binding.gif)
+![ui_binding](README_INDEX.assets/ui_binding.gif)
 
 `bind_{属性名}`方法有四个参数`target_object`、 `target_name`、`forward`、`backward`：
 
@@ -923,7 +923,7 @@ ui.run(native=True)
 
 除了`bind_{属性名}`方法，对于同一属性，还有`bind_{属性名}_to`方法和`bind_{属性名}_from`方法。相比之下，后两者方法就像是把前者的两个方向拆分，分别对应着正向和反向，参数自然分别去掉了不需要的反向绑定`backward`参数和正向绑定`forward`参数。而NiceGUI实际上内部的实现，是`bind_{属性名}`方法执行了`bind_{属性名}_to`方法和`bind_{属性名}_from`方法，因此，三者的关系更像下面这张图：
 
-<img src="README.assets/binding_sketch.png" alt="binding_sketch" style="zoom:80%;" />
+<img src="README_INDEX.assets/binding_sketch.png" alt="binding_sketch" style="zoom:80%;" />
 
 `bind_{属性名}_to`方法和`bind_{属性名}_from`方法的特性，可以参照下面代码的演示：
 
@@ -941,7 +941,7 @@ ui.button()\
 ui.run(native=True)
 ```
 
-![ui_binding2](README.assets/ui_binding2.gif)
+![ui_binding2](README_INDEX.assets/ui_binding2.gif)
 
 代码中做了两个反向绑定和一个正向绑定到ui.button。实际操作的话就会发现，因为两个反向绑定的控件都是单向绑定，任意操作其中一个反向绑定的控件，都只会影响到ui.button和正向绑定的控件，不会影响到另一个反向绑定的控件。对于正向绑定的控件，只有ui.button的`text`发生变化之后，正向绑定的控件才会发生变化，只是操作正向绑定的控件，ui.button和两个反向绑定的控件不会受影响。
 
@@ -961,7 +961,7 @@ ui.circular_progress().bind_value_from(slider, 'value')
 ui.run(native=True)
 ```
 
-![ui_progress](README.assets/ui_progress.gif)
+![ui_progress](README_INDEX.assets/ui_progress.gif)
 
 ##### 2.3.5.3 ui.spinner
 
@@ -977,7 +977,7 @@ ui.spinner(type='default',size='xl',color='red',thickness=5)
 ui.run(native=True)
 ```
 
-![ui_spinner](README.assets/ui_spinner.png)
+![ui_spinner](README_INDEX.assets/ui_spinner.png)
 
 ui.spinner有`type`、`size`、`color`、`thickness`四个参数，分别是字符串类型的动画类型、字符串类型的整体尺寸大小、字符串类型的颜色和浮点类型的厚度（这个只有`type`为`default`时生效）。
 
@@ -1000,7 +1000,7 @@ with ui.card().classes('w-96'),ui.label('All Spinners:'),ui.row():
 ui.run(native=True)
 ```
 
-![ui_spinner](README.assets/ui_spinner.gif)
+![ui_spinner](README_INDEX.assets/ui_spinner.gif)
 
 ##### 2.3.5.4 ui.code
 
@@ -1021,7 +1021,7 @@ ui.code(content=code, language='python').classes('w-full')
 ui.run(native=True)
 ```
 
-![ui_code](README.assets/ui_code.png)
+![ui_code](README_INDEX.assets/ui_code.png)
 
 用于数据展示的控件还有很多，比如：表格ui.table，树形图ui.tree，基于AG Grid的ui.aggrid，用于绘制图表ui.echart、ui.highchart、ui.pyplot、ui.line_plot、ui.plotly，展示3D模型的ui.scene等。因为用法稍微有点复杂，有能力的读者可以自己了解或者等基础学完之后学习后续的进阶教程，这里就不做讲解了。
 
@@ -1045,7 +1045,7 @@ ui.button('button').style('background-color:red !important')
 ui.run(native=True)
 ```
 
-![styling](README.assets/styling.png)
+![styling](README_INDEX.assets/styling.png)
 
 代码中，使用了三种方法将按钮颜色设置为红色。下面将分别说明三种方法的用法：
 
@@ -1081,7 +1081,7 @@ ui.label('Style').classes('text-red-400')
 ui.run(native=True)
 ```
 
-![tailwindcss](README.assets/tailwindcss.png)
+![tailwindcss](README_INDEX.assets/tailwindcss.png)
 
 在开发工具中调用控件的`tailwindcss`属性或者创建` Tailwind()`对象之后，再输入`.`，就会弹出子方法提示，选择对应的子方法之后，在输入引号，会进一步弹出参数的提示。
 
@@ -1132,7 +1132,7 @@ ui.colors(primary='#555')
 ui.run(native=True)
 ```
 
-![ui_colors](README.assets/ui_colors.png)
+![ui_colors](README_INDEX.assets/ui_colors.png)
 
 
 
