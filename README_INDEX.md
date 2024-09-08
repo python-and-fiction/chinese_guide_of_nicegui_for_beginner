@@ -1136,25 +1136,131 @@ ui.run(native=True)
 
 
 
-#### 2.3.7 事件和执行（更新中）
+#### 2.3.7 事件和执行
 
 ##### 2.3.7.1 通用事件
 
+大部分控件都有预定义事件监听，比如，ui.button的on_click点击事件监听，在传参或者调用方法时定义。除了这种已经定义的事件监听，每个控件还支持通过on方法创建任意事件监听，比如使用on方法创建点击事件监听，也可以创建鼠标进入、离开的事件监听。正如下面的代码所示：
 
+```python3
+from nicegui import ui
 
-常用事件app.on\_\*
+ui.button('A',on_click=lambda: ui.notify('You clicked the button A.'))
+ui.button('B').on('click',lambda: ui.notify('You clicked the button B.'))
+ui.button('C').on('mouseenter',lambda: ui.notify('You entered the button C.'))
+ui.button('D').on('mouseleave',lambda: ui.notify('You left the button D.'))
 
-定时器timer
+ui.run(native=True)
+```
 
-ui更新update
+##### 2.3.7.2 常用事件app.on\_\*
 
-可刷新方法ui.refreshable
+如果想要针对浏览器端的连接、关闭，服务器端的启动、关闭，添加事件监听，就要导入app模块。app.on_connect、app.on_disconnect可以监听浏览器端的连接、关闭；app.on_startup、app.on_shutdown可以监听服务器端的启动、关闭。代码如下：
 
-运行JavaScript代码
+```python3
+from nicegui import ui,app
 
-异步事件处理器
+app.on_startup(lambda :print('started!'))
+app.on_shutdown(lambda :print('shutdowning!'))
+app.on_connect(lambda :print('connected!'))
+app.on_disconnect(lambda :print('disconnected!'))
 
-#### 2.3.8 网站页面
+ui.run(native=True)
+```
+
+##### 2.3.7.3 定时器ui.timer
+
+定时器可以根据给定的时间间隔，周期性执行指定函数。ui.timer有四个参数：浮点类型的时间间隔`interval`、可调用类型的执行操作`callback`、布尔类型的是否激活`active`、布尔类型的是否运行一次`once`。
+
+代码如下：
+
+```python3
+from nicegui import ui
+
+ui.timer(interval=6.0,callback=lambda :ui.notify('Timer.'),active=True,once=False)
+
+ui.run(native=True)
+```
+
+##### 2.3.7.4 可刷新方法ui.refreshable
+
+一般来说，每个控件都有`update`方法来更新控件显示，主要是针对某些不会触发UI刷新的修改。但是，`update`方法有一定局限性，只能刷新控件自身，如果控件下嵌套其他控件，该方法不能确保子控件一并刷新。因此，可刷新方法ui.refreshable就派上用场了。
+
+以下面代码为例：
+
+```python3
+from nicegui import ui
+
+a = ['A','A']
+
+def row_ui():
+    with ui.row() as row:
+        for i in a:
+            ui.label(i)
+    return row
+
+row = row_ui()
+
+def clicked():
+    a.append('A')
+    row.update()
+
+ui.button('A+1',on_click=clicked)
+
+ui.run(native=True)
+```
+
+定义了一个字符串列表`a`，用于存储字符串。函数`row_ui`会根据a的内容创建相同数目的ui.label。然而，按钮`A+1`要执行的函数里，会执行一次给`a`追加一个'A'，也就是说，每点一次按钮，`a`里的'A'就会多一个。可是，即便函数`clicked`里已经添加了`row.update()`来刷新ui.row，每次点击按钮，屏幕上的ui.label并不会增加。
+
+问题出在哪里？稍安勿躁，先修改一下代码，用`@ui.refreshable`装饰一下函数`row_ui`，然后将函数`clicked`里的`row.update()`换成`row_ui.refresh()`，再看看按钮点击的效果：
+
+```python3
+from nicegui import ui
+
+a = ['A','A']
+
+@ui.refreshable
+def row_ui():
+    with ui.row():
+        for i in a:
+            ui.label(i)
+            
+row_ui()
+
+def clicked():
+    a.append('A')
+    row_ui.refresh()
+
+ui.button('A+1',on_click=clicked)
+
+ui.run(native=True)
+```
+
+这一次，结果总算正确了，点一次按钮，屏幕上的ui.label增加一个。
+
+为什么？
+
+可刷新方法ui.refreshable装饰的函数，会多一个`refresh`方法，调用这个方法会触发被装饰函数的重新执行，相当于这一部分的UI全部重新绘制，并不会像`update`方法一样只是触发刷新。触发刷新只能检测到与控件相关联的事件，示例代码里定义的列表a，没有使用绑定方法与控件关联，只有执行迭代的时候才有不同，因此ui.row的刷新并不能实现预期效果。
+
+一般来说，为了快捷创建有规律的控件而使用迭代方法，需要根据数据变化刷新显示，都要用ui.refreshable来重新绘制。当然，没有控件数量变化的时候也有需要使用ui.refreshable来重新绘制的情况，读者在遇到时见机行事。毕竟重新绘制比触发刷新的性能开销大，非必要的情况，还是不要制造需要重新绘制的情况。
+
+##### 2.3.7.5 运行JavaScript代码ui.run_javascript
+
+NiceGUI既然是基于Web的UI，免不了与网页三剑客HTML、CSS、JavaScript打交道。前面提到过HTML的标签，也讲过了CSS的美化语法，JavaScript如何执行却没说过。现在，终于到了与JavaScript交互的时候。
+
+ui.run_javascript可以运行任意JavaScript代码，方便在Python无法处理的时候，补充使用JavaScript的方法。当然，JavaScript毕竟是一门设计时就很仓促的语言，时至今日，哪怕ES标准正在解决JavaScript留下的烂摊子，也避免不了JavaScript糟糕的历史包袱。对于各位读者来说，非必要还是别执行JavaScript代码，但是这个执行的方法，不能不会。
+
+```python3
+from nicegui import ui
+
+ui.button('js',on_click=lambda :ui.run_javascript(code='alert("Hello World from JavaScript!")',timeout=1))
+
+ui.run(native=True)
+```
+
+字符串类型参数`code`就是要执行的JavaScript代码，浮点类型参数`timeout`是超时，有些JavaScript方法的执行时间比较长，可以修改这个参数来避免JavaScript执行触发超时而导致结果返回失败。
+
+#### 2.3.8 网站页面（更新中）
 
 ui.page和auto-index的区别
 
