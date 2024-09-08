@@ -1025,19 +1025,41 @@ ui.run(native=True)
 
 用于数据展示的控件还有很多，比如：表格ui.table，树形图ui.tree，基于AG Grid的ui.aggrid，用于绘制图表ui.echart、ui.highchart、ui.pyplot、ui.line_plot、ui.plotly，展示3D模型的ui.scene等。因为用法稍微有点复杂，有能力的读者可以自己了解或者等基础学完之后学习后续的进阶教程，这里就不做讲解了。
 
-#### 2.3.6 外观美化（更新中）
+#### 2.3.6 外观美化
 
 哪怕控件的默认样式好看，总有人觉得厌烦，调整颜色、大小、排列方式，或者一点小小的位移，都能让人眼前一亮。可是，对于前端来说的改变很小，需要涉及到的经验、代码很多，不去深入学习的话似乎很难达到效果。好在有NiceGUI，它的前端样式可以使用tailwindcss，提前定义的一系列样式省去不少麻烦。当然，它也提供了多种自定义的接口，也没有因为降低难度而限制了前端的自由。
 
+##### 2.3.6.1 需要记住具体名字的props、classes、style方法
 
+在掌握便利的工具之前，先辛苦一下，学点需要基础知识、但以后会很有用的方法。
 
-##### 需要记住具体名字的style classes props方法
+先看代码：
 
+```python3
+from nicegui import ui
 
+ui.button('button').props('color="red"')
+ui.button('button').classes('!bg-red-500')
+ui.button('button').style('background-color:red !important')
 
-##### 稍微好记一点的tailwindcss属性
+ui.run(native=True)
+```
 
-​	无需死记硬背tailwindcss，也不需要反复查询官网，直接使用`.tailwindcss`属性或者使用`Tailwind`对象，会有自动提示。
+![styling](README.assets/styling.png)
+
+代码中，使用了三种方法将按钮颜色设置为红色。下面将分别说明三种方法的用法：
+
+`props`方法，设置的是HTML标签的属性，对于NiceGUI基于的Quasar来说，标签属性有不少是决定显示效果的，因此，在NiceGUI中，可以用这个方法设置对应底层组件的属性。就代码案例而言，具体属性名可以参考https://quasar.dev/vue-components/button ，属性值参考 https://quasar.dev/style/sass-scss-variables 。
+
+`classes`方法，设置的是HTML标签的类（class）名，NiceGUI支持tailwindcss，因此，`classes`方法可以使用tailwindcss预定义的类，也可以使用自定义的CSS类。就代码案例而言，具体类名可以参考https://tailwindcss.com/docs/background-color  。
+
+`style`方法，设置的是HTML标签的CSS属性，可以直接给组件设置CSS属性，如果有一定前端基础的话，可以使用该方法充分自定义，没有相关基础也没关系，上面的两个方法提供了丰富的预定义功能，学习难度也不高。就代码案例而言，具体语法可以参考 https://developer.mozilla.org/en-US/docs/Web/CSS/background-color 。
+
+##### 2.3.6.2 好记一点的tailwindcss属性和Tailwind对象
+
+tailwindcss官网提供了搜索功能，但总归需要一定的时间学习，更别说网络不好或者没网的时候，没法打开官网搜索。当然，也有方法自托管tailwindcss的文档，但有一定难度，也不符合NiceGUI的宗旨。
+
+因此，NiceGUI后续推出了tailwindcss属性和Tailwind对象。无需死记硬背tailwindcss，也不需要反复查询官网，直接使用`tailwindcss`属性或者使用`Tailwind`对象，会有自动提示，只要有一点英语基础，很容易找到对应的tailwindcss类名。
 
 比如：
 
@@ -1059,25 +1081,74 @@ ui.label('Style').classes('text-red-400')
 ui.run(native=True)
 ```
 
+![tailwindcss](README.assets/tailwindcss.png)
+
+在开发工具中调用控件的`tailwindcss`属性或者创建` Tailwind()`对象之后，再输入`.`，就会弹出子方法提示，选择对应的子方法之后，在输入引号，会进一步弹出参数的提示。
+
+##### 2.3.6.3 暗黑模式ui.dark_mode
+
+现在很多网站支持暗黑模式，方便访问者光线不佳时浏览网页，让网页没那么刺眼。NiceGUI中，也有一个控件可以快速切换暗黑模式，实现同样的效果，那就是ui.dark_mode。
+
+以下代码用ui.dark_mode创建了一个暗黑模式的控件，默认值为`False`，并且创建了一个模式切换的响应函数，会在模式切换时弹出通知，通过点击下方的两个按钮，可以直接启用、禁用暗黑模式：
+
+```python3
+from nicegui import ui
+
+dark = ui.dark_mode(value=False, on_change=lambda :ui.notify(f'Dark mode is {dark.value}.'))
+ui.label('Switch mode:')
+ui.button('Dark', on_click=dark.enable)
+ui.button('Light', on_click=dark.disable)
+
+ui.run(native=True)
+```
+
+##### 2.3.6.4 设置主题颜色ui.colors
+
+前面讲了如何给单个控件设置颜色的方法，肯定有读者担心了，如果想要修改主题颜色，还需要每个控件修改一次或者添加一下主题类，会不会很麻烦？其实，这个操作也有简单的方法，ui.colors可以直接设置整个程序的主题颜色，直接影响所有控件。因为Quasar提供了一系列预先定义好的类名，这些名字用在NiceGUI的控件颜色中，通过ui.colors可以修改这些类名的具体值。类名可以参考https://quasar.dev/style/theme-builder 。
+
+以下面的代码为例，`primary`就是各个控件主要的颜色，通过ui.colors将`primary`修改为`#555`，上一节中的按钮默认颜色就变成灰色了：
+
+```python3
+from nicegui import ui
+
+dark = ui.dark_mode(value=False, on_change=lambda: ui.notify(
+    f'Dark mode is {dark.value}.'))
+ui.label('Switch mode:')
+ui.button('Dark', on_click=dark.enable)
+ui.button('Light', on_click=dark.disable)
+
+main_color = dict(primary='#5898d4',
+                  secondary='#26a69a',
+                  accent='#9c27b0',
+                  dark='#1d1d1d',
+                  positive='#21ba45',
+                  negative='#c10015',
+                  info='#31ccec',
+                  warning='#f2c037')
+ui.colors().props.update(main_color)
+#或者简单修改其中一个类别
+ui.colors(primary='#555')
+
+ui.run(native=True)
+```
+
+![ui_colors](README.assets/ui_colors.png)
 
 
-##### 暗黑模式dark_mode
 
-##### 设置主题颜色ui.colors
+#### 2.3.7 事件和执行（更新中）
+
+##### 2.3.7.1 通用事件
 
 
-
-#### 2.3.7 事件和执行
-
-通用事件
 
 常用事件app.on\_\*
 
 定时器timer
 
-ui更新
+ui更新update
 
-可刷新方法
+可刷新方法ui.refreshable
 
 运行JavaScript代码
 
