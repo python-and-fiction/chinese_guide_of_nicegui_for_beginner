@@ -305,9 +305,9 @@ ui.run(native=True)
 
 #### 4.3.1 ui.run
 
-1，非native mode的话，默认运行会弹出浏览器窗口，如何做到不让浏览器弹出？
+1，网站在标题栏的logo是NiceGUI的logo，如何指定为自己的logo？
 
-修改`ui.run()`的默认参数`show`为`False`，使用`ui.run(show=False)`。
+修改`ui.run()`的默认参数`favicon`为自己logo的地址或者emoji字符`🚀`，例如：`ui.run(favicon='🚀')`。
 
 ### 4.4 ui.button
 
@@ -337,5 +337,46 @@ from nicegui import ui
 ui.button(icon='home', on_click=lambda: ui.notify('home')).props('fab')
 
 ui.run(native=True)
+```
+
+3，如何实现按钮点击后才执行特定操作？
+
+使用异步等待。
+
+```python3
+from nicegui import ui
+
+@ui.page('/')
+async def index():
+    b = ui.button('Step')
+    await b.clicked()
+    ui.label('One')
+    await b.clicked()
+    ui.label('Two')
+    await b.clicked()
+    ui.label('Three')
+
+ui.run()
+```
+
+### 4.5 ui.page
+
+1，如何通过传参的形式动态修改页面内容？
+
+使用参数注入，基于fastapi的https://fastapi.tiangolo.com/tutorial/path-params/ 和 https://fastapi.tiangolo.com/tutorial/query-params/ 或者 https://fastapi.tiangolo.com/advanced/using-request-directly/ ，可以捕获url传入的参数，并用在Python程序中。
+
+```python3
+from nicegui import ui
+
+@ui.page('/icon/{icon}')
+def icons(icon: str, amount: int = 1):
+    ui.label(icon).classes('text-h3')
+    with ui.row():
+        [ui.icon(icon).classes('text-h3') for _ in range(amount)]
+ui.link('Star', '/icon/star?amount=5')
+ui.link('Home', '/icon/home')
+ui.link('Water', '/icon/water_drop?amount=3')
+
+ui.run()
 ```
 

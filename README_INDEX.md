@@ -1260,20 +1260,203 @@ ui.run(native=True)
 
 字符串类型参数`code`就是要执行的JavaScript代码，浮点类型参数`timeout`是超时，有些JavaScript方法的执行时间比较长，可以修改这个参数来避免JavaScript执行触发超时而导致结果返回失败。
 
-#### 2.3.8 网站页面（更新中）
+#### 2.3.8 网站页面
 
-##### ui.page和auto-index的区别
+##### 2.3.8.1 ui.page
 
-##### 页面布局三大块，header、footer和左右drawer
+在继续下面的内容前，各位需要了解一个NiceGUI的概念——page页面。前面讲了不少控件，想要访问这些控件组成的页面，通常直接访问弹出的native mode窗口，当然，也可以直接在浏览器里输入地址。
 
-##### page_title设置
+但是，细心的读者就会发现，当用户打开多个浏览器页面访问这个地址或者多个用户打开同一地址的时候，任意一个页面进行交互，其他页面都会有反应，和印象中的网站页面不太一样，正常的网站页面不应该这样。
 
-##### navigate函数
+没错，前面的控件其实都布局在auto-index的页面下，也就是网站的根目录，即网址后面只有一个斜杠或者没有斜杠的情况（http://127.0.0.1:8000/ 或者http://127.0.0.1:8000）。前面提到过一个概念叫上下文，这里想要快速理解页面的概念的话，还是要正确划分上下文关系，后面才能更好应用页面设计。
 
-##### ui.download
+默认情况下，没有添加ui.page装饰器的话，整个程序内的控件都在auto-index的页面下；即使添加了ui.page装饰器，没有在装饰器修饰的函数的上下文内，也会自动划分到auto-index的页面。
 
-#### 2.3.9 部署与配置
+理解auto-index之后，现在，可以正式介绍ui.page了。
 
-##### ui.run端口、ip的配置，native mode的开启，reload的关闭
+不同于auto-index的页面是多人共享，ui.page产生的页面是私有的，即每个人在打开的页面交互，不会影响其他人打开的页面。
 
-##### native mode初始参数设置，窗口大小，是否运行调整窗口大小，是否允许下载，是否启用调试工具，调整窗口大小、设置窗口标题的api等
+以下面的代码为例：
+
+```python3
+from nicegui import ui
+from uuid import uuid4
+
+@ui.page(path='/private_page',title='private_page')
+def private_page():
+    ui.label(f'private page with ID {uuid4()}')
+
+ui.label(f'shared auto-index page with ID {uuid4()}')
+ui.link('private page', private_page)
+
+ui.run(port=8000)
+```
+
+访问http://127.0.0.1:8000/时看到的uuid64和访问http://127.0.0.1:8000/private_page时看到的uuid64是不一样的，http://127.0.0.1:8000//private_page是ui.page产生的，属于私有页面，每次打开（可以尝试刷新）之后，`uuid4()`都会运行一次，因此uuid64会重新生成。而http://127.0.0.1:8000/下的uuid64是程序启动之后就生成了，`uuid4()`只在程序启动时运行一次，因此每次打开http://127.0.0.1:8000/显示的uuid64是一样的。如果想要http://127.0.0.1:8000/下的uuid64和http://127.0.0.1:8000/private_page一样，就要创建一个`path='/'`的ui.page。
+
+创建ui.page的方法很简单，使用Python中的装饰器，在`@ui.page(path='/private_page',title='private_page')`的下一行定义一个函数，函数的内部就是ui.page的上下文。
+
+ui.page默认有很多参数，这里只讲常用的`path`和`title`。
+
+`path`参数，字符串类型，表示这个ui.page对应的服务器地址，即http://127.0.0.1:8000后面的部分。
+
+`title`参数，字符串类型，表示这个ui.page的浏览器窗口标题。除了在定义ui.page时候设置标题外，还可以调用`ui.page_title(title='title')`来设置当前页的浏览器窗口标题。
+
+##### 2.3.8.2 页面布局
+
+尽管前面已经说过图形布局，这里还是有必要介绍一下页面布局。不同于图形布局能被嵌套在其他布局、控件内，页面布局的上一层只能是ui.page，或者说页面布局不受上层布局影响（专指ui.page_sticky，虽然放在图形布局下不报错，但图形布局并不会生效）。
+
+ui.header和ui.footer：
+
+标题和页脚，就是浮动在页面最上面和最下面的区域，就像报纸的页眉和页脚一样，不过这里使用的单词是header，所以称之为标题。这两个控件的代码参数只有一处差异，不过一般不怎么用。平时用的最多的还是相同的几个参数，这里只说布尔类型参数`value`，这个参数决定了这两个布局的显示状态，可以通过初始化传参来决定默认状态，也可以通过后续使用set_value修改这个值来显示、隐藏，使用set_visibility也能达到同样的效果，toggle可以自动切换显示、隐藏。
+
+```python3
+from nicegui import ui
+
+@ui.page(path='/', title='index_page')
+def page_index():
+    ui.label('CONTENT')
+    with ui.header(value=True, fixed=True, bordered=False, elevated=False, wrap=True, add_scroll_padding=False).classes('items-center'):
+        ui.label('HEADER')
+    with ui.footer(value=True, fixed=True, bordered=False, elevated=False, wrap=True):
+        ui.label('FOOTER')
+
+ui.run(port=8000)
+```
+
+![ui_header_footer](README_INDEX.assets/ui_header_footer.png)
+
+ui.left_drawer和ui.right_drawer：
+
+左右抽屉，其实这两个布局是基于ui.drawer的包装，呈现出来就是左右边栏。既然是基于同一控件的包装，参数自然是一样的。与标题和页脚一样，主要关注的还是参数`value`，含义一样是表示控件的显示、隐藏。
+
+```python3
+from nicegui import ui
+
+@ui.page(path='/', title='index_page')
+def page_index():
+    with ui.left_drawer(value=True, fixed=True, bordered=False, elevated=False, top_corner=False, bottom_corner=False).classes('bg-grey') as left_drawer:
+        ui.label('LEFT DRAWER')
+    with ui.right_drawer(value=True, fixed=True, bordered=False, elevated=False, top_corner=False, bottom_corner=False).classes('bg-grey') as right_drawer:
+        ui.label('RIGHT DRAWER')
+    ui.button(on_click=lambda: left_drawer.toggle(),
+                  icon='menu',text='left drawer')
+    ui.button(on_click=lambda: right_drawer.toggle(),
+                  icon='menu',text='right drawer')
+
+ui.run(port=8000)
+```
+
+<img src="README_INDEX.assets/ui_drawer.png" alt="ui_drawer" style="zoom: 50%;" />
+
+ui.page_sticky：
+
+便签，这是从字面意义上看，实际作用也和便签类似，放在这个布局内的内容，会出现在侧边或者角落，就像贴在显示器的便签一样。ui.page_sticky的参数里，用得最多的就是字符串参数`position`位置，浮点类型参数`x_offset`和 `y_offset`XY方向的偏移。
+
+```python3
+from nicegui import ui
+
+@ui.page(path='/', title='index_page')
+def page_index():
+    PageStickyPositions = ['top-right', 'top-left', 'bottom-right',
+                           'bottom-left', 'top', 'right', 'bottom', 'left']
+    for i in PageStickyPositions:
+        with ui.page_sticky(position=i, x_offset=50, y_offset=50, expand=False):
+            ui.button(icon='home')
+
+ui.run(port=8000)
+```
+
+![ui_page_sticky](README_INDEX.assets/ui_page_sticky.png)
+
+##### 2.3.8.3 ui.navigate
+
+有了ui.page之后，访问不同的地址代表不同的页面，可以使用之前的ui.link来创建指向不同页面的超链接。那么，有没有方法来跳转不同页面而不用明显地摆出超链接？
+
+也有，那就是这一节要说的ui.navigate。
+
+ui.navigate提供了四个方法，分别是back后退、forward前进、reload重新载入、to跳转到。除了跳转到之外，其他方法都没有参数，跳转到的参数和ui.link一样，具体可以参考前面的介绍。
+
+```python3
+from nicegui import ui
+
+with ui.row():
+    ui.button('Back', on_click=ui.navigate.back)
+    ui.button('Forward', on_click=ui.navigate.forward)
+    ui.button('Reload', on_click=ui.navigate.reload)
+    ui.button(text='baidu',icon='home',
+              on_click=lambda: ui.navigate.to('https://www.baidu.com/'))
+
+ui.run(port=8000)
+```
+
+##### 2.3.8.4 ui.download
+
+除了用ui.link提供链接让用户点击下载文件之外，还可以调用ui.download来触发下载。
+
+ui.download有三个参数，常用的是前两个字符串类型或者字节类型参数`src`来源，字符串类型参数`filename`文件名。
+
+```python3
+from nicegui import ui
+
+ui.button('Logo', on_click=lambda: ui.download(src='https://nicegui.io/logo.png',filename='logo.png',media_type=''))
+ui.button('Download', on_click=lambda: ui.download(src=b'Hello World',filename='hello.txt',media_type=''))
+
+ui.run(port=8000)
+```
+
+#### 2.3.9 运行配置
+
+##### 2.3.9.1 ui.run
+
+几乎每个例子都要用的ui.run有非常多的参数，可基础内容都快讲完也不说说参数的话，多少有点说不过去。接下来，针对ui.run里常用的几个参数说一下。
+
+`host`参数，字符串类型，表示整个程序监听的ip，默认情况下是'0.0.0.0'，即监听全部可用的本机ip，如果是native mode下，这个值默认为'127.0.0.1'，即只监听本地ip。
+
+`port`参数，整数类型，表示程序监听的端口。
+
+`title`参数，字符串类型，表示程序启动后的默认窗口标题。
+
+`show`参数，布尔类型，表示程序启动后是否自动唤起默认浏览器打开程序的地址，如果同时开启了native mode的话，这个参数会被强制禁用。
+
+`native`参数，布尔类型，表示是否启用本地窗口模式，即调用pywebview来显示NiceGUI程序，看上去就和桌面程序一样。
+
+`reload`参数，布尔类型，表示是否启用热重载。不知道各位读者有没有注意到，之前都没有设置这个参数，但是修改了程序并保存的话，保存都是很快就生效，不需要手动重启程序。没错，这个参数默认为`True`，即程序修改会触发程序自动重启，让界面修改即使体现，这一点倒是方便开发的时候调试界面。不过，这个参数在非开发过程中最好设置为`False`，以免频繁触发重启。
+
+##### 2.3.9.2 native mode
+
+前面很多例子都是在native mode本地模式下调试，其实，native mode相关的设置也有很多需要注意的地方，下面就说一说常用的几个。
+
+以代码为例：
+
+```python3
+from nicegui import app, ui
+
+app.native.window_args['resizable'] = False
+app.native.start_args['debug'] = True
+app.native.settings['ALLOW_DOWNLOADS'] = True
+
+ui.label('app running in native mode')
+ui.button('enlarge', on_click=lambda: app.native.main_window.resize(1000, 700))
+ui.button('title', on_click=lambda: app.native.main_window.set_title('main window'))
+
+ui.run(native=True, window_size=(400, 300), fullscreen=False,title='main')
+```
+
+默认本地模式窗口可以自由调整窗口大小，但是有些时候界面没做大窗口的布局，不喜欢用户调整窗口大小或者最大化，可以设置`app.native.window_args['resizable'] `为`False`，禁用本地窗口的大小调整功能。
+
+有能力的读者肯定试过在浏览器窗口中启用开发者调试工具来调整界面效果。但是，在本地窗口中，虽然本质上也是浏览器，但想要调试界面效果的话，还要额外开个浏览器窗口，总觉得有些麻烦，没关系，本地窗口也是可以启用开发者工具的。将`app.native.start_args['debug']`设置为`True`，在启动本地窗口的同时，还会弹出一个开发者工具，和在普通浏览器里一样，方便同步调试界面。
+
+在前面介绍过ui.download，这个功能是程序化控制下载文件的。但是，有的读者可能遇到过在本地窗口下，这个功能好像失效了，以为是NiceGUI的bug。其实不然，这个是因为pywebview默认禁止下载，可以设置`app.native.settings['ALLOW_DOWNLOADS']`为`True`来允许下载。
+
+前面讲了禁用窗口大小调整的方法，但是，如果在这种情况，还想控制窗口大小的变化，或者在没有禁用的情况下自由控制窗口大小，有没有办法？有，使用 app.native.main_window.resize方法即可，参数就是窗口的宽度和高度。
+
+在[ui.page](#2.3.8.1 ui.page)一节介绍过ui.page_title方法来设置窗口标题，有没有一种方法设置窗口标题但是只针对本地窗口有效？有，app.native.main_window.set_title方法只设置本地窗口标题，不会影响浏览器的窗口标题。其实，ui.page_title方法里默认调用了一次app.native.main_window.set_title方法，如果没有特殊需求，只用ui.page_title方法更简单。
+
+## 后记
+
+至此，NiceGUI的基础部分完结，作者水平有限，接触NiceGUI也不完全，有些地方难免有疏漏或者描述不准确，请各位谅解。如有遗漏或者错误，请及时联系作者修改，作者不胜感激。
+
+如果读者觉得意犹未尽，有些没有讲到的基础内容恰好是所需的，可以自行探索官方教程，或者期待本教程的进阶部分。进阶部分将进一步深入NiceGUI，介绍不常用的控件和其他用法，并不时补充NiceGUI的社区问题与解决方法，让广大使用中文的开发者更方便学习NiceGUI。
+
+敬请期待。
