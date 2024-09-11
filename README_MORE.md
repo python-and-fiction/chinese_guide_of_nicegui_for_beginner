@@ -8,7 +8,7 @@
 
 ## 3 高阶技巧
 
-本章主要介绍一些高阶技巧，需要一定的基础。
+NiceGUI的控件有很多，日常开发中，除了了解常用控件之外，不常用的控件也可以在学有余力的时候看看。当然，图形界面的开发不止对控件的了解，一些逻辑上的处理技巧，Python语言的特性与框架的结合，也是难免会遇到的难题。不过，不用怕，授人以鱼不如授人以渔，日常能遇到、能解决的难题，这里都有。
 
 ### 3.1 with的技巧
 
@@ -178,15 +178,86 @@ ui.run(native=True)
 
 ![ui_element_q_fab](README_MORE.assets/ui_element_q_fab.gif)
 
-### 3.5 for循环的技巧（更新中）
+### 3.5 for循环的技巧
 
 #### 3.5.1 用for创建多个有规律的控件
 
+有时候，要创建多个外观一致或者有规律的控件，一个一个写代码或者复制粘贴的话，就不太pythonic了。在Python中，可以使用for来遍历迭代，同样可以使用for来创建多个外观一致或者有规律的控件。
 
+```python3
+from nicegui import ui
+
+with ui.grid(rows=3,columns=3):
+    for i in range(9):
+        ui.button(i)
+
+ui.run(native=True)
+```
+
+![for_1](README_MORE.assets/for_1.png)
 
 #### 3.5.2 与lambda组合使用时的问题
 
+除了要创建一样的控件，还要给每个控件添加事件响应的话，每次都写一遍函数定义未免大材小用，更何况同名函数会出现覆盖，让函数名动态变化又没那么简单。这个时候Python的匿名函数——lambda表达式就派上用场了。lambda表达式可以创建语句简单的匿名函数，不必担心函数名重复的情况。比如，在下面的代码中，通过使用lambda表达式，让按钮的点击操作变成弹出一条通知。
 
+```python3
+from nicegui import ui
+
+with ui.grid(rows=3,columns=3):
+    for i in range(9):
+        ui.button(i,on_click=lambda :ui.notify(i))
+
+ui.run(native=True)
+```
+
+不过，事情并没有看上去那么简单，当写完代码开始执行的时候，才发现每个按钮的点击结果都一样，都是弹出内容为8的通知，这是为何？
+
+原来，使用lambda表达式执行的`ui.notify(i)`，因为表达式没有绑定默认值，实际上绑定到了动态的`i`上，按钮的on_click的定义不是第一时间执行，而是在完成定义之后响应用户的操作。最终，当for完成遍历之后，动态的`i`已经被赋值为8，因此按钮的响应操作都被统一修改了。为了避免这种情况，需要修改一下lambda表达式，添加一个参数并绑定默认值：
+
+```python3
+from nicegui import ui
+
+with ui.grid(rows=3,columns=3):
+    for i in range(9):
+        ui.button(i,on_click=lambda i=i:ui.notify(i))
+
+ui.run(native=True)
+```
+
+修改之后的`lambda i=i:ui.notify(i)`中，`i=i`的意思是lambda表达式里的i变成了函数的参数i，而这个i绑定到了外部的i当时值。
+
+当然，实际代码中不建议这样写，太容易混淆了（怕被裁员倒是可以）。
+
+上面的代码可以再修改一下，让可读性变得更好：
+
+```python3
+from nicegui import ui
+
+with ui.grid(rows=3, columns=3):
+    for i in range(9):
+        ui.button(i, on_click=lambda x=i: ui.notify(x))
+
+ui.run(native=True)
+```
+
+#### 3.5.3 更好的for循环
+
+为了确保批量生成之后还能访问每个控件，最好将批量生成的控件存储到列表里（不建议使用元组，没法修改；字典非必要也别用，字典的结构有点复杂，除非是列表没法实现需求）。
+
+以下面的代码为例，使用buttons创建一个列表，在列表中用列表生成式来创建多个控件。后续如果需要修改某一个控件，就可以通过buttons来访问任意一个控件，这里是将第一个按钮隐藏。
+
+```python3
+from nicegui import ui
+
+with ui.grid(rows=3,columns=3):
+    buttons = [ui.button(i,on_click=lambda x=i:ui.notify(x)) for i in range(9)]
+
+buttons[0].tailwind.visibility('invisible')
+
+ui.run(native=True)
+```
+
+![for_2](README_MORE.assets/for_2.png)
 
 ### 3.6 binding的技巧（更新中）
 
@@ -254,7 +325,7 @@ ui.dialog
 
 ui.menu 菜单内容用别的控件
 
-ui.tooltip 其他内容
+ui.tooltip 上下文用其他内容
 
 ### 3.13 其他数据展示控件的使用技巧（更新中）
 
