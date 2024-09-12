@@ -212,7 +212,7 @@ ui.run(native=True)
 
 不过，事情并没有看上去那么简单，当写完代码开始执行的时候，才发现每个按钮的点击结果都一样，都是弹出内容为8的通知，这是为何？
 
-原来，使用lambda表达式执行的`ui.notify(i)`，因为表达式没有绑定默认值，实际上绑定到了动态的`i`上，按钮的on_click的定义不是第一时间执行，而是在完成定义之后响应用户的操作。最终，当for完成遍历之后，动态的`i`已经被赋值为8，因此按钮的响应操作都被统一修改了。为了避免这种情况，需要修改一下lambda表达式，添加一个参数并绑定默认值：
+原来，使用lambda表达式执行的`ui.notify(i)`，因为表达式没有绑定默认值，实际上绑定到了动态的`i`上，按钮的on_click的定义不是第一时间执行，而是在完成定义之后响应用户的操作。最终，当for完成遍历之后，动态的`i`已经被赋值为8，因此按钮的响应操作中的`i`都被统一修改了。为了避免这种情况，需要修改一下lambda表达式，添加一个参数并绑定默认值：
 
 ```python3
 from nicegui import ui
@@ -226,7 +226,7 @@ ui.run(native=True)
 
 修改之后的`lambda i=i:ui.notify(i)`中，`i=i`的意思是lambda表达式里的i变成了函数的参数i，而这个i绑定到了外部的i当时值。
 
-当然，实际代码中不建议这样写，太容易混淆了（怕被裁员倒是可以）。
+当然，实际代码中不建议这样写，太容易混淆了（怕被裁员倒是可以这样做）。
 
 上面的代码可以再修改一下，让可读性变得更好：
 
@@ -261,11 +261,78 @@ ui.run(native=True)
 
 ### 3.6 binding的技巧（更新中）
 
-属性绑定的技巧：绑定全局变量和字典，性能优化
+#### 3.6.1 绑定到字典
+
+在入门基础里提到的binding只介绍如何绑定两个控件，其实，binding除了绑定另一个控件，还支持绑定字典。绑定控件时，`target_object`是控件对象，这里则换成字典对象；`target_name`是控件对象的属性名，这里则换成字典的key，于是，就有了以下代码：
+
+```python3
+from nicegui import ui
+
+data = {'name': 'Bob', 'age': 17}
+
+ui.label().bind_text_from(data, 'name', backward=lambda n: f'Name: {n}')
+ui.label().bind_text_from(data, 'age', backward=lambda a: f'Age: {a}')
+
+ui.input(label='name:').bind_value(data,'name')
+ui.number(label='age:').bind_value(data,'age',forward=lambda x:int(x))
+
+ui.run(native=True)
+```
+
+![binding_1](README_MORE.assets/binding_1.png)
+
+要注意的是，ui.number的值输出为小数，如果不增加`forward=lambda x:int(x)`的话，`data['age']`会被修改为小数，而不是整数。同理，ui.input的值输出为字符串，如果字典输入不是字符串的话，在输出时需要转换。
+
+#### 3.6.2 绑定到全局变量
+
+还是上一节的代码，假如有人说：“字典还是有点复杂，能不能绑定到一个简单的变量上？”
+
+怎么办？
+
+也就是说，data字典没有了，取而代之的是：
+
+```python3
+name = 'Bob'
+age = 17
+```
+
+其实也简单，只要将`data`换成`globals()`即可：
+
+```python3
+from nicegui import ui
+
+name = 'Bob'
+age = 17
+
+ui.label().bind_text_from(globals(), 'name', backward=lambda n: f'Name: {n}')
+ui.label().bind_text_from(globals(), 'age', backward=lambda a: f'Age: {a}')
+
+ui.input(label='name:').bind_value(globals(), 'name')
+ui.number(label='age:').bind_value(globals(), 'age', forward=lambda x: int(x))
+
+ui.run(native=True)
+```
+
+任何在py文件内定义的全局变量，都会成为全局变量字典的一个键值，可以使用`globals()`访问全局变量字典。
+
+#### 3.6.3 性能优化
+
+在NiceGUI中有两种类型的绑定：
+
+1.  “可绑定属性”会自动检测写入权限并触发值传播。大多数 NiceGUI 元素都使用这些可绑定属性，例如`value`in`ui.input`或`text`in `ui.label`。基本上所有带有`bind()`方法的属性都支持这种类型的绑定。
+2.  所有其他绑定有时被称为“活动链接”。如果您将标签文本绑定到某个字典条目或自定义数据模型的属性，NiceGUI 的绑定模块必须主动检查值是否发生变化。这是在`refresh_loop()`每 0.1 秒运行一次的 中完成的。间隔可以通过 进行`binding_refresh_interval`配置`ui.run()`。
+
+“可绑定属性”非常高效，只要值不变，就不会产生任何成本。但“活动链接”需要每秒检查所有绑定值 10 次。这可能会很昂贵，尤其是当您绑定到列表或字典等复杂对象时。
+
+因为不能让主线程阻塞太久，所以如果某个步骤耗时`refresh_loop()`过长，我们会发出警告。您可以配置阈值，`binding.MAX_PROPAGATION_TIME`默认为 0.01 秒。但通常警告是性能或内存问题的重要指标。如果您的 CPU 忙于更新绑定很长时间，主线程上就不会发生其他事情，UI 会“挂起”。
 
 
 
-### 3.7 CSS选择器的技巧（更新中）
+### 3.7 app.storage的技巧（更新中）
+
+
+
+3.8 CSS选择器的技巧（更新中）
 
 （ui.query和ui.teleport放到高阶内容）
 
@@ -273,31 +340,31 @@ ElementFilter，另一种选择方式，更pythonic
 
 
 
-### 3.8 ui.add\_\* 和app.add\_\*的技巧（更新中）
+3.8 ui.add\_\* 和app.add\_\*的技巧（更新中）
 
 （ui.add\_\* 和app.add\_\*属于高阶内容，在高阶部分讲）
 
 
 
-### 3.9 ui.interactive_image与SVG的事件处理技巧（更新中）
+3.9 ui.interactive_image与SVG的事件处理技巧（更新中）
 
 在ui.interactive_image上创建SVG图形，以及处理SVG事件，
 
 
 
-### 3.10 ui.keyboard的事件处理技巧（更新中）
+3.10 ui.keyboard的事件处理技巧（更新中）
 
 完整介绍keyboard事件、组合键的识别与处理方法
 
 
 
-### 3.11 3D场景的处理技巧（更新中）
+3.11 3D场景的处理技巧（更新中）
 
 ui.scene的完整学习
 
 
 
-### 3.12 其他布局的使用技巧（更新中）
+3.12 其他布局的使用技巧（更新中）
 
 ui.list
 
@@ -327,7 +394,7 @@ ui.menu 菜单内容用别的控件
 
 ui.tooltip 上下文用其他内容
 
-### 3.13 其他数据展示控件的使用技巧（更新中）
+3.13 其他数据展示控件的使用技巧（更新中）
 
 ui.table更多详细用法
 
