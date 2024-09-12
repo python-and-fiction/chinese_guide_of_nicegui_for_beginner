@@ -73,6 +73,8 @@ ui.label('label').classes('w-16 h-8 bg-green-400 hover:bg-red-400 active:bg-yell
 ui.run(native=True)
 ```
 
+![tailwindcss_1](README_MORE.assets/tailwindcss_1.gif)
+
 类似的，还可以实现暗黑模式（dark）下的颜色定义，点击switch来切换暗黑模式的开关，可以看到标签在暗黑模式下的背景颜色为红色，非暗黑模式下的背景颜色为绿色，代码如下：
 
 ```python3
@@ -85,6 +87,8 @@ switch = ui.switch('Dark Mode',on_change=lambda :dark_mode.set_value(switch.valu
 ui.run(native=True)
 ```
 
+![tailwindcss_2](README_MORE.assets/tailwindcss_2.gif)
+
 在此基础上，还有一种根据屏幕宽度调整显示的技巧，就是将冒号前的单词换成代表屏幕宽度的断点`sm`、`md`、`lg`、`xl`、`2xl`。如果要让标签的宽度随窗口大小变化自适应，也就是小窗口宽度小一些，窗口越大，宽度越大，那么，代码可以这样写：
 
 ```python3
@@ -94,6 +98,8 @@ ui.label('label').classes('w-64 h-8 bg-green-400 sm:w-8 md:w-16 lg:w-32')
 
 ui.run(native=True)
 ```
+
+<img src="README_MORE.assets/tailwindcss_3.gif" alt="tailwindcss_3" style="zoom: 33%;" />
 
 然而，运行之后，可以看到上面的代码其实有问题，按照理解这样写是没错，但断点代表的含义是，大于这个屏幕宽度值才会应用这个样式，而且一次写这么多条，等屏幕宽度同时符合两条以上条件的时候，CSS就会处于竞争选择的状态，虽然样式上表现可能没问题，但规范要求应该明确断点范围，就好像写分段函数一样，必须明确区间。
 
@@ -259,7 +265,7 @@ ui.run(native=True)
 
 ![for_2](README_MORE.assets/for_2.png)
 
-### 3.6 binding的技巧（更新中）
+### 3.6 binding的技巧
 
 #### 3.6.1 绑定到字典
 
@@ -319,14 +325,37 @@ ui.run(native=True)
 
 在NiceGUI中有两种类型的绑定：
 
-1.  “可绑定属性”会自动检测写入权限并触发值传播。大多数 NiceGUI 元素都使用这些可绑定属性，例如`value`in`ui.input`或`text`in `ui.label`。基本上所有带有`bind()`方法的属性都支持这种类型的绑定。
-2.  所有其他绑定有时被称为“活动链接”。如果您将标签文本绑定到某个字典条目或自定义数据模型的属性，NiceGUI 的绑定模块必须主动检查值是否发生变化。这是在`refresh_loop()`每 0.1 秒运行一次的 中完成的。间隔可以通过 进行`binding_refresh_interval`配置`ui.run()`。
+1.   "Bindable properties" （可绑定属性）会自动检测写入访问并触发值变动传播。大多数 NiceGUI 元素使用这种可绑定属性，例如`ui.input`的`value`或 `ui.label`的`text`。基本上所有带有`bind()`方法的属性都支持这种类型的绑定。
+2.   另一种绑定"active links"（活动链接）不会自动检测写入访问并触发值变动传播。如果将标签文本绑定到字典或自定义数据模型的属性，NiceGUI 的绑定模块则需要主动检查值是否发生变化。这个主动检查是通过每 0.1 秒运行一次`refresh_loop()`来完成。主动检查间隔可以通过设置`ui.run()`的参数`binding_refresh_interval`来修改。
 
-“可绑定属性”非常高效，只要值不变，就不会产生任何成本。但“活动链接”需要每秒检查所有绑定值 10 次。这可能会很昂贵，尤其是当您绑定到列表或字典等复杂对象时。
+可绑定属性非常高效，只要值不变，就不会产生任何性能开销（相对而言比较小而已）。但活动链接需要每秒检查所有绑定值10 次。这可能会消耗比较多的性能，尤其是活动链接的绑定关系非常复杂、非常多的时候。
 
-因为不能让主线程阻塞太久，所以如果某个步骤耗时`refresh_loop()`过长，我们会发出警告。您可以配置阈值，`binding.MAX_PROPAGATION_TIME`默认为 0.01 秒。但通常警告是性能或内存问题的重要指标。如果您的 CPU 忙于更新绑定很长时间，主线程上就不会发生其他事情，UI 会“挂起”。
+因为不能让主线程阻塞太久，所以如果太多主动检查导致运行`refresh_loop()`的耗时过长，程序会发出警告。当然，可以配置阈值`binding.MAX_PROPAGATION_TIME`（默认为 0.01 秒）来消除警告。但是，这个警告是有意义的，是在告诉开发者性能可能存在问题。比如，CPU在更新绑定花费太长时间的话，主线程就没法做别的事情，程序界面会因此卡住。
 
+为了避免性能出问题，需要将活动链接改为可绑定属性之间的绑定，需要使用`binding.BindableProperty()`来创建可绑定属性。于是，基于第一小节的代码，将字典改为数据类，在数据类中定义两个可绑定属性，控件的绑定改为与数据类对象的绑定。代码如下：
 
+```python3
+from nicegui import ui, binding
+
+class data_base:
+    name = binding.BindableProperty()
+    age = binding.BindableProperty()
+    def __init__(self) -> None:
+        self.name = 'Bob'
+        self.age = 17
+
+data =data_base()
+
+ui.label().bind_text_from(data, 'name', backward=lambda n: f'Name: {n}')
+ui.label().bind_text_from(data, 'age', backward=lambda a: f'Age: {a}')
+
+ui.input(label='name:').bind_value(data,'name')
+ui.number(label='age:').bind_value(data,'age',forward=lambda x:int(x))
+
+ui.run(native=True)
+```
+
+因为代码中的绑定数量很少，因此差异不大，如果将绑定数量放大百倍，就能看出两种绑定的性能差异。
 
 ### 3.7 app.storage的技巧（更新中）
 
