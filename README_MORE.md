@@ -357,11 +357,63 @@ ui.run(native=True)
 
 因为代码中的绑定数量很少，因此差异不大，如果将绑定数量放大百倍，就能看出两种绑定的性能差异。
 
-### 3.7 app.storage的技巧（更新中）
+### 3.7 app.storage的技巧
+
+有时候，网页上不同页面、用户需要存储、共享特定数据，依靠自己编程实现的话确实麻烦。好在NiceGUI提供了一种简单有效的数据存储功能，那就是`app.storage`（存储）。 存储有5个子字典，分别对应着不同的空间，有不同的应用范围：
+
+-   `app.storage.tab`：存储在服务器的内存中，此字典对于每个选项卡、会话都是唯一的，可以存储任意对象。需要注意的是，在实现 https://github.com/zauberzeug/nicegui/discussions/2841 之前，重启服务器会导致此字典的数据丢失。此外，此字典只能在仅在[`ui.page`](https://nicegui.io/documentation/page)中使用，并且需要等待客户端建立连接（确保读写此字典的操作在异步函数内的 [`await ui.context.client.connected()`](https://nicegui.io/documentation/page#wait_for_client_connection)之后）。
+-   `app.storage.client`：该字典也存储在服务器的内存中，对于每个客户端连接都是唯一的，并且可以存储任意对象。当页面重新加载或用户导航到另一个页面时，数据将被销毁。不同于能在服务器上保存数据好几天的`app.storage.tab`，`app.storage.client`更适合缓存频繁使用、一次性的数据。比如，需要动态更新的数据或者数据库连接，但希望在用户离开页面或关闭浏览器时立即销毁。同样的，这个字典只能在[`ui.page`](https://nicegui.io/documentation/page)中使用。
+-   `app.storage.user`：存储在服务器磁盘中，每个字典都与浏览器cookie中保存的唯一标识符相关联，换句话说，此字典对于每个用户都是唯一的，并与浏览器的其他选项卡共享。可以通过存储在`app.storage.browser['id']`的标识符识别用户、会话。同样的，这个字典只能在[`ui.page`](https://nicegui.io/documentation/page)中使用。此外，这个字典需要设置`ui.run()`的`storage_secret`参数来签名浏览器会话cookie。
+-   `app.storage.general`：该字典也存储在服务器磁盘中，提供了所有用户都可以访问的共享存储空间。
+-   `app.storage.browser`：与前几个字典不同，此字典直接存储为浏览器会话cookie，在同一用户的所有浏览器选项卡之间共享。虽然很多方面看起来很像`app.storage.user`，不过，`app.storage.user`因为其在减少数据负载、增强安全性和提供更大存储容量方面的优势，在实际使用中比`app.storage.browser`更受欢迎。默认情况下，NiceGUI会在`app.storage.browser['id']`中为每个浏览器会话保留一个唯一标识符。同样的，这个字典只能在[`ui.page`](https://nicegui.io/documentation/page)中使用。此外，这个字典需要设置`ui.run()`的`storage_secret`参数来签名浏览器会话cookie。
+
+如果因为上述介绍看起来不够直观，而在选用存储字典时候头疼，可以参考下面的对比表格快速选用：
+
+| 存储的子字典                     | `tab`      | `client`   | `user`     | `general`  | `browser` |
+| -------------------------------- | ---------- | ---------- | ---------- | ---------- | --------- |
+| 存储位置                         | 服务器内存 | 服务器内存 | 服务器磁盘 | 服务器磁盘 | 浏览器    |
+| 是否在不同选项卡之间共享         | 否         | 否         | 是         | 是         | 是        |
+| 是否在不同浏览器客户端之间共享   | 否         | 否         | 否         | 是         | 否        |
+| 是否在服务器重启后保留数据       | 否         | 否         | 否         | 是         | 否        |
+| 是否在页面重载后保留数据         | 是         | 否         | 是         | 是         | 是        |
+| 是否只能用在ui.page内            | 是         | 是         | 是         | 否         | 是        |
+| 是否需要客户端建立连接           | 是         | 否         | 否         | 否         | 否        |
+| 是否只能在响应之前写入           | 否         | 否         | 否         | 否         | 是        |
+| 是否要求数据可序列化             | 否         | 否         | 是         | 是         | 是        |
+| 是否需要设置`storage_secret`参数 | 否         | 否         | 是         | 否         | 是        |
+
+下面是个使用存储字典的简单例子：
+
+```python3
+from nicegui import app, ui
+
+@ui.page('/')
+def index():
+    app.storage.user['count'] = app.storage.user.get('count', 0) + 1
+    with ui.row():
+       ui.label('your own page visits:')
+       ui.label().bind_text_from(app.storage.user, 'count')
+
+ui.run(storage_secret='private_key')
+```
+
+默认数据是以无缩进的JSON格式存储在`app.storage.user` 和`app.storage.general`中，可以将`app.storage.user.indent`、`app.storage.general.indent`设置为`True`来让对应存储字典的数据采用2个空格的缩进格式。
+
+### 3.8 修改指定元素的技巧（更新中）
+
+学过CSS的都知道，在CSS中，有个非常重要的概念叫选择器。通过合理设置选择器的规则，可以很方便选择到指定元素。NiceGUI简化了不少CSS上的操作，但不代表不需要CSS的技巧。如果读者掌握了CSS的选择器，那么，下面内容结合使用，那就如同得到了屠龙宝刀，操作界面布局、美化界面将更加得心应手。
+
+#### 3.8.1 ui.query
 
 
 
-3.8 CSS选择器的技巧（更新中）
+#### 3.8.2 ui.teleport
+
+
+
+#### 3.8.3 ElementFilter
+
+
 
 （ui.query和ui.teleport放到高阶内容）
 
@@ -387,9 +439,7 @@ ElementFilter，另一种选择方式，更pythonic
 
 
 
-3.11 3D场景的处理技巧（更新中）
 
-ui.scene的完整学习
 
 
 
@@ -423,11 +473,19 @@ ui.menu 菜单内容用别的控件
 
 ui.tooltip 上下文用其他内容
 
+
+
 3.13 其他数据展示控件的使用技巧（更新中）
 
-ui.table更多详细用法
+ui.table完整学习
+
+以及其他数据展示控件的完整学习
 
 
+
+3.11 3D场景的处理技巧（更新中）
+
+ui.scene完整学习
 
 
 
