@@ -367,20 +367,20 @@ ui.run(native=True)
 -   `app.storage.general`：该字典也存储在服务器磁盘中，提供了所有用户都可以访问的共享存储空间。
 -   `app.storage.browser`：与前几个字典不同，此字典直接存储为浏览器会话cookie，在同一用户的所有浏览器选项卡之间共享。虽然很多方面看起来很像`app.storage.user`，不过，`app.storage.user`因为其在减少数据负载、增强安全性和提供更大存储容量方面的优势，在实际使用中比`app.storage.browser`更受欢迎。默认情况下，NiceGUI会在`app.storage.browser['id']`中为每个浏览器会话保留一个唯一标识符。同样的，这个字典只能在[`ui.page`](https://nicegui.io/documentation/page)中使用。此外，这个字典需要设置`ui.run()`的`storage_secret`参数来签名浏览器会话cookie。
 
-如果因为上述介绍看起来不够直观，而在选用存储字典时候头疼，可以参考下面的对比表格快速选用：
+如果因为上述介绍看起来不够直观，而在选用存储字典时候头疼，可以参考下面的对比表格快速选用（✅表示是，❌表示否）：
 
-| 存储的子字典                     | `tab`      | `client`   | `user`     | `general`  | `browser` |
-| -------------------------------- | ---------- | ---------- | ---------- | ---------- | --------- |
-| 存储位置                         | 服务器内存 | 服务器内存 | 服务器磁盘 | 服务器磁盘 | 浏览器    |
-| 是否在不同选项卡之间共享         | 否         | 否         | 是         | 是         | 是        |
-| 是否在不同浏览器客户端之间共享   | 否         | 否         | 否         | 是         | 否        |
-| 是否在服务器重启后保留数据       | 否         | 否         | 否         | 是         | 否        |
-| 是否在页面重载后保留数据         | 是         | 否         | 是         | 是         | 是        |
-| 是否只能用在ui.page内            | 是         | 是         | 是         | 否         | 是        |
-| 是否需要客户端建立连接           | 是         | 否         | 否         | 否         | 否        |
-| 是否只能在响应之前写入           | 否         | 否         | 否         | 否         | 是        |
-| 是否要求数据可序列化             | 否         | 否         | 是         | 是         | 是        |
-| 是否需要设置`storage_secret`参数 | 否         | 否         | 是         | 否         | 是        |
+| 存储的子字典                     |   `tab`    |  `client`  |   `user`   | `general`  | `browser` |
+| :------------------------------- | :--------: | :--------: | :--------: | :--------: | :-------: |
+| 存储位置                         | 服务器内存 | 服务器内存 | 服务器磁盘 | 服务器磁盘 |  浏览器   |
+| 是否在不同选项卡之间共享         |     ❌      |     ❌      |     ✅      |     ✅      |     ✅     |
+| 是否在不同浏览器客户端之间共享   |     ❌      |     ❌      |     ❌      |     ✅      |     ❌     |
+| 是否在服务器重启后保留数据       |     ❌      |     ❌      |     ❌      |     ✅      |     ❌     |
+| 是否在页面重载后保留数据         |     ✅      |     ❌      |     ✅      |     ✅      |     ✅     |
+| 是否只能用在ui.page内            |     ✅      |     ✅      |     ✅      |     ❌      |     ✅     |
+| 是否需要客户端建立连接           |     ✅      |     ❌      |     ❌      |     ❌      |     ❌     |
+| 是否只能在响应之前写入           |     ❌      |     ❌      |     ❌      |     ❌      |     ✅     |
+| 是否要求数据可序列化             |     ❌      |     ❌      |     ✅      |     ✅      |     ✅     |
+| 是否需要设置`storage_secret`参数 |     ❌      |     ❌      |     ✅      |     ❌      |     ✅     |
 
 下面是个使用存储字典的简单例子：
 
@@ -399,41 +399,584 @@ ui.run(storage_secret='private_key')
 
 默认数据是以无缩进的JSON格式存储在`app.storage.user` 和`app.storage.general`中，可以将`app.storage.user.indent`、`app.storage.general.indent`设置为`True`来让对应存储字典的数据采用2个空格的缩进格式。
 
-### 3.8 修改指定元素的技巧（更新中）
+### 3.8 修改指定元素的技巧
 
-学过CSS的都知道，在CSS中，有个非常重要的概念叫选择器。通过合理设置选择器的规则，可以很方便选择到指定元素。NiceGUI简化了不少CSS上的操作，但不代表不需要CSS的技巧。如果读者掌握了CSS的选择器，那么，下面内容结合使用，那就如同得到了屠龙宝刀，操作界面布局、美化界面将更加得心应手。
+在CSS中，有个非常重要的概念叫选择器。
+
+每一条css样式定义由两部分组成，形式如下：
+
+ ```css
+ 选择器{样式}
+ ```
+
+在{}之前的部分就是“选择器”。 “选择器”指明了{}中的“样式”的作用对象，也就是“样式”作用于网页中的哪些元素。
+
+选择器有一套自己的[语法规则](https://developer.mozilla.org/en-US/docs/Learn/CSS/Building_blocks/Selectors)，通过合理设置选择器的规则，可以很精准地选择指定元素。
+
+NiceGUI简化了不少CSS上的操作，但不代表不需要CSS的基础。如果读者掌握了CSS的选择器，与ui.query和ui.teleport结合使用，那就如同得到了屠龙宝刀，操作界面布局、美化界面将更加得心应手。
+
+注意，前两小节要求读者具备CSS选择器基础，没有相应基础的读者可以搁置前两小节，直接看第三小节。
 
 #### 3.8.1 ui.query
 
+前面讲过如何美化控件，即在控件定义时使用props、classes、style等方法美化控件，也可以在控件定义好之后，通过给定的变量名调用相应方法。但是，如果想要美化的控件、元素根本就不是定义出来的，而是框架带出来的，想要美化就有点麻烦。当然，直接修改内置样式、源码很直观，但麻烦。要是有种方法能让想要修改的内容就像被定义为变量一样，后续直接使用，那就方便不少。正巧，ui.query就有这样的功能。
 
+ui.query只有一个字符串类型参数`selector`，顾名思义，就是前面提到的选择器。通过给ui.query传入选择器语法，ui.query将返回CSS选择器能够选择的元素，后续可以直接对该元素执行样式美化的方法。
+
+下面的代码就是使用ui.query选择了body（网页的主体），并设置body的背景颜色：
+
+```python3
+from nicegui import ui
+
+body = ui.query(selector='body')
+body.classes('bg-blue-400')
+
+ui.run(native=True)
+```
+
+![ui_query](README_MORE.assets/ui_query.png)
+
+ui.query的用法很简单，难点在于确定CSS选择器的写法，这一部分属于CSS基础知识，这里就不再赘述，有能力的读者可以抽时间深入学习CSS选择器的语法。
 
 #### 3.8.2 ui.teleport
 
+肯定有读者在学了ui.query美化指定元素之后，突发奇想，想要给指定元素内部添加控件，比如，下面的代码：
 
+```python3
+from nicegui import ui
+
+markdown = ui.markdown('Enter your **name**!')
+with ui.query(f'#c{markdown.id} strong'):
+    ui.input('name').classes('inline-flex').props('dense outlined')
+
+ui.run(native=True)
+```
+
+然而，这段代码并不能成功运行，因为ui.query并不支持add_slot。如果想要实现类似效果，只需将ui.query换成ui.teleport即可，不过传递的参数名不是`selector`，而是`to`：
+
+```python3
+from nicegui import ui
+
+markdown = ui.markdown('Enter your **name**!')
+with ui.teleport(to=f'#c{markdown.id} strong'):
+    ui.input('name').classes('inline-flex').props('dense outlined')
+
+ui.run(native=True)
+```
+
+![ui_teleport](README_MORE.assets/ui_teleport.png)
+
+ui.teleport就是这样一个基于CSS选择器语法将任意控件传送至指定位置的控件。
 
 #### 3.8.3 ElementFilter
 
+暂时不会CSS选择器语法的读者也不用着急，尽管CSS选择器语法很强大，但在Python中不够直观，想要快速确定选择器还要去网页中开启调试模式。好在NiceGUI提供了另一种不需要CSS选择器的定位指定元素工具，那就是ElementFilter。
+
+ElementFilter和ui模块同级，使用`from nicegui import ElementFilter`来导入。
+
+ElementFilter的功能等于ui.query加ui.teleport，既能设置指定元素的样式，又能将控件传送到指定位置。但与ui.query和ui.teleport使用CSS选择器语法不同，ElementFilter的筛选方式更Pythonic，更直观，更契合python编程习惯。
+
+以下代码是用于匹配的模板内容，以下面的代码为例，分别看看ElementFilter不同参数、方法的用途：
+
+```python3
+from nicegui import ui,ElementFilter
+
+with ui.card():
+    ui.button('button A')
+    ui.label('label A_A')
+    ui.label('label A_B')
+
+with ui.card():
+    ui.button('button B')
+    ui.label('label B_A')
+    ui.label('label B_B')
+
+ui.run(native=True)
+```
+
+##### 3.8.3.1 初始化方法
+
+ElementFilter是一个类，需要初始化为对象实例才能使用。ElementFilter的初始化方法有四个参数，分别是 `kind` 、`marker` 、`content` 、`local_scope`。
+
+`kind`参数，NiceGUI的ui类型，表示筛选什么类型的控件。比如，在下面的代码中，传入的参数是`ui.label`，ElementFilter就会筛选ui.label，这样给ElementFilter对象设置背景颜色为红色的时候，页面内所有的ui.label的背景颜色就相应变成红色。
+
+```python3
+from nicegui import ui,ElementFilter
+
+with ui.card():
+    ui.button('button A')
+    ui.label('label A_A')
+    ui.label('label A_B')
+
+with ui.card():
+    ui.button('button B')
+    ui.label('label B_A')
+    ui.label('label B_B')
+
+ElementFilter(kind=ui.label).classes('bg-red')
+
+ui.run(native=True)
+```
+
+![ElementFilter_01](README_MORE.assets/ElementFilter_01.png)
+
+`marker`参数，字符串类型或者字符串列表类型，表示筛选包含指定mark或者指定mark列表的对象。
+
+在此，需要额外介绍一下控件的mark方法，也就是如何给控件添加marker。对于每一个ui控件，都可以通过mark方法定义一组marker，用于ElementFilter的筛选。mark方法的参数是一个支持解包、分解的字符串类型参数`markers`。也就是说，传入`'A'` 、`'A','B','AB'`、`'B A BA'`、`'A','B BA'`都是可以的。本质上说，mark方法就是将传入的字符串转换为该对象的`_markers`列表。对于`'A','B','AB'`这样多个字符串，该方法会转化为`['B','A','AB']`这样的列表来使用。对于`'B A BA'`这样用空格划分的字符串，该方法会自动以空格为分隔符分解为`['B','A','BA']`这样的列表来使用。当然，两种方法混用也没问题，`'A','B BA'`这样的多个字符串，则会转化为`['A','B','BA']`这样的列表。注意，虽然mark方法支持串联、重复使用，但最好不要这样做，因为后执行的mark会覆盖先前mark方法的结果，如果是想清除之前的marker，倒是可以重复执行。
+
+说完给控件添加marker，下面回归正题，说说如何筛选。`marker`参数和mark方法的`markers`参数类似，只不过`marker`参数没有解包过程，想要传入多个字符串，只能使用字符串列表。与mark方法的宽松不同，`marker`参数的要求比较严格，要么是纯字符串，带空格的会自动划分、转化为列表，要么是无空格的字符串组成列表，不支持正确解析内含带空格的字符串列表，所以，只有以下格式才是正确的用法：`'A'` 、`['A','B','AB']`、`'B A BA'`。
+
+代码示例如下：
+
+```python3
+from nicegui import ui,ElementFilter
+
+with ui.card():
+    ui.button('button A')
+    ui.label('label A_A').mark('A')
+    ui.label('label A_B').mark('A','B','AB')
+
+with ui.card():
+    ui.button('button B')
+    ui.label('label B_B').mark('B')
+    ui.label('label B_A').mark('B A BA')
+    
+ElementFilter(marker='BA').classes('bg-red')
+#ElementFilter(marker='A B').classes('bg-red')
+#ElementFilter(marker=['A','B']).classes('bg-red')
+
+ui.run(native=True)
+```
+
+![ElementFilter_02](README_MORE.assets/ElementFilter_02.png)
+
+`content`参数，字符串类型或者字符串列表类型，表示筛选包含指定内容的对象。筛选范围包括对象的value、text、label、icon、placeholder等文本属性。匹配要求完全包含指定字符串或者字符串列表。
+
+```python3
+from nicegui import ui,ElementFilter
+
+with ui.card():
+    ui.button('button A')
+    ui.label('label A_A').mark('A')
+    ui.label('label A_B').mark('A','B','AB')
+
+with ui.card():
+    ui.button('button B')
+    ui.label('label B_B').mark('B')
+    ui.label('label B_A').mark('B A BA')
+    
+ElementFilter(content=['B','A']).classes('bg-red')
+
+ui.run(native=True)
+```
+
+![ElementFilter_03](README_MORE.assets/ElementFilter_03.png)
+
+`local_scope`参数，布尔类型，表示ElementFilter匹配当前范围还是全局，默认为`False`，即匹配全局。如果设置为`True`，则只匹配当前上下文。可以看以下代码，修改了缩进并将此参数设置为`True`，ElementFilter对象就只能匹配同一缩进内的控件：
+
+```python3
+from nicegui import ui,ElementFilter
+
+with ui.card():
+    ui.button('button A')
+    ui.label('label A_A').mark('A')
+    ui.label('label A_B').mark('A','B','AB')
+
+with ui.card():
+    ui.button('button B')
+    ui.label('label B_B').mark('B')
+    ui.label('label B_A').mark('B A BA')
+    ElementFilter(content=['B','A'],local_scope=True).classes('bg-red')
+
+ui.run(native=True)
+```
+
+![ElementFilter_04](README_MORE.assets/ElementFilter_04.png)
+
+##### 3.8.3.2 `within`方法和`not_within`方法
+
+顾名思义，这两个方法就是在ElementFilter初始化参数的筛选范围内进一步筛选指定的父级对象，得到在指定的父级对象上下文之内、不在指定的父级对象上下文之内的对象。对`within`方法而言，会得到符合该方法匹配条件的对象。对`not_within`方法而言，会排除符合该方法匹配条件的对象
+
+两个方法的参数都一样，都是三个，分别是`kind`、`marker`、`instance`。
+
+`kind`和`marker`与初始化方法的参数一样，这里不再赘述。只是，这里的`marker`不支持字符串列表。
+
+`instance`参数，对象或者对象列表，指定具体对象的范围内是否筛选。以 `within`方法为例，给此参数传递具体对象，ElementFilter将只筛选在该对象之内的ui.label：
+
+```python3
+from nicegui import ui,ElementFilter
+
+with ui.card() as card1:
+    ui.button('button A')
+    ui.label('label A_A').mark('A')
+    ui.label('label A_B').mark('A','B','AB')
+
+with ui.card() as card2:
+    ui.button('button B')
+    ui.label('label B_B').mark('B')
+    ui.label('label B_A').mark('B A BA')
+
+ElementFilter(kind=ui.label).within(instance=card2).classes('bg-red')
+
+ui.run(native=True)
+```
+
+![ElementFilter_05](README_MORE.assets/ElementFilter_05.png)
+
+这两个方法支持串联调用，不过串联就和传递列表给参数一样，是扩展了对应筛选条件的内部列表。对于这两种筛选条件的内部列表，匹配规则是不一样的：对于`within`方法，筛选则是要求列表内元素全部匹配；对于`not_within`方法，筛选则是要求列表内元素任意一个匹配。
+
+##### 3.8.3.3 `exclude`方法
+
+该方法是在ElementFilter初始化参数的筛选范围内进一步排除指定的对象。
+
+该方法有三个参数，`kind` 、`marker` 、`content` ，同初始化方法的参数一样，这里简单说一下示例代码，不做详解。不过，该方法的三个参数不支持传入列表，`marker`也不支持根据空格自动划分字符串，这一点需要注意。
+
+```python3
+from nicegui import ui,ElementFilter
+from nicegui.elements.mixins.text_element import TextElement
+
+with ui.card() as card1:
+    ui.button('button A')
+    ui.label('label A_A').mark('A')
+    ui.label('label A_B').mark('A','B','AB')
+
+with ui.card() as card2:
+    ui.button('button B')
+    ui.label('label B_B').mark('B')
+    ui.label('label B_A').mark('B A BA')
+
+ElementFilter(kind=TextElement).exclude(kind=ui.label).classes('bg-red')
+
+ui.run(native=True)
+```
+
+![ElementFilter_06](README_MORE.assets/ElementFilter_06.png)
+
+ui.label和ui.button都继承了TextElement，因此匹配TextElement会同时匹配到这两种控件，因此，在exclude方法中指定kind为ui.label之后，匹配结果就排除了ui.label，只有ui.button的颜色变成红色。
+
+##### 3.8.3.4 传送控件到匹配结果
+
+对于ElementFilter，想要传送控件到结果也很简单，只需遍历ElementFilter对象，就能获取匹配结果。
+
+如下面代码所示，使用for遍历ElementFilter对象，使用with进入每个元素的上下文，就和正常添加控件到对应slot一样：
+
+```python3
+from nicegui import ui,ElementFilter
+from nicegui.elements.mixins.text_element import TextElement
+
+with ui.card() as card1:
+    ui.button('button A')
+    ui.label('label A_A').mark('A')
+    ui.label('label A_B').mark('A','B','AB')
+
+with ui.card() as card2:
+    ui.button('button B')
+    ui.label('label B_B').mark('B')
+    ui.label('label B_A').mark('B A BA')
+
+for ele in ElementFilter(kind=TextElement).exclude(kind=ui.label).classes('bg-red'):
+    with ele:
+        ui.icon('home')
+
+ui.run(native=True)
+```
+
+![ElementFilter_07](README_MORE.assets/ElementFilter_07.png)
+
+##### 3.8.3.5 总结
+
+ElementFilter的方法、参数不多，但用法不统一，要是组合使用，需要一些时间思考其匹配模式。而有的读者看到文字太多就头疼，没关系，这里将上面的内容简化为一个表格方便查阅。详细看过一遍文字教程之后，后续开发中再次遇到，可以快速参阅表格来确定匹配模式。
+
+对应参数的匹配模式：
+
+| ElementFilter的方法 | `__init__` | `within` | `not_within` | `exclude` |
+| ------------------- | ---------- | -------- | ------------ | --------- |
+| `kind`参数          | 任意一个   | 全部匹配 | 任意一个     | 任意一个  |
+| `content`参数       | 全部匹配   | 无此参数 | 无此参数     | 任意一个  |
+| `instance`参数      | 无此参数   | 全部匹配 | 任意一个     | 无此参数  |
+| `marker`参数        | 全部匹配   | 全部匹配 | 任意一个     | 任意一个  |
+
+Match type for parameters in ElementFilter's method:
+
+| ElementFilter's method | `__init__` | `within` | `not_within` | `exclude` |
+| ---------------------- | ---------- | -------- | ------------ | --------- |
+| parameter `kind`       | any/or     | all/and  | any/or       | any/or    |
+| parameter `content`    | all/and    | ----     | ----         | any/or    |
+| parameter `instance`   | ----       | all/and  | any/or       | ----      |
+| parameter `marker`     | all/and    | all/and  | any/or       | any/or    |
+
+另外，对于NiceGUI2.1版本的ElementFilter部分方法参数不支持列表传入，这里特地补丁了一份模块文件，有需要的读者可以自行替换，文件的具体路径为`.venv\Lib\site-packages\nicegui\element_filter.py`，如果是全局环境的Python，路径为`{Python执可执行文件所在目录}\Lib\site-packages\nicegui\element_filter.py`
+
+```python3
+from __future__ import annotations
+
+from typing import Generic, Iterator, List, Optional, Type, TypeVar, Union, overload
+
+from typing_extensions import Self
+
+from .context import context
+from .element import Element
+from .elements.mixins.content_element import ContentElement
+from .elements.mixins.source_element import SourceElement
+from .elements.mixins.text_element import TextElement
+from .elements.notification import Notification
+from .elements.select import Select
+
+T = TypeVar('T', bound=Element)
 
 
-（ui.query和ui.teleport放到高阶内容）
+class ElementFilter(Generic[T]):
+    DEFAULT_LOCAL_SCOPE = False
 
-ElementFilter，另一种选择方式，更pythonic
+    @overload
+    def __init__(self: ElementFilter[Element], *,
+                 marker: Union[str, List[str], None] = None,
+                 content: Union[str, List[str], None] = None,
+                 local_scope: bool = DEFAULT_LOCAL_SCOPE,
+                 ) -> None:
+        ...
+
+    @overload
+    def __init__(self, *,
+                 kind: Union[Type[T], List[Type[T]], None] = None,
+                 marker: Union[str, List[str], None] = None,
+                 content: Union[str, List[str], None] = None,
+                 local_scope: bool = DEFAULT_LOCAL_SCOPE,
+                 ) -> None:
+        ...
+
+    def __init__(self, *,
+                 kind: Union[Type[T], List[Type[T]], None] = None,
+                 marker: Union[str, List[str], None] = None,
+                 content: Union[str, List[str], None] = None,
+                 local_scope: bool = DEFAULT_LOCAL_SCOPE,
+                 ) -> None:
+        """ElementFilter
+
+        Sometimes it is handy to search the Python element tree of the current page.
+        ``ElementFilter()`` allows powerful filtering by kind of elements, markers and content.
+        It also provides a fluent interface to apply more filters like excluding elements or filtering for elements within a specific parent.
+        The filter can be used as an iterator to iterate over the found elements and is always applied while iterating and not when being instantiated.
+
+        And element is yielded if it matches all of the following conditions:
+
+        - The element is of the specified kind (if specified).
+        - The element is none of the excluded kinds.
+        - The element has all of the specified markers.
+        - The element has none of the excluded markers.
+        - The element contains all of the specified content.
+        - The element contains none of the excluded content.
+
+        - Its ancestors include all of the specified instances defined via ``within``.
+        - Its ancestors include none of the specified instances defined via ``not_within``.
+        - Its ancestors include all of the specified kinds defined via ``within``.
+        - Its ancestors include none of the specified kinds defined via ``not_within``.
+        - Its ancestors include all of the specified markers defined via ``within``.
+        - Its ancestors include none of the specified markers defined via ``not_within``.
+
+        Element "content" includes its text, label, icon, placeholder, value, message, content, source.
+        Partial matches like "Hello" in "Hello World!" are sufficient for content filtering.
+        
+        :param kind: filter by element type; the iterator will be of type ``kind``
+        :param marker: filter by element markers; can be a list of strings or a single string where markers are separated by whitespace
+        :param content: filter for elements which contain ``content`` in one of their content attributes like ``.text``, ``.value``, ``.source``, ...; can be a singe string or a list of strings which all must match
+        :param local_scope: if `True`, only elements within the current scope are returned; by default the whole page is searched (this default behavior can be changed with ``ElementFilter.DEFAULT_LOCAL_SCOPE = True``)
+        """
+        self._kind = kind if isinstance(kind, list) else ([kind] if kind else [])
+        self._markers = marker.split() if isinstance(marker, str) else [word for single_marker in (marker or []) for word in single_marker.split()]
+        self._contents = [content] if isinstance(content, str) else content or []
+
+        self._within_kinds: List[Type[Element]] = []
+        self._within_instances: List[Element] = []
+        self._within_markers: List[str] = []
+
+        self._not_within_kinds: List[Type[Element]] = []
+        self._not_within_instances: List[Element] = []
+        self._not_within_markers: List[str] = []
+
+        self._exclude_kinds: List[Type[Element]] = []
+        self._exclude_markers: List[str] = []
+        self._exclude_content: List[str] = []
+
+        self._scope = context.slot.parent if local_scope else context.client.layout
+
+    def __iter__(self) -> Iterator[T]:
+        for element in self._scope.descendants():
+            if self._kind and not isinstance(element, tuple(self._kind)):
+                continue
+            if self._exclude_kinds and isinstance(element, tuple(self._exclude_kinds)):
+                continue
+
+            if any(marker not in element._markers for marker in self._markers):
+                continue
+            if any(marker in element._markers for marker in self._exclude_markers):
+                continue
+
+            if self._contents or self._exclude_content:
+                element_contents = [content for content in (
+                    element.props.get('text'),
+                    element.props.get('label'),
+                    element.props.get('icon'),
+                    element.props.get('placeholder'),
+                    element.props.get('value'),
+                    element.text if isinstance(element, TextElement) else None,
+                    element.content if isinstance(element, ContentElement) else None,
+                    element.source if isinstance(element, SourceElement) else None,
+                ) if content]
+                if isinstance(element, Notification):
+                    element_contents.append(element.message)
+                if isinstance(element, Select):
+                    options = {option['value']: option['label'] for option in element.props.get('options', [])}
+                    element_contents.append(options.get(element.value, ''))
+                    if element.is_showing_popup:
+                        element_contents.extend(options.values())
+                if any(all(needle not in str(haystack) for haystack in element_contents) for needle in self._contents):
+                    continue
+                if any(needle in str(haystack) for haystack in element_contents for needle in self._exclude_content):
+                    continue
+
+            ancestors = set(element.ancestors())
+            if self._within_instances and not ancestors.issuperset(self._within_instances):
+                continue
+            if self._not_within_instances and not ancestors.isdisjoint(self._not_within_instances):
+                continue
+            if self._within_kinds and not all(any(isinstance(ancestor, kind) for ancestor in ancestors) for kind in self._within_kinds):
+                continue
+            if self._not_within_kinds and any(isinstance(ancestor, tuple(self._not_within_kinds)) for ancestor in ancestors):
+                continue
+            ancestor_markers = {marker for ancestor in ancestors for marker in ancestor._markers}
+            if self._within_markers and not ancestor_markers.issuperset(self._within_markers):
+                continue
+            if self._not_within_markers and not ancestor_markers.isdisjoint(self._not_within_markers):
+                continue
+
+            yield element  # type: ignore
+
+    def within(self, *,
+               kind: Union[Element, List[Element], None] = None,
+               marker: Union[str, List[str], None] = None,
+               instance: Union[Element, List[Element], None] = None,
+               ) -> Self:
+        """Filter elements which have a specific match in the parent hierarchy."""
+        if kind is not None:
+            if isinstance(kind, list):
+                for every_kind in kind:
+                    assert issubclass(every_kind, Element)
+                self._within_kinds.extend(kind)
+            else:    
+                assert issubclass(kind, Element)
+                self._within_kinds.append(kind)
+        if marker is not None:
+            markers = marker.split() if isinstance(marker, str) else [word for single_marker in marker for word in single_marker.split()]
+            self._within_markers.extend(markers)
+        if instance is not None:
+            self._within_instances.extend(instance if isinstance(instance, list) else [instance])
+        return self
+
+    def exclude(self, *,
+                kind: Union[Element, List[Element], None] = None,
+                marker: Union[str, List[str], None] = None,
+                content: Union[str, List[str], None] = None,
+                ) -> Self:
+        """Exclude elements with specific element type, marker or content."""
+        if kind is not None:
+            if isinstance(kind, list):
+                for every_kind in kind:
+                    assert issubclass(every_kind, Element)
+                self._exclude_kinds.extend(kind)
+            else:    
+                assert issubclass(kind, Element)
+                self._exclude_kinds.append(kind)
+        if marker is not None:
+            markers = marker.split() if isinstance(marker, str) else [word for single_marker in marker for word in single_marker.split()]
+            self._exclude_markers.extend(markers)
+        if content is not None:
+            self._exclude_content.extend([content] if isinstance(content, str) else content)
+        return self
+
+    def not_within(self, *,
+                   kind: Union[Element, List[Element], None] = None,
+                   marker: Union[str, List[str], None] = None,
+                   instance: Union[Element, List[Element], None] = None,
+                   ) -> Self:
+        """Exclude elements which have a parent of a specific type or marker."""
+        if kind is not None:
+            if isinstance(kind, list):
+                for every_kind in kind:
+                    assert issubclass(every_kind, Element)
+                self._not_within_kinds.extend(kind)
+            else:    
+                assert issubclass(kind, Element)
+                self._not_within_kinds.append(kind)
+        if marker is not None:
+            markers = marker.split() if isinstance(marker, str) else [word for single_marker in marker for word in single_marker.split()]
+            self._not_within_markers.extend(markers)
+        if instance is not None:
+            self._not_within_instances.extend(instance if isinstance(instance, list) else [instance])
+        return self
+
+    def classes(self, add: Optional[str] = None, *, remove: Optional[str] = None, replace: Optional[str] = None) -> Self:
+        """Apply, remove, or replace HTML classes.
+
+        This allows modifying the look of the element or its layout using `Tailwind <https://tailwindcss.com/>`_ or `Quasar <https://quasar.dev/>`_ classes.
+
+        Removing or replacing classes can be helpful if predefined classes are not desired.
+
+        :param add: whitespace-delimited string of classes
+        :param remove: whitespace-delimited string of classes to remove from the element
+        :param replace: whitespace-delimited string of classes to use instead of existing ones
+        """
+        for element in self:
+            element.classes(add, remove=remove, replace=replace)
+        return self
+
+    def style(self, add: Optional[str] = None, *, remove: Optional[str] = None, replace: Optional[str] = None) -> Self:
+        """Apply, remove, or replace CSS definitions.
+
+        Removing or replacing styles can be helpful if the predefined style is not desired.
+
+        :param add: semicolon-separated list of styles to add to the element
+        :param remove: semicolon-separated list of styles to remove from the element
+        :param replace: semicolon-separated list of styles to use instead of existing ones
+        """
+        for element in self:
+            element.style(add, remove=remove, replace=replace)
+        return self
+
+    def props(self, add: Optional[str] = None, *, remove: Optional[str] = None) -> Self:
+        """Add or remove props.
+
+        This allows modifying the look of the element or its layout using `Quasar <https://quasar.dev/>`_ props.
+        Since props are simply applied as HTML attributes, they can be used with any HTML element.
+
+        Boolean properties are assumed ``True`` if no value is specified.
+
+        :param add: whitespace-delimited list of either boolean values or key=value pair to add
+        :param remove: whitespace-delimited list of property keys to remove
+        """
+        for element in self:
+            element.props(add, remove=remove)
+        return self
+
+```
 
 
 
-3.8 ui.add\_\* 和app.add\_\*的技巧（更新中）
+### 3.9 ui.add\_\* 和app.add\_\*的技巧（更新中）
+
+
 
 （ui.add\_\* 和app.add\_\*属于高阶内容，在高阶部分讲）
 
 
 
-3.9 ui.interactive_image与SVG的事件处理技巧（更新中）
+3.   10ui.interactive_image与SVG的事件处理技巧（更新中）
 
 在ui.interactive_image上创建SVG图形，以及处理SVG事件，
 
 
 
-3.10 ui.keyboard的事件处理技巧（更新中）
+3.11 ui.keyboard的事件处理技巧（更新中）
 
 完整介绍keyboard事件、组合键的识别与处理方法
 
@@ -483,7 +1026,7 @@ ui.table完整学习
 
 
 
-3.11 3D场景的处理技巧（更新中）
+3.14 3D场景的处理技巧（更新中）
 
 ui.scene完整学习
 
