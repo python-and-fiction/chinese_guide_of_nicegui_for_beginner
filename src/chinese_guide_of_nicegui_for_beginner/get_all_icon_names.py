@@ -1,43 +1,93 @@
-import os
+#!/usr/bin/env python3
+import json
 
+import httpx,os
+
+FAMILIES = {
+    'Material Icons': ('', ''),
+    'Material Icons Outlined': ('_outlined', 'o_'),
+    'Material Icons Round': ('_round', 'r_'),
+    'Material Icons Sharp': ('_sharp', 's_'),
+    'Material Symbols Outlined': ('_sym_outlined', 'sym_o_'),
+    'Material Symbols Rounded': ('_sym_round', 'sym_r_'),
+    'Material Symbols Sharp': ('_sym_sharp', 'sym_s_'),
+}
+FAMILY_SET = set(FAMILIES)
+
+response = httpx.get('https://fonts.google.com/metadata/icons?incomplete=1&key=material_symbols')
+with (f'{os.path.dirname(os.path.abspath(__file__))}/result.txt').open('w') as f:
+    for icon in json.loads(response.text[4:])['icons']:
+        for family in FAMILY_SET.difference(icon['unsupported_families']):
+            name = f'{icon["name"]}{FAMILIES[family][0]}'.upper()
+            if not name.isidentifier():
+                name = f'_{name}'
+            value = f'{FAMILIES[family][1]}{icon["name"]}'
+            f.write(f"{value}\n")
+""" 
 icon_name_dict = {}
-map_name1 = {
-    'materialiconstwotone': '',
-    'materialicons': '',
-    'materialiconsoutlined': 'o_',
-    'materialiconsround': 'r_',
-    'materialiconssharp': 's_',
-}
-map_name2 = {
-    'materialsymbolsoutlined':'sym_o_', 
-    'materialsymbolsrounded':'sym_r_', 
-    'materialsymbolssharp':'sym_s_'
-}
-
-# main path:
-sym_path = 'e:/Projects/material-design-icons-master/symbols/android'
-src_path = 'e:/Projects/material-design-icons-master/src'
+file = f'{os.path.dirname(os.path.abspath(__file__))}/result.txt'
 result_path = f'{os.path.dirname(os.path.abspath(__file__))}/result.txt'
 
-# search name:
-# https://fonts.google.com/icons?icon.set=Material+Icons
-# source code link:
-# https://github.com/google/material-design-icons/archive/master.zip
+s_name = []
+o_name = []
+r_name = []
+sym_s_name = []
+sym_o_name = []
+sym_r_name = []
+name = []
 
-for names in os.listdir(src_path):
-    for name in os.listdir(src_path+f'/{names}'):
-        icon_name_dict.update({name: []})
-        for typ in os.listdir(src_path+f'/{names}/{name}'):
-            icon_name_dict[name].append(map_name1[typ])
+with open(file) as f:
+    for i in f.readlines():
+        i = i.strip('\n')
+        if i.startswith('s_'):s_name.append(i)
+        elif i.startswith('r_'):r_name.append(i)
+        elif i.startswith('o_'):o_name.append(i)
+        elif i.startswith('sym_s_'):sym_s_name.append(i)
+        elif i.startswith('sym_r_'):sym_r_name.append(i)
+        elif i.startswith('sym_o_'):sym_o_name.append(i)
+        else:name.append(i)
 
-for name in os.listdir(sym_path):
-    if name not in icon_name_dict.keys():
-        icon_name_dict.update({name: []})
-    for typ in os.listdir(sym_path+f'/{name}'):
-        icon_name_dict[name].append(map_name2[typ])
+for i in name:
+    if i not in icon_name_dict.keys():
+        icon_name_dict.update({i: []})
+    icon_name_dict[i].append('')
 
-for k in icon_name_dict.keys():
-    icon_name_dict[k] = list(set(icon_name_dict[k]))
+for i in o_name:
+    i = i[2:]
+    if i not in icon_name_dict.keys():
+        icon_name_dict.update({i: []})
+    icon_name_dict[i].append('o_')
+
+for i in r_name:
+    i = i[2:]
+    if i not in icon_name_dict.keys():
+        icon_name_dict.update({i: []})
+    icon_name_dict[i].append('r_')
+
+for i in s_name:
+    i = i[2:]
+    if i not in icon_name_dict.keys():
+        icon_name_dict.update({i: []})
+    icon_name_dict[i].append('s_')
+
+for i in sym_o_name:
+    i = i[6:]
+    if i not in icon_name_dict.keys():
+        icon_name_dict.update({i: []})
+    icon_name_dict[i].append('sym_o_')
+
+for i in sym_r_name:
+    i = i[6:]
+    if i not in icon_name_dict.keys():
+        icon_name_dict.update({i: []})
+    icon_name_dict[i].append('sym_r_')
+
+for i in sym_s_name:
+    i = i[6:]
+    if i not in icon_name_dict.keys():
+        icon_name_dict.update({i: []})
+    icon_name_dict[i].append('sym_s_')
+
 
 with open(result_path, 'w') as f:
-    f.write(str(icon_name_dict))
+    f.write(str(icon_name_dict)) """
