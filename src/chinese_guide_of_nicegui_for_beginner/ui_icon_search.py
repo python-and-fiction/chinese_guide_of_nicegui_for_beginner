@@ -19,8 +19,10 @@ def icon_type():
     @ui.refreshable
     def icon_type_card():
         with ui.card().bind_visibility_from(zoom_spec,'value'):
-            with ui.icon(icon_prefix.value+icon_name.value, size='10em'):
-                    ui.tooltip(icon_prefix.value+icon_name.value).tailwind.font_size('xl')
+            with ui.column():
+                ui.label(icon_prefix.value+icon_name.value+':')
+                ui.icon(icon_prefix.value+icon_name.value, size='10em')
+                
     icon_type_card()
     icon_prefix.on_value_change(icon_type_card.refresh)
 
