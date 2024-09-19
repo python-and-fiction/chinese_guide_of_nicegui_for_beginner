@@ -11,7 +11,7 @@ icon_name_dict_typed = {'':[],'o_':[],'r_':[],'s_':[],'sym_o_':[],'sym_r_':[],'s
 for i in icon_name_list:
     for k in icon_name_dict[i]:
         icon_name_dict_typed[k].append(i)
-        
+
 type_name_map = {'':'Filled',
                  'o_':'Outline',
                  'r_':'Round',
@@ -56,11 +56,11 @@ def bigger_show(icon_name = None,icon_type = None):
 
 def title():
     with ui.row():
-        ui.link('all_type','/')
+        ui.link('all_types','/')
         ui.link('bigger_type','/bigger')
         ui.link('bigger_type_fisrt','/bigger_first')
 
-@ui.page('/',title='all type')
+@ui.page('/',title='all types')
 def page_index():
     title()
     icon_name = ui.select(icon_name_list, value= current_name if (current_name in icon_name_list) else icon_name_list[0] ,label='icon name:', with_input=True).classes('w-64')
