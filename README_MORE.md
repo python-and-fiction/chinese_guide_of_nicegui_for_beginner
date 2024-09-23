@@ -1388,6 +1388,55 @@ ui.run(native=True)
 
 修改`ui.run()`的默认参数`favicon`为自己logo的地址或者emoji字符`🚀`，例如：`ui.run(favicon='🚀')`。
 
+#### 4.3.2 ui.refreshable
+
+1，为什么有时候创建在ui.refreshable装饰的函数内的控件不会刷新？
+
+以下面代码为例：
+
+```python3
+from nicegui import ui
+from datetime import datetime
+
+@ui.refreshable
+def time_box(container:ui.element):
+    with container:
+        ui.label(datetime.now())
+
+card1 = ui.card()
+time_box(card1)
+
+ui.button('refresh1',on_click=time_box.refresh)
+
+ui.run(native=True)
+```
+
+先创建了一个ui.card，然后给refreshable修饰的方法传入，在方法内部，想要通过`with container`的方法，在ui.card内部创建可以刷新的时间标签。然而，实际执行的时候就会发现，标签并没有如预期那样刷新，而是不断创建新的标签。
+
+为什么？
+
+其实，refreshable方法相当于创建了一个可刷新的元素，并将方法内部创建的元素的父元素指定为可刷新元素。每次调用刷新方法，实际上是先清空可刷新元素，然后执行一遍方法内部创建元素的过程。但是，使用`with container`之后，接下来创建的元素的父元素是container，而不是可刷新元素，因此，每次调用刷新方法之后，方法内部创建的元素不会被清空，反而因为重新创建了一遍元素，container下的元素会多一个。
+
+如果想要实现借用已经创建的元素当容器，让内部元素可以刷新，就要在创建之前，模拟可刷新元素的清空操作：
+
+```python3
+from nicegui import ui
+from datetime import datetime
+
+@ui.refreshable
+def time_box(container:ui.element):
+    container.clear()
+    with container:
+        ui.label(datetime.now())
+
+card1 =ui.card()
+time_box(card1)
+
+ui.button('refresh1',on_click=time_box.refresh)
+
+ui.run(native=True)
+```
+
 ### 4.4 ui.button
 
 1，想要在定义之后修改button的颜色，但是`bg-*`的tailwindcss样式没有用，怎么实现？
