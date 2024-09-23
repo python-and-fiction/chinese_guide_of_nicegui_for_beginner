@@ -555,8 +555,6 @@ ui.run(native=True)
 
 <img src="README_INDEX.assets/ui_interactive_image.png" alt="ui_interactive_image" style="zoom: 67%;" />
 
-
-
 ##### 2.3.3.2 ui.icon和ui.avatar
 
 在[ui.button](#2.3.2.1 ui.button)中挖了一个有关ui.icon的坑，现在，终于到了填坑的时候。先看一个简单的示例，了解一下ui.icon控件的用法：

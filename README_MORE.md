@@ -962,7 +962,368 @@ class ElementFilter(Generic[T]):
 
 
 
-### 3.9 ui.add\_\* 和app.add\_\*的技巧（更新中）
+### 3.9 其他布局（更新中）
+
+前面介绍过常用的布局，其实NiceGUI支持的布局控件有很多，下面提到的这些不常用，但有些需求比较刁钻，用这些布局刚好可以减少不必要的工作。
+
+#### 3.9.1 ui.list
+
+列表布局，看上去有点像ui.column，但列表布局主要是给ui.item用的，当然，要是想在一般布局的时候使用也没问题，不过需要注意一下二者的区别。
+
+以代码为例：
+
+```python3
+from nicegui import ui
+
+with ui.list().classes('border'):
+    ui.item('3 Apples')
+    ui.item('5 Bananas')
+    ui.item('8 Strawberries')
+    ui.item('13 Walnuts')
+
+with ui.column().classes('border'):
+    ui.item('3 Apples')
+    ui.item('5 Bananas')
+    ui.item('8 Strawberries')
+    ui.item('13 Walnuts')
+
+ui.run(native=True)
+```
+
+![ui_list](README_MORE.assets/ui_list.png)
+
+为了能清楚看到二者的区别，这里给两种布局加了个边框，方便看到边界。可以看出，ui.list比ui.column的默认行距小，整体看上去更加紧凑。当然，ui.list主要是给ui.item用的，默认的紧凑是有别的用途，如果在一般布局中需要紧凑一些的观感，可以根据需求调整样式，而不是使用ui.list代替ui.column。
+
+关于ui.list更恰当的用途，还是以代码为例：
+
+```python3
+from nicegui import ui
+
+with ui.list().props('bordered separator'):
+    ui.item_label('Contacts').props('header').classes('text-bold')
+    ui.separator()
+    with ui.item(on_click=lambda: ui.notify('Selected contact 1')):
+        with ui.item_section().props('avatar'):
+            ui.icon('person')
+        with ui.item_section():
+            ui.item_label('Nice Guy')
+            ui.item_label('name').props('caption')
+        with ui.item_section().props('side'):
+            ui.icon('chat')
+    with ui.item(on_click=lambda: ui.notify('Selected contact 2')):
+        with ui.item_section().props('avatar'):
+            ui.icon('person')
+        with ui.item_section():
+            ui.item_label('Nice Person')
+            ui.item_label('name').props('caption')
+        with ui.item_section().props('side'):
+            ui.icon('chat')
+
+ui.run(native=True)
+```
+
+![ui_list2](README_MORE.assets/ui_list2.png)
+
+给ui.item内增加ui.item_section、ui.item_label等控件，可以实现类似通讯录的布局。不同于使用基本布局组合实现需要较多的样式调整，这些预定义的控件本身有很多属性样式，只需设置好对应的属性，就能让样式接近想要的效果。而且，本身的含义也比较直观，后续维护起来也方便。
+
+#### 3.9.2 ui.splitter
+
+前面介绍过ui.separator，可以生成一条水平或者垂直的分隔线，用来不明显地区分控件。但是，在NiceGUI中，除了ui.separator外，还有一种分隔线，那就是ui.splitter，也可以生成一条水平或者垂直的分隔线。不过，在前面没介绍这个控件，是因为这个控件的用法可比ui.separator复杂，用途也多，只是简单分隔一下，还是用ui.separator比较好。倘若对于分隔有更高的要求或者其他用途，ui.splitter绝对能胜任。
+
+先看代码，分别用ui.separator和ui.splitter实现类似的效果：
+
+```python3
+from nicegui import ui
+
+ui.label('separator')
+with ui.card():
+    ui.label('text above')
+    ui.separator()
+    ui.label('text below')
+with ui.card(),ui.row():
+    ui.label('text above')
+    ui.separator().props('vertical')
+    ui.label('text below')
+
+ui.label('splitter')
+with ui.card():
+    splitter = ui.splitter(horizontal=True)
+    with splitter.before:ui.label('text above')
+    with splitter.after:ui.label('text below')
+with ui.card().classes('w-56'),ui.row().classes('w-full'):
+    splitter2 = ui.splitter().classes('w-full')
+    with splitter2.before:ui.label('text above')
+    with splitter2.after:ui.label('text below')
+
+ui.run(native=True)
+```
+
+![ui_splitter](README_MORE.assets/ui_splitter.png)
+
+单看效果对比的话，ui.splitter看上去只是比ui.separator紧凑一些，似乎没什么不同。如果仔细看代码，就会发现ui.splitter的代码量比ui.separator多不少。
+
+ui.splitter可以看做是一个容器，定义ui.splitter之后，会产生ui.splitter().before、ui.splitter().after、ui.splitter().separator三个子容器，需要分别给前两个容器填充内容，才能看到分隔效果。而且，中间的分隔线也支持添加内容和鼠标交互，可以用鼠标左右拖动。
+
+当然，ui.splitter支持的参数不少，用起来也比ui.separator复杂：
+
+`horizontal`参数，布尔类型，是否将ui.splitter水平显示。
+
+`limits`参数，浮点元组类型，表示拖动分隔线的范围（最小、最大百分比），这是一个二元元组，默认为(0,100)，第一个元素表示拖动范围的最小值，，第二个元素表示拖动范围的最大值。
+
+`value`参数，浮点类型，表示ui.splitter().before的初始大小百分比。
+
+`reverse`参数，布尔类型，表示是否反转ui.splitter().before和ui.splitter().after先后顺序。
+
+`on_change`参数，可调用类型，表示拖动分隔线时执行的操作。
+
+以下代码是ui.splitter的典型运用，通过拖动分隔线，显示彩色、黑白图像的对比效果，同时弹出通知显示当前分隔线的位置：
+
+```python3
+from nicegui import ui
+
+with ui.splitter(
+    horizontal=False,
+    reverse=False,
+    limits=(0, 100),
+    value=50,
+    on_change=lambda e: ui.notify(f"Separator changed to {e.sender.value}."),
+).classes("w-72 h-48").props(
+    "before-class=overflow-hidden after-class=overflow-hidden"
+    ) as splitter:
+    with splitter.separator:
+        ui.icon("lightbulb").classes("text-green")
+        ui.tooltip("Move me.").classes("bg-green").props(
+            'anchor="center middle" self="center middle"'
+        )
+    with splitter.before:
+        ui.image("https://cdn.quasar.dev/img/parallax1.jpg").classes(
+            "w-72 absolute-top-left"
+        )
+    with splitter.after:
+        ui.image("https://cdn.quasar.dev/img/parallax1-bw.jpg").classes(
+            "w-72 absolute-top-right"
+        )
+
+ui.run(native=True)
+```
+
+![ui_splitter2](README_MORE.assets/ui_splitter2.png)
+
+#### 3.9.3 ui.tabs
+
+选项卡，现代浏览器的基本布局，可以通过点击上面的选项卡，切换下面的内容。
+
+在NiceGUI中，和选项卡相关的控件有 ui.tabs、ui.tab、ui.tab_panels和ui.tab_panel。ui.tabs是放置选项卡的容器，ui.tab是选项卡，ui.tab_panels是放置选项卡关联内容的容器，ui.tab_panel则是选项卡的关联内容。
+
+以下面的代码为例，ui.tab放置在ui.tabs内，ui.tab_panel放置在ui.tab_panels内，想要让选项卡正确关联、交互，需要确保以下参数正确设置：
+
+1.   ui.tab_panels的参数`tabs`需要传递已经创建的ui.tabs实例；
+2.   ui.tab_panel的参数`name`需要传递已经创建的ui.tab实例，或者实例的字符串参数`name`。
+
+```python3
+from nicegui import ui
+
+with ui.tabs().classes("w-full") as tabs:
+    one = ui.tab(name="One")
+    two = ui.tab(name="Two")
+with ui.tab_panels(tabs=tabs, value=two).classes("w-full"):
+    with ui.tab_panel(name=one):
+        ui.label("First tab")
+    with ui.tab_panel(name='Two'):
+        ui.label("Second tab")
+
+ui.run(native=True)
+```
+
+![ui_tab](README_MORE.assets/ui_tab.png)
+
+ui.tab的`name`参数是用来区分选项卡的唯一标识符，称之为id也可以，但是，肯定有读者觉得不太方便，如果想要修改选项卡的名字，势必影响到下面ui.tab_panel的关联。其实，并不会导致这样的问题，ui.tab还有一个字符串参数`label`，如果设置了这个参数，显示在选项卡上的内容就会变成`label`而不是`name`。此外，ui.tab还支持像ui.button一样设置图标，只需给参数`icon`传入图标字符的名字即可：
+
+```python3
+from nicegui import ui
+
+with ui.tabs().classes("w-full") as tabs:
+    one = ui.tab(name="One",label='Home',icon='home')
+    two = ui.tab(name="Two",label='About',icon='info')
+with ui.tab_panels(tabs=tabs, value=two).classes("w-full"):
+    with ui.tab_panel(name=one):
+        ui.label("First tab")
+    with ui.tab_panel(name='Two'):
+        ui.label("Second tab")
+
+ui.run(native=True)
+```
+
+![ui_tab2](README_MORE.assets/ui_tab2.png)
+
+除了通过点击交互来切换选项卡，调用ui.tabs、ui.panels的set_value方法也能切换选项卡：
+
+```python3
+from nicegui import ui
+
+with ui.tabs().classes("w-full") as tabs:
+    one = ui.tab(name="One",label='Home',icon='home')
+    two = ui.tab(name="Two",label='About',icon='info')
+with ui.tab_panels(tabs=tabs, value=two).classes("w-full") as panels:
+    with ui.tab_panel(name=one):
+        ui.label("First tab")
+    with ui.tab_panel(name='Two'):
+        ui.label("Second tab")
+
+ui.button('GoTo 1', on_click=lambda: panels.set_value(one))
+ui.button('GoTo 2', on_click=lambda: tabs.set_value('Two'))
+
+ui.run(native=True)
+```
+
+想要让选项卡从水平变成垂直，只需设调用`props('vertical')`，设置`'vertical'`即可。不过，只是设置一下，界面并不会如预想中那样改变，还需要借用前面介绍到的ui.splitter：
+
+```python3
+from nicegui import ui
+
+with ui.splitter(value=10).classes('w-full h-56') as splitter:
+    with splitter.before,ui.tabs().props('vertical').classes('w-full h-56')  as tabs:
+        one = ui.tab(name="One",label='Home',icon='home')
+        two = ui.tab(name="Two",label='About',icon='info')
+    with splitter.after,ui.tab_panels(tabs=tabs, value=two).props('vertical').classes('w-full h-56')  as panels:
+        with ui.tab_panel(name=one):
+            ui.label("First tab")
+        with ui.tab_panel(name='Two'):
+            ui.label("Second tab")
+
+ui.run(native=True)
+```
+
+![ui_tab3](README_MORE.assets/ui_tab3.png)
+
+#### 3.9.4 ui.scroll_area
+
+
+
+ui.skeleton
+
+
+
+ui.carousel
+
+
+
+ui.expansion
+
+
+
+ui.pagination
+
+
+
+ui.stepper
+
+
+
+ui.timeline
+
+
+
+ui.notification
+
+
+
+ui.dialog
+
+
+
+ui.menu 菜单内容用别的控件
+
+
+
+ui.tooltip 上下文用其他内容
+
+
+
+### 3.10 其他数据展示控件（更新中）
+
+#### 3.10.1 ui.table
+
+
+
+
+
+以及其他数据展示控件的完整学习
+
+3D场景的处理技巧（更新中）
+
+ui.scene完整学习
+
+
+
+### 3.11 多媒体控件的使用技巧
+
+#### 3.11.1 ui.interactive_image的交互技巧
+
+interactive，顾名思义，就是交互性。既然ui.interactive_image是交互性图像，只是当成普通图像的加强版使用，而不学习它的交互能力实在说不过去。
+
+通过捕获鼠标事件参数，可以获取到鼠标点击的事件种类`type`、鼠标位置`image_x\image_y`:
+
+```python3
+from nicegui import ui
+
+src = 'https://picsum.photos/id/565/640/360'
+ui.interactive_image(src, on_mouse=lambda e: ui.notify(
+    f'{e.type} at ({e.image_x:.1f}, {e.image_y:.1f})'), cross=True)
+
+ui.run(native=True)
+```
+
+![ui_interactive_image](README_MORE.assets/ui_interactive_image.png)
+
+既然可以通过点击获取鼠标位置，在鼠标位置画点东西自然也不是问题，还是上面的代码，可以在`on_mouse`参数的执行函数里，添加一些绘画的内容。前面介绍过，`content`参数表示覆盖在图片之上的SVG内容，函数里要操作的，也是`content`属性。其中，使用`e.sender.content`来获取`content`属性；因为这个属性实际上是描述SVG内容的字符串，因此每次绘制的内容会自动替换上一次绘制的内容，如果需要保存之前绘制的内容，赋值操作`=`就要换成添加并赋值操作`+=`：
+
+```python3
+from nicegui import ui, events
+
+def draw(e: events.MouseEventArguments):
+    e.sender.content = f'<circle cx="{e.image_x}" cy="{
+        e.image_y}" r="15" fill="none" stroke="Red" stroke-width="2" />'
+
+src = 'https://picsum.photos/id/565/640/360'
+ui.interactive_image(src, on_mouse=draw, cross=True)
+
+ui.run(native=True)
+```
+
+![ui_interactive_image2](README_MORE.assets/ui_interactive_image2.png)
+
+对于绘制在content上的SVG图形，其实也有交互事件，ui.interactive_image也能捕捉。只不过，需要设定SVG的`pointer-events`为`"all"`，来确保SVG图形接收所有事件响应，具体含义可以参考[手册](https://developer.mozilla.org/en-US/docs/Web/CSS/pointer-events)。
+
+目前ui.interactive_image可以捕捉以下SVG事件:
+
+-   pointermove
+-   pointerdown
+-   pointerup
+-   pointerover
+-   pointerout
+-   pointerenter
+-   pointerleave
+-   pointercancel
+
+想要在ui.interactive_image中响应SVG的事件，只需订阅"svg:"开头、后接SVG事件名的混合事件名即可响。
+
+```python3
+from nicegui import ui
+
+src = 'https://picsum.photos/id/565/640/360'
+content = '''
+    <rect id="A" x="85" y="70" width="80" height="60" fill="none" stroke="red" pointer-events="all" cursor="pointer" />
+    <rect id="B" x="180" y="70" width="80" height="60" fill="none" stroke="red" pointer-events="all" cursor="pointer" />
+'''
+ui.interactive_image(src, content=content,cross=True).on('svg:pointerdown',lambda e:ui.notify(f'SVG clicked: {e.args}'))
+
+ui.run(native=True)
+```
+
+![ui_interactive_image3](README_MORE.assets/ui_interactive_image3.png)
+
+### 3.12 ui.add\_\* 和app.add\_\*的技巧（更新中）
 
 
 
@@ -970,65 +1331,15 @@ class ElementFilter(Generic[T]):
 
 
 
-3.   10ui.interactive_image与SVG的事件处理技巧（更新中）
-
-在ui.interactive_image上创建SVG图形，以及处理SVG事件，
 
 
-
-3.11 ui.keyboard的事件处理技巧（更新中）
+### 3.13 ui.keyboard的事件处理技巧（更新中）
 
 完整介绍keyboard事件、组合键的识别与处理方法
 
 
 
 
-
-
-
-3.12 其他布局的使用技巧（更新中）
-
-ui.list
-
-ui.tabs
-
-ui.scroll_area
-
-ui.skeleton
-
-ui.carousel
-
-ui.expansion
-
-ui.pagination
-
-ui.stepper
-
-ui.timeline
-
-ui.splitter
-
-ui.notification
-
-ui.dialog
-
-ui.menu 菜单内容用别的控件
-
-ui.tooltip 上下文用其他内容
-
-
-
-3.13 其他数据展示控件的使用技巧（更新中）
-
-ui.table完整学习
-
-以及其他数据展示控件的完整学习
-
-
-
-3.14 3D场景的处理技巧（更新中）
-
-ui.scene完整学习
 
 
 
