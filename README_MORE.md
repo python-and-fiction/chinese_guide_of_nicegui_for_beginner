@@ -962,7 +962,7 @@ class ElementFilter(Generic[T]):
 
 
 
-### 3.9 其他布局（更新中）
+### 3.9 其他布局（更新中一天两个）
 
 前面介绍过常用的布局，其实NiceGUI支持的布局控件有很多，下面提到的这些不常用，但有些需求比较刁钻，用这些布局刚好可以减少不必要的工作。
 
@@ -1198,13 +1198,109 @@ ui.run(native=True)
 
 #### 3.9.4 ui.scroll_area
 
+对于较多的内容放置在网页，会导致网页又臭又长，可以使用滚动区域当容器。滚动区域控件会生成滚动条，让内容只在指定的大小内显示，拖动滚动条可以显示其余内容。
 
+滚动区域控件支持一个可调用类型参数`on_scroll`作为响应滚动的执行操作，通过一个事件参数捕获滚动的响应事件，并将vertical_position（当前位置的垂直位置，单位像素）、vertical_percentage（当前位置的垂直位置，单位百分比）、vertical_size（滚动内容的垂直大小，单位像素）、vertical_container_size（滚动区域容器的垂直大小，单位像素）、horizontal_position（当前位置的水平位置，单位像素）、horizontal_percentage（当前位置的水平位置，单位百分比）、horizontal_size（滚动内容的水平大小，单位像素）、horizontal_container_size（滚动区域容器的水平大小，单位像素）等属性传递出来。此外，该控件的`scroll_to`方法可以设置控件内容滚动到什么位置。
 
-ui.skeleton
+以下是简单的示例：
 
+```python3
+from nicegui import ui
 
+with ui.row():
+    with ui.scroll_area().classes('w-32 h-32 border'):
+        ui.label('I scroll. ' * 20)
+    with ui.column().classes('p-4 w-32 h-32 border'):
+        ui.label('I will not scroll. ' * 10)
 
-ui.carousel
+ui.run(native=True)
+```
+
+![ui_scroll_area](README_MORE.assets/ui_scroll_area.png)
+
+给`on_scroll`参数传入带一个参数的lambda表达式，可以捕获滚动的响应事件，该事件的属性均为浮点类型。以下面的代码为例，代码中捕获的该事件的vertical_percentage，并将其赋给ui.number：
+
+```python3
+from nicegui import ui
+
+position = ui.number('scroll position:').props('readonly')
+with ui.card().classes('w-32 h-32'):
+    with ui.scroll_area(on_scroll=lambda e: position.set_value(e.vertical_percentage)):
+        ui.label('I scroll. ' * 20)
+
+ui.run(native=True)
+```
+
+![ui_scroll_area2](README_MORE.assets/ui_scroll_area2.png)
+
+`scroll_to`方法可以设置控件内容滚动到什么位置，该方法有四个参数：
+
+`pixels`参数，浮点类型，用像素表示目标位置，不能与`percent`参数同时指定。
+
+`percent`参数，浮点类型，用百分比表示目标位置，不能与`pixels`参数同时指定。
+
+`axis`参数，字符串类型，限定为'vertical'或'horizontal'，默认为 'vertical'，表示滚动的方向是水平还垂直。
+
+`duration`参数，浮点类型，表示滚动动画的持续时间，默认是0，表示启用滚动动画。
+
+以下代码在左边滚动区域的响应事件中添加执行了右边滚动区域的scroll_to方法，让左右的滚动保持一致：
+
+```python3
+from nicegui import ui
+
+ui.number('position', value=0, min=0, max=1, step=0.1,
+          on_change=lambda e: area1.scroll_to(percent=e.value)).classes('w-32')
+
+with ui.row():
+    with ui.card().classes('w-32 h-48'):
+        with ui.scroll_area(on_scroll=lambda e: area2.scroll_to(percent=e.vertical_percentage)) as area1:
+            ui.label('I scroll. ' * 20)
+
+    with ui.card().classes('w-32 h-48'):
+        with ui.scroll_area() as area2:
+            ui.label('I scroll. ' * 20)
+
+ui.run(native=True)
+```
+
+![ui_scroll_area3](README_MORE.assets/ui_scroll_area3.png)
+
+#### 3.9.5 ui.skeleton
+
+骨架控件可以提供一系列占位轮廓，当内容还没有加载的时候，用占位轮廓提供网页的内容结构预览。同时，骨架控件上的鼠标样式会显示为正忙的样式，表示内容正在加载。
+
+以下为代码示例：
+
+```python3
+from nicegui import ui
+
+ui.skeleton(type='rect', tag='div', animation='wave', animation_speed=1.5,
+            square=False, bordered=False, size=None, width=None, height=None).classes('w-full')
+
+ui.run(native=True)
+```
+
+![ui_skeleton](README_MORE.assets/ui_skeleton.png)
+
+`type`参数，字符串类型，表示骨架的基本形状，支持'text'、'rect'、'circle',、'QBtn'、'QBadge'、'QChip'、'QToolbar'、'QCheckbox'、'QRadio'、'QToggle'、'QSlider'、'QRange'、'QInput'、'QAvatar'，默认为'rect'。
+
+ `tag`参数，字符串类型，表示创建骨架控件用的HTML标签，默认为'div'。
+
+`animation`参数，字符串类型，骨架控件的动画，因为是在加载过程中占位显示，必须要有动画，以缓解用户等待期间的焦虑。支持'wave'、'pulse'、'pulse-x'、'pulse-y'、'fade'、blink'、'none'，默认为'wave'。
+
+`animation_speed`参数，浮点类型，表示动画的速度，即在多少秒完成一次动画循环，默认为1.5。
+
+`square`参数，布尔类型，表示是否移除骨架控件的圆角，默认为False。
+
+`bordered`参数，布尔类型，表示是否显示骨架控件的边框，默认为False。
+
+`size`参数，字符串类型，表示使用CSS的大小单位指定骨架控件的大小，此时骨架控件显示为正方形或者圆形（取决于`type`参数），并且会覆盖`width`参数和`height`参数的设置，默认为None。
+
+`width`参数，字符串类型，表示使用CSS的大小单位指定骨架控件的宽度，会被`size`参数覆盖，默认为None。
+
+`height`参数，字符串类型，表示使用CSS的大小单位指定骨架控件的高度，会被`size`参数覆盖，默认为None。
+
+#### 3.9.6 ui.carousel
 
 
 
@@ -1240,19 +1336,61 @@ ui.tooltip 上下文用其他内容
 
 
 
-### 3.10 其他数据展示控件（更新中）
+### 3.10 其他数据展示控件（更新中一天一个）
 
 #### 3.10.1 ui.table
 
 
 
+#### 3.10.2 ui.aggrid
 
 
-以及其他数据展示控件的完整学习
 
-3D场景的处理技巧（更新中）
+#### 3.10.3 ui.highchart
 
-ui.scene完整学习
+
+
+#### 3.10.4 ui.echart
+
+
+
+#### 3.10.5 ui.pyplot
+
+
+
+#### 3.10.6 ui.matplotlib
+
+
+
+#### 3.10.7 ui.line_plot
+
+
+
+#### 3.10.8 ui.plotly
+
+
+
+#### 3.10.9 ui.tree
+
+
+
+#### 3.10.10 ui.log
+
+
+
+#### 3.10.11 ui.editor
+
+
+
+#### 3.10.12 ui.json_editor
+
+
+
+#### 3.10.13 ui.codemirror
+
+
+
+#### 3.10.14 ui.scene
 
 
 
@@ -1323,25 +1461,240 @@ ui.run(native=True)
 
 ![ui_interactive_image3](README_MORE.assets/ui_interactive_image3.png)
 
-### 3.12 ui.add\_\* 和app.add\_\*的技巧（更新中）
+### 3.12 ui.add\_\* 和app.add\_\*的技巧
 
+#### 3.12.1 app.add_static_file、app.add_static_files
 
+前面提到过ui.image、ui.video、ui.audio等提供视听效果。不过，前面的例子中只用了网络图片地址，并没有使用本地地址，肯定有读者在尝试使用本地地址之后发现了一个奇怪的现象，以为NiceGUI有bug。
 
-（ui.add\_\* 和app.add\_\*属于高阶内容，在高阶部分讲）
+以下面的代码为例，`os.path.dirname(os.path.abspath(__file__))`可以获取代码文件的当前目录，在代码文件的同目录下放一个图片文件LOGO.png，下面的代码就能显示这个图片。看起来没问题。但是，一旦复制这个图片的地址，将后面的文件名换成其他同目录下的文件名，就会报404错误（文件未找到）。
 
+```python3
+from nicegui import ui
+import os
 
+ui.image(f'{os.path.dirname(os.path.abspath(__file__))}/LOGO.png')
 
+ui.run(native=True)
+```
 
+其实这不是NiceGUI的bug，而是默认的安全和缓存机制，只有代码中使用的静态文件才会生成地址映射，其他没有使用的文件即使存在，直接输入地址访问也会报不存在。以上面的代码为例，图片文件的地址是`http://127.0.0.1:8000/_nicegui/auto/static/cf276f9ca066376dc8588fbf61afe905/LOGO.png`，中间的cf276f9ca066376dc8588fbf61afe905是图片的hash码，而不是真实存在的目录。之所以会变成这样，是因为NiceGUI会对小的静态文件进行缓存，提高访问速度。因为网页中经常存在大量图片、JavaScript代码、CSS代码等文件，使用缓存可以提高访问速度，不必每次刷新都要从服务器获取。而且，采用缓存机制，还能避免黑客恶意猜测服务器的文件目录，进而获取到影响安全的文件。
 
-### 3.13 ui.keyboard的事件处理技巧（更新中）
+这个时候，理解这一切的读者已经恍然大悟，随之而来的是另一个问题——如果想创建一个图片的链接但图片随时修改怎么办？总不能每次都用ui.image生成一次，然后复制地址过去吧？就算使用代码实现自动化，看上去也不够优雅。
 
-完整介绍keyboard事件、组合键的识别与处理方法
+这时，就需要正式介绍一下本节要说的功能——app.add_static_file。app.add_static_file可以返回本地文件的服务器地址，也可以将本地文件映射为固定的服务器地址。
 
+以代码为例：
 
+```python3
+from nicegui import ui, app
+import os
 
+src = app.add_static_file(
+    local_file=f'{os.path.dirname(os.path.abspath(__file__))}/LOGO.png',
+    url_path=None,
+    single_use=False
+)
 
+ui.link('pic', src)
+ui.label(src)
+ui.image(src)
 
+ui.run(native=True)
+```
 
+<img src="README_MORE.assets/app_add_static_file.png" alt="app_add_static_file" style="zoom:67%;" />
+
+可以看到，给app_add_static_file的local_file传入本地文件地址，返回的正是服务器地址，和ui.image的图片地址一致，这下，ui.link也能使用图片，而不必担心图片变化还要手动复制地址。
+
+app_add_static_file有三个参数：
+
+`local_file`参数，字符串类型或者Path类型，表示本地文件地址。
+
+`url_path`参数，字符串类型，表示服务器地址，默认为None，即自动生成服务器地址，也可以传入参数，例如`'/logo.png'`，就是固定的服务器地址。
+
+`single_use`参数，布尔类型，表示文件是否在下载一次后移除服务器地址，默认为`False`。
+
+假如要添加的图片比较多，但都在一个文件夹内，是不是还要一个一个添加？不用，app_add_static_files可以将本地文件夹映射为服务器地址。
+
+app_add_static_files有三个参数：
+
+`local_directory`参数，字符串类型或者Path类型，表示本地文件夹地址。
+
+`url_path`参数，字符串类型，表示服务器目录地址，必须传入'/'开头的字符串，例如`'/pic'`，同时不能为'/'，不然会报错。
+
+`follow_symlink`参数，布尔类型，表示是否追踪符号链接，即目录下如果存在符号链接的话，会将符号链接代表的实际路径连接到当前路径下，让服务器地址访问符号链接就和本地访问符号链接一样。这个参数默认为`False`，即不处理符号链接，服务器地址没法访问符号链接。注意，此参数为`True`并且在Windows平台下的话，代码中使用的`os.path.abspath(__file__)`会导致获取到文件路径中的磁盘符号为小写，将导致底层代码出错进而上报404错误。此时应该将`os.path.abspath(__file__)`换成`os.path.realpath(__file__)`。如果后续遇到Windows平台下开启app_add_static_files的追踪符号链接后，报404错误，可以按照这个思路检查一下传入的`local_directory`参数中，磁盘符号是不是小写。
+
+#### 3.12.2 app.add_media_file、app.add_media_files
+
+前面的app.add_static_file、app.add_static_files用于添加小的静态文件，本节要介绍的app.add_media_file、app.add_media_files则用于添加媒体文件。看名字的话，和前两者相似，一个是添加单个文件，一个是添加文件夹，那NiceGUI为何要设计重复的功能？
+
+重复当然是不可能重复的，既然是用于媒体文件，肯定与静态文件不同。媒体文件通常是音视频等需要流式传输的文件，不会一下子全部加载，而是一点一点加载，这一点与静态文件不同。毕竟媒体文件通常比较大，一下子全部缓存，一不小心就会让缓存空间爆满。之所以采用流式传输，是因为媒体文件需要支持播放时跳转到指定时间点，如果是采用静态文件那种缓存全部再加载的机制，跳转到指定时间点的功能会失效，只有流式传输才支持跳转到指定时间点。
+
+app.add_media_file、app.add_media_files得到的服务器地址就是采用流式传输，而不是缓存机制。
+
+以下面的代码为例，可以看一下区别，因为此代码需要本地视频文件，这里就不提供直接运行的代码了，视频文件地址由读者自己修改：
+
+```python3
+from nicegui import ui,app
+
+video = r'{视频文件的本地路径}'
+app.add_static_file(local_file=video,url_path='/video1')
+app.add_media_file(local_file=video,url_path='/video2')
+
+ui.video('/video1')
+ui.video('/video2')
+
+ui.run(native=True)
+```
+
+通常情况下，app.add_static_file得到的视频文件地址，在播放器中没法拖动进度条，app.add_media_file得到的视频文件地址，在播放器中和正常播放一样，可以自由拖动时间轴。但是，大多数服务器、浏览器、播放器有容错优化，实际上两种方法得到的视频地址都可以正常播放，只有某些要求严格的接口、播放程序才会有区别。一般建议读者使用app.add_media_file添加媒体文件，以免特定情况下出现不兼容的问题。
+
+app.add_media_file的参数和app.add_static_file的一样，这里不再赘述。app.add_media_files的参数则必app.add_static_files少了`follow_symlink`参数。
+
+#### 3.12.3 ui.add_head_html和ui.add_body_html
+
+ui.add_head_html可以添加HTML代码到页面head标签内，ui.add_body_html可以添加HTML代码到页面body标签内。对于页面加载来说，head标签内的内容一般不显示，而且因为是从上到下加载，head标签内的内容会先被加载，这里通常放着需要第一时间执行的前置脚本和样式设置。body标签内放着页面显示内容的主体，使用ui.add_body_html会在NiceGUI其他控件加载前嵌入HTML代码，因此ui.add_body_html通常是为了实现在NiceGUI其他内容显示之前放置内容，包括但不限于显示的内容、执行前置脚本和样式设置。
+
+这两个方法都有两个参数字符串参数`code`和布尔参数`shared`。前者表示要嵌入的HTML代码，后者表示是否在所有页面（page）执行嵌入操作，对于使用ui.page装饰的页面，后者可以让嵌入操作的代码只写一次，就能应用于所有页面上。
+
+前面说过，ui.html也可以添加HTML代码，那和ui.add_head_html、ui.add_body_html有什么区别？
+
+ui.html会返回一个元素，可以使用一般元素的方法，ui.add_head_html和ui.add_body_html是直接将HTML代码嵌入页面，不会返回任何对象，没法调用一般元素的方法。不过，它们支持嵌入JavaScript代码，而ui.html只能是纯HTML。
+
+```python3
+from nicegui import ui
+
+ui.add_head_html('<script>alert("yes")</script>')
+ui.add_body_html('<script>alert("yes")</script>')
+#ui.html('<script>alert("yes")</script>')
+
+ui.run(native=True)
+```
+
+#### 3.12.4 ui.add_css、ui.add_scss、ui.add_sass
+
+这三个功能都可以添加CSS代码，只是对应的CSS代码语法规则不同。
+
+SASS是一款强化 CSS 的辅助工具，它在 CSS 语法的基础上增加了变量 (variables)、嵌套 (nested rules)、混合 (mixins)、导入 (inline imports) 等高级功能，这些拓展令 CSS 更加强大与优雅。简单一点理解的话，SASS是CSS扩展版本。SASS有两种语法风格：以scss为后缀的，是语法风格和CSS一致的版本，即采用大括号表示所属，用分号表示一句内容的结束；以sass为后缀的，是语法风格变成用缩进代替大括号、用换行代替分号的版本。
+
+因此ui.add_css、ui.add_scss、ui.add_sass分别代表可以添加标准CSS代码、scss风格代码、sass风格代码。因为scss语法风格和CSS一致，基本兼容CSS，所以，可以用ui.add_scss添加CSS代码，反之不行。
+
+ui.add_css：
+
+```python3
+from nicegui import ui
+
+ui.add_css('''
+    .red {
+        color: red;
+    }
+''')
+ui.label('This is red with CSS.').classes('red')
+
+ui.run()
+```
+
+ui.add_scss：
+
+```python3
+from nicegui import ui
+
+ui.add_scss('''
+    .green {
+        background-color: lightgreen;
+        .blue {
+            color: blue;
+        }
+    }
+''')
+with ui.element().classes('green'):
+    ui.label('This is blue on green with SCSS.').classes('blue')
+
+ui.run()
+```
+
+ui.add_sass：
+
+```python3
+from nicegui import ui
+
+ui.add_sass('''
+    .yellow
+        background-color: yellow
+        .purple
+            color: purple
+''')
+with ui.element().classes('yellow'):
+    ui.label('This is purple on yellow with SASS.').classes('purple')
+
+ui.run()
+```
+
+### 3.13 ui.keyboard的事件处理技
+
+ui.keyborad可以在页面添加一个按键事件的响应。
+
+ui.keyborad有以下四个参数：
+
+`on_key`参数，可执行类型，表示发生按键事件之后要执行的函数。
+
+`active`参数，布尔类型，表示是否激活该功能，默认为`True`。
+
+`repeating`参数，布尔类型，表示当按键持续按下的时候是否重复发送按键事件，默认为`True`。
+
+`ignore`参数，字符串列表类型，表示当哪些元素激活时忽略按键事件的响应，默认为['input', 'select', 'button', 'textarea']。
+
+对于`on_key`参数，可以传递一个`KeyEventArguments` 响应对象作为函数的参数，该对象有以下属性：
+
+-   `sender`：事件的发送者，即ui.keyboard元素。
+-   `client`：客户端对象。
+-   `action`：`KeyboardAction`对象，表示按键当前的动作，该对象有以下属性：
+    -   `keydown`：按键是否按下。
+    -   `keyup`：按键是否松开。
+    -   `repeat`：按键是否重复。
+-   `key`：`KeyboardKey`对象，表示当前按键，该对象有以下属性：
+    -   `name`：按键名。比如： "a"，"Enter"，"ArrowLeft"等。 可以参考[这里](https://developer.mozilla.org/en-US/docs/Web/API/UI_Events/Keyboard_event_key_values)提供的按键名清单。
+    -   `code`：按键的代号。比如："KeyA"，"Enter"，"ArrowLeft"等。
+    -   `location`：按键的位置。0表示标准键盘区，1表示左边的按键（指的是Ctrl、Alt、Shift这种左右都有的按键），2表示右边的按键，3表示数字键盘区。
+-   `modifiers`：`KeyboardModifiers`对象，表示当前修饰键（Ctrl、Alt、Shift、Win这种可以与字母、数字、功能键等组合使用的按键），该对象有以下属性：
+    -   `alt`：Alt键（Mac下的Opt键）是否被按下。
+    -   `ctrl`：Ctrl键是否被按下。
+    -   `meta`：Meta键（WIn的Win键或者Mac下的Cmd键）是否被按下。
+    -   `shift`：Shift键是否被按下。
+
+为了方便，`KeyboardKey`对象还有以下属性：:
+
+-   `is_cursorkey`：方向键是否被按下（数字键盘区的方向键不算）。
+-   `number`：按下了主键盘区上方的哪个数字键。0-9表示对应的数字键，`None` 没有按下上方的数字键。
+-   `backspace`、`tab`、`enter`、`shift`、`control`、`alt`、`pause`、`caps_lock`, `escape`、`space`、`page_up`、 `page_down`、`end`、`home`、`arrow_left`、`arrow_up`、arrow_right`、`arrow_down`、`print_screen`、`insert`、`delete`、`meta`、`f1`、`f2`、`f3`、`f4`、`f5`、`f6`、`f7`、`f8`、`f9`、`f10`、`f11`、`f12：表示对应的按键是否被按下。
+
+下面代码中，通过勾选、取消复选框来启用、禁用按键事件捕捉。在按键的处理函数里，通过判断Ctrl键是否被按下来决定是否通知另一个按钮的按下、弹起状态：
+
+```python3
+from nicegui import ui
+from nicegui.events import KeyEventArguments
+
+def handle_key(e: KeyEventArguments):
+    if e.modifiers.ctrl and not e.key.control:
+        if e.action.keyup:
+            ui.notify(f"{e.key} was just released")
+        elif e.action.keydown:
+            ui.notify(f"{e.key} was just pressed")
+
+keyboard = ui.keyboard(
+    on_key=handle_key,
+    active=True,
+    repeating=True,
+    ignore=["input", "select", "button", "textarea"],
+)
+ui.label("Key events can be caught globally by using the keyboard element.")
+ui.checkbox("Track key events").bind_value_to(keyboard, "active")
+
+ui.run(native=True)
+```
+
+<img src="README_MORE.assets/ui_keyboard.png" alt="ui_keyboard" style="zoom: 67%;" />
 
 ## 4 具体示例【随时更新】
 
