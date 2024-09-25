@@ -1302,37 +1302,218 @@ ui.run(native=True)
 
 #### 3.9.6 ui.carousel
 
+‌‌轮播图是一种常见的网页设计元素，主要用于提供网页内容的快速展示和导航。‌ 它通过切换多个图片或内容，吸引用户的注意力，提高页面的视觉吸引力。轮播图支持自定义轮播图片、轮播动画效果等，能够在可视化应用中展示多张图片轮流播放的效果。
+
+在NiceGUI中，ui.carousel就是可以实现轮播图效果的控件，不过它的英文是carousel，翻译过来的话是旋转木马，听起来不太像控件，这里就用轮播图代替。
+
+<img src="README_MORE.assets/ui_carousel_sketch.png" alt="ui_carousel_sketch" style="zoom:67%;" />
+
+NiceGUI的轮播图控件，本质上是一种容器，轮播图会依次展示每个子控件，放在其中的子控件就是像一页一页的幻灯片。一般来说，轮播图子控件应该是ui.carousel_slide，实际上用其他控件也可以。
+
+ui.carousel有五个参数：
+
+`value`参数，字符串类型或者ui.carousel_slide，表示轮播图初始展示哪一个子控件，默认为`None`，表示展示第一个。
+
+`on_value_change`参数，可调用类型，表示轮播图当前展示的子控件变化时，执行什么操作。
+
+`animated`参数，布尔类型，表示是否开启切换动画。
+
+`arrows`参数，布尔类型，表示是否显示手动切换上、下一个子控件的箭头。
+
+`navigation`参数，布尔类型，表示是否显示下面直接切换哪一个子控件的圆点。
+
+`previous`方法，切换上一个子控件。
+
+`next`方法，切换下一个子控件。
+
+ui.carousel_slide只有一个字符串参数`name`，也就是上面ui.carousel中`value`用到的指定当前页的值。默认没有指定的话，这个值是自动生成的——'slide_1'这种名字，下划线后的数字代表当前控件在所有子控件中的排序。
+
+```python3
+from nicegui import ui
+
+with ui.carousel(animated=True, arrows=True, navigation=True, on_value_change=lambda e: ui.notify(e.value))\
+    .props('autoplay=5000 infinite') as carousel:
+    with ui.carousel_slide().classes('p-0'):
+        ui.interactive_image(
+            'https://picsum.photos/id/30/270/180').classes('w-full h-full')
+    with ui.carousel_slide().classes('p-0'):
+        ui.interactive_image(
+            'https://picsum.photos/id/31/270/180').classes('w-full h-full')
+    with ui.carousel_slide().classes('p-0'):
+        ui.interactive_image(
+            'https://picsum.photos/id/32/270/180').classes('w-full h-full')
+with ui.row():
+    ui.button(icon='arrow_left',on_click=carousel.previous)
+    ui.button(icon='arrow_right',on_click=carousel.next)
+    
+ui.run(native=True)
+```
+
+<img src="README_MORE.assets/ui_carousel.png" alt="ui_carousel" style="zoom:80%;" />
+
+#### 3.9.7 ui.expansion
+
+在其他UI框架中可能叫做Accordion或者手风琴，这里也称之为手风琴控件，而不是直译其为扩大。
+
+‌手风琴控件是一个用来展示多个面板的控件，这些面板同时只能展开一项（也可以一项都不展开），和选项卡控件有异曲同工之妙。‌手风琴控件允许在一个紧凑的空间中显示许多链接，通过单击或点击来展开和折叠，使得用户可以在一个可视化的界面中快速访问不同的信息或功能。这种控件通常包括一个或多个可折叠的面板，每个面板可以包含文本、图像或其他内容，用户可以通过点击面板的标题来展开或折叠对应的内容。手风琴控件的设计旨在提供一个直观且用户友好的界面，使用户能够轻松地在不同部分之间切换，同时保持界面的整洁和有序。
+
+先看代码和效果图：
+
+```python3
+from nicegui import ui
+
+with ui.expansion(
+    text="Expand!",
+    caption="Expand me",
+    icon="work",
+    group=None,
+    value=False,
+    on_value_change=lambda e:ui.notify(e.value),
+).classes("w-full"):
+    ui.label("inside the expansion")
+
+ui.run(native=True)
+```
+
+<img src="README_MORE.assets/ui_expansion.png" alt="ui_expansion" style="zoom: 67%;" />
+
+ui.expansion有六个参数：
+
+`text`参数，字符串类型，表示手风琴控件的文本内容。
+
+`caption`参数，字符串类型，表示手风琴控件的说明性文本内容（也可以称之为副标题或者标签文本，比文本内容小一点）。
+
+`icon`参数，字符串类型，表示手风琴控件的图标。
+
+`group`参数，字符串类型，表示手风琴控件的分组，默认为`None`。其实，单个ui.expansion没法组成手风琴控件，需要多个配合。在没有指定此参数的情况下，每个ui.expansion都是独立打开、关闭的，只有在指定相同的此参数之后，各个ui.expansion的开闭才会关联，每组ui.expansion中只允许一个ui.expansion开启，点开其他ui.expansion会让已经打开的ui.expansion关闭。
+
+`value`参数，布尔类型，表示ui.expansion的开关状态，默认为`False`。
+
+`on_value_change`参数，可调用类型，表示手风琴控件的值变化时执行什么操作。
+
+`open`方法，调用此方法会打开手风琴控件。
+
+`close`方法，调用此方法会关闭手风琴控件。
+
+如果想用图片代替手风琴控件的图标，可以这样操作：
+
+```python3
+from nicegui import ui
+
+with ui.expansion() as expansion:
+    with expansion.add_slot('header'):
+        with ui.row().classes('items-center'):
+            ui.image('https://nicegui.io/logo.png').classes('w-16')
+            ui.label('LOGO')
+    ui.label('What a nice GUI!')
+
+ui.run(native=True)
+```
+
+![ui_expansion2](README_MORE.assets/ui_expansion2.png)
+
+前面提到的`group`参数，用法也很简单：
+
+```python3
+from nicegui import ui
+
+with ui.expansion(text='Expand One!', group='group'):
+    ui.label('inside expansion one')
+with ui.expansion(text='Expand Two!', group='group'):
+    ui.label('inside expansion two')
+with ui.expansion(text='Expand Three!', group='group'):
+    ui.label('inside expansion three')
+
+ui.run(native=True)
+```
+
+![ui_expansion3](README_MORE.assets/ui_expansion3.png)
+
+#### 3.9.8 ui.pagination
+
+常在网页中看到多页内容的底部有标着页码的分页控件，点击后一页或者对应页码可以直接跳转。在NiceGUI，实现此功能的是ui.pagination。
+
+```python3
+from nicegui import ui
+
+p = {"value": 0}
+ui.label().bind_text_from(p, "value", lambda v: f"Page {v}")
+ui.pagination(
+    min=1,
+    max=5,
+    direction_links=False,
+    value=1,
+    on_change=lambda e: ui.notify(e.value)
+).bind_value_to(p)
 
 
-ui.expansion
+ui.run(native=True)
+```
+
+![ui_pagination](README_MORE.assets/ui_pagination.png)
+
+ui.pagination有五个参数：
+
+`min`参数，整数类型，分页控件的页码最小值。
+
+`max`参数，整数类型，分页控件的页码最小值。
+
+`direction_links`参数，布尔类型，是否显示前一页、后一页的链接。
+
+`value`参数，整数类型，分页控件的页码初始值。如果没有指定初始值，初始值是最小值。
+
+`on_change`参数，可调用类型，表示分页控件的值变化时执行什么操作。
+
+分页控件的更多样式设计可以参考[Quasar官网](https://quasar.dev/vue-components/pagination#qpagination-api)：
+
+```python3
+from nicegui import ui
+
+p = {"value": 0}
+ui.label().bind_text_from(p, "value", lambda v: f"Page {v}")
+ui.pagination(
+    min=1,
+    max=5,
+    direction_links=True,
+    value=1,
+    on_change=lambda e: ui.notify(e.value)
+).props('''
+        boundary-links 
+        input
+        icon-first="skip_previous"
+        icon-last="skip_next"
+        icon-prev="fast_rewind"
+        icon-next="fast_forward"
+        ''').bind_value_to(p)
+
+ui.run(native=True)
+```
+
+![ui_pagination2](README_MORE.assets/ui_pagination2.png)
+
+#### 3.9.9 ui.stepper（更新中）
 
 
 
-ui.pagination
+#### 3.9.10 ui.timeline
 
 
 
-ui.stepper
+#### 3.9.11 ui.notification
 
 
 
-ui.timeline
+#### 3.9.12 ui.dialog
 
 
 
-ui.notification
+#### 3.9.13 ui.menu补充
 
+嵌入其他内容
 
+#### 3.9.14 ui.tooltip补充 
 
-ui.dialog
-
-
-
-ui.menu 菜单内容用别的控件
-
-
-
-ui.tooltip 上下文用其他内容
+嵌入其他内容
 
 
 
@@ -1631,7 +1812,7 @@ with ui.element().classes('yellow'):
 ui.run()
 ```
 
-### 3.13 ui.keyboard的事件处理技
+### 3.13 ui.keyboard的事件处理技巧
 
 ui.keyborad可以在页面添加一个按键事件的响应。
 
