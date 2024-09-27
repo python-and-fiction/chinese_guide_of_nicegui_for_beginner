@@ -421,6 +421,8 @@ NiceGUI简化了不少CSS上的操作，但不代表不需要CSS的基础。如�
 
 前面讲过如何美化控件，即在控件定义时使用props、classes、style等方法美化控件，也可以在控件定义好之后，通过给定的变量名调用相应方法。但是，如果想要美化的控件、元素根本就不是定义出来的，而是框架带出来的，想要美化就有点麻烦。当然，直接修改内置样式、源码很直观，但麻烦。要是有种方法能让想要修改的内容就像被定义为变量一样，后续直接使用，那就方便不少。正巧，ui.query就有这样的功能。
 
+注意，ui.query的props方法修改的是HTML元素的属性（attribute），而不是ui.element或者Quasar组件的属性（props）。
+
 ui.query只有一个字符串类型参数`selector`，顾名思义，就是前面提到的选择器。通过给ui.query传入选择器语法，ui.query将返回CSS选择器能够选择的元素，后续可以直接对该元素执行样式美化的方法。
 
 下面的代码就是使用ui.query选择了body（网页的主体），并设置body的背景颜色：
@@ -1176,7 +1178,7 @@ ui.button('GoTo 2', on_click=lambda: tabs.set_value('Two'))
 ui.run(native=True)
 ```
 
-想要让选项卡从水平变成垂直，只需设调用`props('vertical')`，设置`'vertical'`即可。不过，只是设置一下，界面并不会如预想中那样改变，还需要借用前面介绍到的ui.splitter：
+想要让选项卡从水平变成垂直，只需调用`props('vertical')`，设置`'vertical'`即可。不过，只是设置一下，界面并不会如预想中那样改变，还需要借用前面介绍到的ui.splitter：
 
 ```python3
 from nicegui import ui
@@ -1195,6 +1197,34 @@ ui.run(native=True)
 ```
 
 ![ui_tab3](README_MORE.assets/ui_tab3.png)
+
+ui.tabs支持两个参数：
+
+`value`参数，字符串类型或者ui.tab类型或者ui.tab_panel类型，用于指定初始化选择的ui.tab或者ui.tab_panel，如果是字符串类型，则值为ui.tab或者ui.tab_panel的name属性的值。但是，因为定义ui.tabs时，ui.tab和ui.tab_panel通常还没定义，这个参数一般不需要知道，也没法指定。
+
+`on_change`参数，可调用类型，当选项卡切换时执行的操作。
+
+ui.tab支持三个参数：
+
+`name`参数，字符串类型，表示选项卡的名字，也可以称之为标识符，如果对应的ui.tab_panel也定义了name，需要保持一致。
+
+`label`参数，字符串类型，表示选项卡的标签，如果此参数没有定义，默认使用name的值。
+
+`icon`参数，字符串类型，表示选项卡的图标。
+
+ui.tab_panels支持五个参数：
+
+`tabs`参数，ui.tabs类型，与已经创建的ui.tabs关联，ui.tabs切换选项卡时，ui.tab_panels也切换为相应的选项卡。
+
+`value`参数，字符串类型或者ui.tab类型或者ui.tab_panel类型，用于指定初始化选择的ui.tab或者ui.tab_panel，如果是字符串类型，则值为ui.tab或者ui.tab_panel的name属性的值。但是，因为定义ui.tab_panels时，ui.tab_panel通常还没定义，这个参数一般不设置为ui.tab_panel类型对象，而是指定为字符串或者已经定义的ui.tab。
+
+`on_change`参数，可调用类型，当选项卡切换时执行的操作。
+
+`animated`参数，布尔类型，表示是否启用切换动画，默认为`True`。
+
+`keep_alive`参数，布尔类型，表示是否对容器内的控件启用VUE的keep-alive组件。启用此组件，容器内控件不会在不可见的时候销毁，而是一直保持存活，以免再次访问控件时，控件的状态因为重建而被重置。
+
+ui.tab_panel支持一个字符串参数`name`，与ui.tab的name相同，如果值一致，则会将ui.tab_panel与ui.tab关联。
 
 #### 3.9.4 ui.scroll_area
 
@@ -1491,87 +1521,373 @@ ui.run(native=True)
 
 ![ui_pagination2](README_MORE.assets/ui_pagination2.png)
 
-#### 3.9.9 ui.stepper（更新中）
+#### 3.9.9 ui.stepper
 
+ui.stepper是一个类似向导功能的综合控件，可以给用户提供直观的操作引导。从本质上说，ui.stepper是个容器，有点像前面提到的轮播图，每次都是展示当前子控件的内容。不同的是，ui.stepper会在上方（或者左边）提供全部子控件标题作为步骤的预览，大致结构如下图所示：
 
+<img src="README_MORE.assets/ui_stepper_sketch.png" alt="ui_stepper_sketch" style="zoom:80%;" />
+
+与ui.stepper相关的控件有ui.step和ui.stepper_navigation。ui.step是每一步的步骤，放在ui.stepper的上下文内。ui.step的上下文主要放置步骤的操作说明，这里的内容会展示在步骤预览的下方。ui.stepper_navigation是导航栏，里面放置下一步、上一步之类的操作按钮，通常放置在ui.step内，也可以放置在外面。
+
+顺着上面的思路，代码如下：
+
+```python3
+from nicegui import ui
+
+with ui.stepper(
+    value='First',
+    on_value_change=lambda e: ui.notify(e.value),
+    keep_alive=True
+).classes('w-full') as stepper:
+    with ui.step(name='First', title='First step', icon='home') as first:
+        ui.label('Do it fisrt.')
+        with ui.stepper_navigation(wrap=True):
+            ui.button('Next', on_click=stepper.next)
+    with ui.step(name='Second', title='Second step', icon='home') as second:
+        ui.label('Do it second.')
+        with ui.stepper_navigation(wrap=True):
+            ui.button('Next', on_click=stepper.next)
+            ui.button('Back', on_click=stepper.previous).props('flat')
+    with ui.step(name='last', title='Second step', icon='home') as last:
+        ui.label('Do it last.')
+        with ui.stepper_navigation(wrap=True):
+            ui.button('Done', on_click=lambda: ui.notify(
+                'Done!', type='positive'))
+            ui.button('Back', on_click=stepper.previous).props('flat')
+
+ui.run(native=True)
+```
+
+<img src="README_MORE.assets/ui_stepper.png" alt="ui_stepper" style="zoom:67%;" />
+
+ui.stepper支持三个参数：
+
+`value`参数，字符串类型或者ui.step类型，表示初始选择的步骤是哪一个，默认为`None`，即第一个。因为步骤的定义在这一行后面，直接使用ui.step类型会触发未定义报错，要指定非第一个当初始选择步骤，一般只能用字符串类型的名字，即ui.step的name属性的值。实际上ui.stepper点击下一步的操作，也就是将ui.stepper的value设置为指定ui.step的name的值。
+
+`on_value_change`参数，可调用类型，当ui.stepper的value变化时执行的操作。
+
+`keep_alive`参数，布尔类型，表示是否对容器内的控件启用VUE的keep-alive组件。启用此组件，容器内控件不会在不可见的时候销毁，而是一直保持存活，以免再次访问控件时，控件的状态因为重建而被重置。
+
+`previous`方法，切换上一步骤。
+
+`next`方法，切换下一步骤。
+
+ui.step支持三个参数：
+
+`name`参数，字符串类型，和ui.tab类似，name也是ui.step的唯一标识符。同时，当title没有被定义时，这也是title的默认值。
+
+`title`参数，字符串类型，表示步骤的标题，当此参数没有定义、为默认的`None`时，此参数会取name的值。
+
+`icon`参数，字符串类型，表示步骤的默认图标。注意，此图标只有在当前步骤没有被选定或者完成的时候显示。
+
+ui.stepper_navigation支持一个布尔类型参数`wrap`，表示里面的内容如果超出容器宽度的话，是否自动换行，默认为`True`。
+
+ui.stepper除了横向显示步骤，还可以变成竖向显示，只需调用`props('vertical')`，设置`'vertical'`即可：
+
+```python3
+from nicegui import ui
+
+with ui.stepper(
+    value='First',
+    on_value_change=lambda e: ui.notify(e.value),
+    keep_alive=True
+).classes('w-full').props('vertical') as stepper:
+    with ui.step(name='First', title='First step', icon='home') as first:
+        ui.label('Do it fisrt.')
+        with ui.stepper_navigation(wrap=True):
+            ui.button('Next', on_click=stepper.next)
+    with ui.step(name='Second', title='Second step', icon='home') as second:
+        ui.label('Do it second.')
+        with ui.stepper_navigation(wrap=True):
+            ui.button('Next', on_click=stepper.next)
+            ui.button('Back', on_click=stepper.previous).props('flat')
+    with ui.step(name='last', title='Second step', icon='home') as last:
+        ui.label('Do it last.')
+        with ui.stepper_navigation(wrap=True):
+            ui.button('Done', on_click=lambda: ui.notify(
+                'Done!', type='positive'))
+            ui.button('Back', on_click=stepper.previous).props('flat')
+
+ui.run(native=True)
+```
+
+<img src="README_MORE.assets/ui_stepper2.png" alt="ui_stepper2" style="zoom:67%;" />
 
 #### 3.9.10 ui.timeline
 
+时间线控件有点像ui.stepper，不同的是，时间线控件只是展示为主的控件，并不具备交互功能。时间线控件可以像绘制思维导图一样，提供一个按照时间排序展示内容的控件。
 
+以代码为例，ui.timeline需要内嵌ui.timeline_entry，才能构成完整的时间线控件：
+
+```python3
+from nicegui import ui
+
+with ui.timeline(side='right', layout='dense', color=None):
+    for i in range(1,3):
+        ui.timeline_entry(body='Body', side='left', heading=False, tag=None,
+                      icon=None, avatar=None, title='title', subtitle=f'Day {i}', color=None)
+    with ui.timeline_entry(body='Body', side='right', heading=False, tag=None,
+                      icon=None, avatar=None, title='title', subtitle=f'Day {i+1}', color=None):
+        ui.label('Body is in context.')
+    
+ui.run(native=True)
+```
+
+![ui_timeline](README_MORE.assets/ui_timeline.png)
+
+ui.timeline支持三个参数：
+
+`side`参数，字符串类型，表示时间线的内容在时间线的哪边，允许值是'left'和'right'，默认是'left'，即左边。
+
+`layout`参数，字符串类型，表示时间线的布局，允许值是'dense', 'comfortable', 'loose'，默认是'dense'。dense布局是时间点的大字标题、标题、副标题和主要内容在时间线指定的side一边。comfortable布局是时间点的大字标题、标题和主要内容在时间线指定的side一边，副标题在另一边。loose布局是大字标题在中间，标题和主要内容在时间点指定的side一边，副标题在另一边。三种布局的对比如下：
+
+<img src="README_MORE.assets/ui_timeline2.png" alt="ui_timeline2" style="zoom:50%;" />
+
+`color`参数，字符串类型，表示时间线的颜色。
+
+ui.timeline_entry支持的控件比较多，有九个：
+
+`body`参数，字符串类型，表示时间点的主要内容。
+
+ `side`参数，字符串类型，表示时间线的内容在时间线的哪边，允许值是'left'和'right'，默认是'left'，即左边。注意，ui.timeline_entry的side只有在ui.timeline的layout属性为`'loose'`时生效。
+
+ `heading`参数，布尔类型，表示时间点是否为大字标题，默认为`False`。如果为`True`，当前时间点将只显示主要内容，并且样式与其他时间点不同，具体参考上面的布局对比图片。
+
+ `tag`参数，字符串类型，表示当前时间点如果被设定为大字标题，使用什么HTML标签当做大字标题的外围标签，默认是'h3'。
+
+`icon`参数，字符串类型，表示当前时间点的图标。
+
+`avatar`参数，字符串类型，表示当前时间点的头像，可以用图片的地址。注意，如果指定了icon参数，则只会显示图标，因为图标的优先级比头像高。
+
+`title`参数，字符串类型，表示当前时间点的标题。
+
+`subtitle`参数，字符串类型，表示当前时间点的副标题。
+
+`color`参数，字符串类型，表示时间点的颜色，如果当前时间点没有指定颜色，则采用时间线的颜色。
 
 #### 3.9.11 ui.notification
 
+ui.notification也是通知提示控件，相比ui.notify，ui.notification可以在显示的同时更新内容和一些其他属性，还可以使用dismiss方法手动移除。
 
+而且，ui.notification的参数也不藏着掖着，直接放在提示里：
+
+ `message`参数，字符串类型，信息文本，显示在通知中的主要内容。
+
+`position`参数，字符串类型，通知出现的位置，有"top-left"、 "top-right"、"bottom-left"、 "bottom-right"、 "top"、 "bottom"、 "left"、 "right"、 "center"可选，默认为 "bottom"。
+
+`close_button`参数，字符串类型或者布尔型，是否显示关闭按钮，如果是字符串类型，关闭按钮的文字就是给定的文字，默认为`False`。
+
+`type`参数，字符串类型，通知的类型，有"positive"、 "negative"、 "warning"、 "info"、 "ongoing"，默认为`None`，不是其中的任何一种。
+
+`color`参数，字符串类型，通知的背景颜色。
+
+`multi_line`参数，布尔类型，是否让通知内容以多行格式显示。
+
+`icon`参数，字符串类型，通知的图标，默认为`None`。
+
+`spinner`参数，布尔类型，是否显示转盘动，默认为`False`。
+
+`timeout`参数，整数型，通知自动消失的时间，单位秒，默认为5，为0就是不消失。但是要确保`close_button`不是`False`，或者有调用dismiss的方法，否则通知没法正常消除，影响用户体验。
+
+`on_dismiss`参数，可调用类型，当通知消失时执行的操作。
+
+`options`参数，字典类型，其他[Quasar的通知控件API](https://quasar.dev/quasar-plugins/notify#notify-api)中可用的参数可以传入此字典。
+
+由于ui.notification的特殊性，现在可以弹出一个显示百分比进度并自动消失的通知了（并不需要估计执行时间）：
+
+```python3
+import asyncio
+from nicegui import ui
+
+async def compute():
+    n = ui.notification(timeout=None)
+    for i in range(10):
+        n.message = f'Computing {i/10:.0%}'
+        n.spinner = True
+        await asyncio.sleep(0.2)
+    n.message = 'Done!'
+    n.spinner = False
+    await asyncio.sleep(1)
+    n.dismiss()
+
+ui.button('Compute', on_click=compute)
+
+ui.run(native=True)
+```
+
+![ui_notification](README_MORE.assets/ui_notification.png)
 
 #### 3.9.12 ui.dialog
 
+对话框常见于桌面程序，在网页中并不多见。因为网页经常通过页面切换来跳转到特定界面，实现对话框一样的功能。但是，NiceGUI是混合框架，网页中也没法完全不用对话框。所以，还是有必要看一下对话框的用法。
 
+ui.dialog只有一个布尔类型参数`value`，表示对话框初始的开启状态，默认为`False`。其余的对话框设计样式可以参考[Quasar的文档](https://quasar.dev/vue-components/dialog#qdialog-api)。
+
+以下是示例：
+
+```python3
+from nicegui import ui
+
+with ui.dialog() as dialog:
+    with ui.card():
+        ui.label('Hello world!')
+        ui.button('Close', on_click=dialog.close)
+
+ui.button('Open a dialog', on_click=dialog.open)
+
+ui.run(native=True)
+```
+
+![ui_dialog](README_MORE.assets/ui_dialog.png)
+
+调用对话框的open方法打开对话框，调用close方法、点击关闭按钮、点击空白处、按ESC键都可以关闭对话框。如果想设置为只有点击关闭按钮才能关闭对话框，可以使用 `.props('persistent')`添加属性`'persistent'`。
+
+需要注意的是，对话框实际运行时只创建一次，后续是重复使用的。关闭对话框并不会销毁对话框，只是隐藏对话框，而且下次开启时会重复使用已经创建的对话框。如果想要确保对话框内容准确，要么在打开对话框前更新对话框内容，要么每次打开前重新创建一次。更新对话框内容有两种方法，一是遍历对话框内每个控件，调用对应的更新方法；二是重新创建对话框内的内容，使用clear方法清除之后重新创建，或者使用refreshable方法包装需要更新的控件，调用refresh方法触发刷新重建。
+
+以下面的代码为例，为了更新对话框的内容，先调用clear方法清除原有内容，然后创建新内容：
+
+```python3
+from nicegui import ui
+
+def replace():
+    dialog.clear()
+    with dialog, ui.card().classes('w-64 h-64'):
+        ui.label('New Content')
+    dialog.open()
+
+with ui.dialog() as dialog, ui.card():
+    ui.label('Hello world!')
+
+ui.button('Open', on_click=dialog.open)
+ui.button('Replace', on_click=replace)
+
+ui.run(native=True)
+```
+
+除了在对话框里修改全局变量来传递用户选择的结果，对话框还可以通过异步等待的方式返回结果，代码如下：
+
+```python3
+from nicegui import ui
+
+with ui.dialog() as dialog, ui.card():
+    ui.label('Are you sure?')
+    with ui.row():
+        ui.button('Yes', on_click=lambda: dialog.submit('Yes'))
+        ui.button('No', on_click=lambda: dialog.submit('No'))
+
+async def show():
+    result = await dialog
+    ui.notify(f'You chose {result}')
+
+ui.button('Await a dialog', on_click=show)
+
+ui.run(native=True)
+```
 
 #### 3.9.13 ui.menu补充
 
-嵌入其他内容
+ui.menu中除了可以嵌入ui.menu_item，还可以嵌入其他控件，有时候会有意想不到的效果：
 
-#### 3.9.14 ui.tooltip补充 
+```python3
+from nicegui import ui
 
-嵌入其他内容
+with ui.row().classes('w-full items-center'):
+    icon = ui.icon('', size='md').classes('mr-auto') 
+    ui.space()
+    with ui.button(icon='menu')as button:
+        with ui.menu().props('auto-close'):
+            with ui.column():
+                switch =ui.switch('Show icon')
+                toggle = ui.toggle(['fastfood', 'cake', 'icecream'], value='fastfood')
+    icon.bind_name_from(toggle, 'value').bind_visibility_from(switch,'value')
 
+ui.run(native=True)
+```
 
+![ui_menu](README_MORE.assets/ui_menu.png)
+
+#### 3.9.14 ui.tooltip补充
+
+对于像ui.html、ui.markdown、ui.upload等不支持tooltip的元素，可以使用ui.element包装来间接实现：
+
+```python3
+from nicegui import ui
+
+with ui.element().tooltip('...with a tooltip!'):
+    ui.html('This is <u>HTML</u>...')
+
+ui.run(native=True)
+```
+
+tooltip里除了显示一般的文本，还可以显示图像等其他内容。不过，不建议在tooltip内放置需要交互的内容，因为被添加tooltip的控件一旦失去焦点，tooltip就会消失，里面的交互内容永远无法交互：
+
+```python3
+from nicegui import ui
+
+with ui.label('Mountains...'):
+    with ui.tooltip().classes('bg-transparent'):
+        ui.image('https://picsum.photos/id/377/640/360').classes('w-64')
+
+ui.run(native=True)
+```
+
+![ui_tooltip](README_MORE.assets/ui_tooltip.png)
 
 ### 3.10 其他数据展示控件（更新中一天一个）
 
-#### 3.10.1 ui.table
+#### 3.10.1 ui.table（更新中）
 
 
 
-#### 3.10.2 ui.aggrid
+#### 3.10.2 ui.aggrid（更新中）
 
 
 
-#### 3.10.3 ui.highchart
+#### 3.10.3 ui.highchart（更新中）
 
 
 
-#### 3.10.4 ui.echart
+#### 3.10.4 ui.echart（更新中）
 
 
 
-#### 3.10.5 ui.pyplot
+#### 3.10.5 ui.pyplot（更新中）
 
 
 
-#### 3.10.6 ui.matplotlib
+#### 3.10.6 ui.matplotlib（更新中）
 
 
 
-#### 3.10.7 ui.line_plot
+#### 3.10.7 ui.line_plot（更新中）
 
 
 
-#### 3.10.8 ui.plotly
+#### 3.10.8 ui.plotly（更新中）
 
 
 
-#### 3.10.9 ui.tree
+#### 3.10.9 ui.tree（更新中）
 
 
 
-#### 3.10.10 ui.log
+#### 3.10.10 ui.log（更新中）
 
 
 
-#### 3.10.11 ui.editor
+#### 3.10.11 ui.editor（更新中）
 
 
 
-#### 3.10.12 ui.json_editor
+#### 3.10.12 ui.json_editor（更新中）
 
 
 
-#### 3.10.13 ui.codemirror
+#### 3.10.13 ui.codemirror（更新中）
 
 
 
-#### 3.10.14 ui.scene
+#### 3.10.14 ui.scene（更新中）
 
 
 
@@ -2042,3 +2358,18 @@ ui.link('Water', '/icon/water_drop?amount=3')
 ui.run()
 ```
 
+4.6 ui.stepper
+
+1，如何使用其他控件模拟ui.step？
+
+给控件增加.props["name"]和.props["title"]即可。
+
+2，将ui.stepper_navigation放置在外，如何识别第一步和最后一步？
+
+遍历其中控件的name，或者直接指定中间变量存储第一步和最后一步的name，并绑定按钮的可见性或者使用refreshable装饰。
+
+4.7 ui.icon
+
+1，想用自定义的LOGO图片（SVG格式）当图标行不行（ui.icon控件或者其他支持icon参数的控件）？
+
+可以，使用'img:path/to/some_image.png'这样的语法，如：`'img:https://cdn.quasar.dev/logo-v2/svg/logo.svg'`

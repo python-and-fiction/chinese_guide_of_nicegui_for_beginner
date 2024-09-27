@@ -1064,7 +1064,7 @@ ui.run(native=True)
 
 `position`参数，字符串类型，通知出现的位置，有"top-left"、 "top-right"、"bottom-left"、 "bottom-right"、 "top"、 "bottom"、 "left"、 "right"、 "center"可选，默认为 "bottom"。
 
-`close_button`参数，字符串类型或者布尔型，是否显示关闭按钮，如果是字符串类型，关闭按钮的文字就是给定的文字。
+`close_button`参数，字符串类型或者布尔型，是否显示关闭按钮，如果是字符串类型，关闭按钮的文字就是给定的文字，默认为`False`。
 
 `type`参数，字符串类型，通知的类型，有"positive"、 "negative"、 "warning"、 "info"、 "ongoing"，默认为`None`，不是其中的任何一种。
 
@@ -1078,7 +1078,7 @@ ui.run(native=True)
 
 `timeout`参数，整数型，通知自动消失的时间，单位毫秒，为0就是不消失，但是要确保`close_button`不是`False`，否则通知没法正常消除，影响用户体验。
 
-`spinner`参数，布尔类型，是否显示转盘动画。
+`spinner`参数，布尔类型，是否显示转盘动画，默认为`False`。
 
 #### 2.3.5 属性绑定和数据控件
 
