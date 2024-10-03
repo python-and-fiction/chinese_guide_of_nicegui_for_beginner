@@ -964,7 +964,7 @@ class ElementFilter(Generic[T]):
 
 
 
-### 3.9 其他布局（更新中一天两个）
+### 3.9 其他布局
 
 前面介绍过常用的布局，其实NiceGUI支持的布局控件有很多，下面提到的这些不常用，但有些需求比较刁钻，用这些布局刚好可以减少不必要的工作。
 
@@ -1833,61 +1833,57 @@ ui.run(native=True)
 
 ![ui_tooltip](README_MORE.assets/ui_tooltip.png)
 
-### 3.10 其他数据展示控件（更新中一天一个）
+### 3.10 其他常用控件（更新中）
 
-#### 3.10.1 ui.table（更新中）
+#### 3.10.1 ui.button_group
 
-
-
-#### 3.10.2 ui.aggrid（更新中）
+按钮组，
 
 
 
-#### 3.10.3 ui.highchart（更新中）
+ui.dropdown_button
 
 
 
-#### 3.10.4 ui.echart（更新中）
+ui.badge
 
 
 
-#### 3.10.5 ui.pyplot（更新中）
+ui.chip
+
+ui.toggle
+
+ui.radio
 
 
 
-#### 3.10.6 ui.matplotlib（更新中）
+ui.select
 
 
 
-#### 3.10.7 ui.line_plot（更新中）
+ui.checkbox
 
 
 
-#### 3.10.8 ui.plotly（更新中）
+ui.switch
 
+ui.range
 
+ui.joystick
 
-#### 3.10.9 ui.tree（更新中）
+ui.textarea
 
+ui.number
 
+ui.color_input
 
-#### 3.10.10 ui.log（更新中）
+ui.color_picker
 
+ui.date
 
+ui.time
 
-#### 3.10.11 ui.editor（更新中）
-
-
-
-#### 3.10.12 ui.json_editor（更新中）
-
-
-
-#### 3.10.13 ui.codemirror（更新中）
-
-
-
-#### 3.10.14 ui.scene（更新中）
+ui.upload
 
 
 
@@ -2193,6 +2189,359 @@ ui.run(native=True)
 
 <img src="README_MORE.assets/ui_keyboard.png" alt="ui_keyboard" style="zoom: 67%;" />
 
+### 3.14 其他数据展示控件【随时更新】
+
+因为大部分数据展示控件使用的是第三方扩展库，主要用法、API全在第三方网站上，这里只重点讲一下非第三方扩展库的控件。使用扩展库的控件，只简单过一遍基本用法，更多用法则以问题补充的形式添加，就不在教程中细讲。
+
+#### 3.14.1 ui.table
+
+在学习NiceGUI的表格之前，各位读者需要先了解一下HTML的表格结构，等日后熟悉表格控件之后，想要对表格进行深入美化时，很有帮助。
+
+在HTML中，定义表格常用这几种标签：table、tbody、thead、tr、td、th。table表示整个表格，thead表示表头，tbody表示表格内容主体，tr表示一整行，td表示每个单元格，th表示表头中的单元格。具体结构如下图所示：
+
+<img src="README_MORE.assets/table_sketch.png" alt="table_sketch" style="zoom:80%;" />
+
+在HTML中，想要定义一个表格，需要自己写一堆标签。哪怕有插件，对于每个单元格内的数据，操作起来也没那么简单。
+
+不过，NiceGUI的表格控件简化了绘制的过程，让开发者更加专注于数据的处理，确实是快捷展示数据的一种途径。先看一段简单的代码示例：
+
+```python3
+from nicegui import ui
+
+columns = [
+    {'name': 'firstname', 'label': 'Name', 'field': 'firstname', 'required': True, 'align': 'left'},
+    {'name': 'age', 'label': 'Age', 'field': 'age', 'sortable': True},
+]
+rows = [
+    {'firstname': 'Alice', 'age': 18},
+    {'firstname': 'Bob', 'age': 21},
+    {'firstname': 'Carol'},
+]
+table = ui.table(columns=columns, rows=rows, row_key='firstname')
+
+ui.run(native=True)
+```
+
+![ui_table](README_MORE.assets/ui_table.png)
+
+在正式介绍表格控件的参数用法前，先来学习一下[表头定义](https://quasar.dev/vue-components/table#defining-the-columns)。
+
+columns这个字典通过关键字给Quasar的表头定义传入一系列参数，进而一想到表格控件的展示。在Quasar中，表头定义支持以下参数：
+
+ `name`：表格每一列的独特的id，用字符串表示。这个参数并不是显示出来的表头，只是表示这一列的变量标识符，就和在Python中定义一个变量一样。这个参数后续会用在slot'body-cell-[name]'中name和pagination中的sortBy等一系列API中特指name的地方。
+
+`label`：表示每一列显示的表头内容。如果此参数没有定义，会取rows中每一行的key当表头（这个参考后续介绍的表格最简用法）。
+
+`field`：表示该列对应每一行的哪个key的数据。看示例代码可知，每一行的数据也是用字典表示，而字典的key对应的就是表头定义里的field。这样，显示在这一列里的，就是每一行的这个key的数据。
+
+`required`：表示该列的数据是否为必须的。这个值在设置'visible-columns'这个属性时，设置为True的列不受影响，会强制显示出来。
+
+`align`：对齐，表示这一列的对齐方向。 
+
+`sortable`：是否可排序，即点击表头可以启用该列数据的排序。
+
+`sort`：排序的计算方法，使用JavaScript语法的函数定义。根据`(a, b, rowA, rowB) => parseInt(a, 10) - parseInt(b, 10)`返回值是否小于0来判断前者是否小于后者。此方法需要JavaScript基础和对相关API的了解，读者可以按需使用。
+
+`rawSort`：排序的计算方法，使用JavaScript语法的函数定义。根据`(a, b, rowA, rowB) => parseInt(a, 10) - parseInt(b, 10)`返回值是否小于0来判断前者是否小于后者。此方法需要JavaScript基础和对相关API的了解，读者可以按需使用。
+
+`format`：使用JavaScript语法的函数定义该列的数据显示为什么格式。比如：
+
+```javascript
+(val, row) => `${val}%`
+val => val ? "\u2611":"\u2610"
+```
+
+注意，以上三个需要使用JavaScript函数表达式的参数，在Python中传参时，需要在前面加冒号，如：`':format':'val => val ? "\u2611":"\u2610"'`。这样才能启用计算表达式功能，不然不会生效。
+
+`sortOrder`：点击表头时，先使用从小到大排序（递增）还是先使用从大到小排序（递减）。只支持'ad'或'da'，并且此参数会覆盖'column-sort-order'属性。
+
+下面两个参数只对单元格内容生效：
+
+ `style`：内容样式，采用CSS语法。
+
+`classes`：内容样式类名。
+
+下面两个参数只对表头生效：
+
+`headerStyle`：表头样式，采用CSS语法。
+
+`headerClasses`：表头样式类名。
+
+下面正式介绍table的参数：
+
+`rows`参数，字典类型，表示表格的内容。字典的key需要对应表头定义的field参数。
+
+`columns`参数，字典类型，表示表头定义，具体参数含义参考上面的内容或者官网文档。如果没有此参数，表头会自动取rows字典的key。
+
+`column_defaults`参数，字典类型，表示默认的表头定义。对于每个表头都需要设置的定义，为了减少重复操作的工作量，可以使用此参数传递。
+
+`row_key`参数，字符串类型，表示确定每行数据唯一性的key值，默认是id，可以指定。注意，请务必保证指定唯一性key值后，每行数据用该key查询不会重复，否则会导致表格数据异常。
+
+`title参数，字符串类型，表格的标题。
+
+selection参数，字符串类型，使用鼠标单击会不会选择对应的行，支持"single"（单选）、"multiple"（多选），默认为`None`（不选择）。如果启用了单选或者多选，表格控件的selected属性会返回当前选择的行
+
+`pagination`参数，字典类型或整数类型，如果是整数类型，表示分页时每页几行（0表示无数行，也就是分页常见的单页显示）；如果是字典类型，表示分页的定义。默认为`None`，即不分页。关于分页的定义，支持以下参数：
+
+-   `rowsPerPage`：每页多少行。
+-   `sortBy`：根据那个表头定义的name排序。
+-   `descending`：是否递减排序，默认为`False`。
+-   `page`：启用分页时，当前显示哪一页，默认为第一页。
+
+`on_select`参数，可调用类型，当选择的行变化时执行什么操作。
+
+`on_pagination_change`参数，可调用类型，当分页（每页多少行、当前页、排序等相关属性）变化时执行什么操作。
+
+注意，如果启用了单选或者多选，表格控件的selected属性会返回当前选择的行。
+
+别看表格控件涉及到的参数很多，想要快速创建也很简单，只需记住一个参数，那就是rows。以下是最简化的表格用法：
+
+```python3
+from nicegui import ui
+
+ui.table(rows=[
+    {'make': 'Toyota', 'model': 'Celica', 'price': 35000},
+    {'make': 'Ford', 'model': 'Mondeo', 'price': 32000},
+    {'make': 'Porsche', 'model': 'Boxster', 'price': 72000},
+])
+
+ui.run(native=True)
+```
+
+如果想要表格列的动态隐藏，可以给对应列的表头和单元格设置样式'hidden'，代码如下：
+
+```python3
+from nicegui import ui
+from typing import Dict
+
+columns = [
+    {'name': 'name', 'label': 'Name', 'field': 'name', 'required': True, 'align': 'left'},
+    {'name': 'age', 'label': 'Age', 'field': 'age', 'sortable': True},
+]
+rows = [
+    {'name': 'Alice', 'age': 18},
+    {'name': 'Bob', 'age': 21},
+    {'name': 'Carol'},
+]
+table = ui.table(columns=columns, rows=rows, row_key='name')
+
+def toggle(column: Dict, visible: bool) -> None:
+    column['classes'] = '' if visible else 'hidden'
+    column['headerClasses'] = '' if visible else 'hidden'
+    table.update()
+
+with ui.button(icon='menu'):
+    with ui.menu(), ui.column().classes('gap-0 p-2'):
+        for column in columns:
+            ui.switch(column['label'], value=True, on_change=lambda e,
+                      column=column: toggle(column, e.value))
+
+ui.run(native=True)
+```
+
+![ui_table2](README_MORE.assets/ui_table2.gif)
+
+想要给表格添加数据的话，可以使用add_row方法添加一行，或者用add_rows方法添加多行：
+
+```python3
+from datetime import datetime
+from nicegui import ui
+
+def add():
+    table.add_row({'date': datetime.now().strftime('%c')})
+    table.run_method('scrollTo', len(table.rows)-1)
+
+columns = [{'name': 'date', 'label': 'Date', 'field': 'date'}]
+table = ui.table(columns=columns, rows=[]).classes('h-52').props('virtual-scroll')
+ui.button('Add row', on_click=add)
+
+ui.run(native=True)
+```
+
+想要在表格中使用来自pandas的DataFrame数组，可以使用from_pandas方法：
+
+```python3
+import pandas as pd
+from nicegui import ui
+
+df = pd.DataFrame(data={'col1': [1, 2], 'col2': [3, 4]})
+ui.table.from_pandas(df).classes('max-h-40')
+
+ui.run(native=True)
+```
+
+自定义该列的数据排序方法和数据显示格式，可以使用前面提到的表头定义中的'sort'和’format‘：
+
+```python3
+from nicegui import ui
+
+columns = [
+    {
+        'name': 'name',
+        'label': 'Name',
+        'field': 'name',
+        'sortable': True,
+        ':sort': '(a, b, rowA, rowB) => b.length - a.length',
+    },
+    {
+        'name': 'age',
+        'label': 'Age',
+        'field': 'age',
+        ':format': 'value => value + " years"',
+    },
+]
+rows = [
+    {'name': 'Alice', 'age': 18},
+    {'name': 'Bob', 'age': 21},
+    {'name': 'Carl', 'age': 42},
+]
+ui.table(columns=columns, rows=rows, row_key='name')
+
+ui.run(native=True)
+```
+
+分页的简单示例，前面参数介绍部分已经详细说过，这里直接上代码：
+
+```python3
+from nicegui import ui
+
+columns = [
+    {
+        "name": "name",
+        "label": "Name",
+        "field": "name",
+        "required": True,
+        "align": "left",
+    },
+    {"name": "age", "label": "Age", "field": "age", "sortable": True},
+]
+rows = [
+    {"name": "Elsa", "age": 18},
+    {"name": "Oaken", "age": 46},
+    {"name": "Hans", "age": 20},
+    {"name": "Sven"},
+    {"name": "Olaf", "age": 4},
+    {"name": "Anna", "age": 17},
+]
+
+ui.table(
+    columns=columns,
+    rows=rows,
+    on_pagination_change=lambda e: ui.notify(e.value),
+    pagination={"rowsPerPage": 4, "sortBy": "age", "page": 2},
+)
+
+ui.run(native=True)
+```
+
+一种根据内容确定显示格式的方法，使用的是slot而不是'format'参数，可扩展性更强，但要求更属性Quasar框架和前端知识，仅作了解，有余力的可以自行学习。这段代码的作用是根据age是否大于21，来让单元格内的badge的显示显示为绿色或者红色：
+
+```python3
+from nicegui import ui
+
+columns = [
+    {'name': 'name', 'label': 'Name', 'field': 'name'},
+    {'name': 'age', 'label': 'Age', 'field': 'age'},
+]
+rows = [
+    {'name': 'Alice', 'age': 18},
+    {'name': 'Bob', 'age': 21},
+    {'name': 'Carol', 'age': 42},
+]
+table = ui.table(columns=columns, rows=rows, row_key='name')
+table.add_slot('body-cell-age', '''
+    <q-td key="age" :props="props">
+        <q-badge :color="props.value < 21 ? 'red' : 'green'">
+            {{ props.value }}
+        </q-badge>
+    </q-td>
+''')
+
+ui.run(native=True)
+```
+
+![ui_table3](README_MORE.assets/ui_table3.png)
+
+如果表格的数据比较多，想要通过输入关键字来搜索、筛选数据，可以将输入框的值绑定到表格的filter属性：
+
+```python3
+from nicegui import ui
+
+columns = [
+    {'name': 'name', 'label': 'Name', 'field': 'name', 'required': True, 'align': 'left'},
+    {'name': 'age', 'label': 'Age', 'field': 'age', 'sortable': True},
+]
+rows = [
+    {'name': 'Alice', 'age': 18},
+    {'name': 'Bob', 'age': 21},
+    {'name': 'Carol'},
+]
+table = ui.table(columns=columns, rows=rows, row_key='name')
+ui.input(label='search').bind_value_to(table,'filter')
+
+ui.run(native=True)
+```
+
+![ui_table4](README_MORE.assets/ui_table4.png)
+
+#### 3.14.2 ui.tree（更新中）
+
+
+
+#### 3.14.3 ui.log（更新中）
+
+
+
+#### 3.14.4 ui.editor（更新中）
+
+
+
+#### 3.14.5 ui.codemirror（更新中）
+
+
+
+#### 3.14.6 ui.json_editor（更新中）
+
+
+
+#### 3.14.7 ui.scene（更新中）
+
+
+
+
+
+
+
+3.14.8 ui.aggrid
+
+
+
+3.14.9 ui.highchart
+
+
+
+3.14.10 ui.echart
+
+
+
+3.14.11 ui.pyplot
+
+
+
+3.14.12 ui.matplotlib
+
+
+
+3.14.13 ui.line_plot
+
+
+
+3.14.14 ui.plotly
+
+
+
+
+
 ## 4 具体示例【随时更新】
 
 本节主要介绍常见问题，读者可以根据所属模块、函数查阅。
@@ -2337,6 +2686,23 @@ async def index():
 ui.run()
 ```
 
+4，如何实现嵌入按钮的图标，点击图标并不触发按钮的点击事件？
+
+使用JavaScript中对应事件的`stopPropagation()`方法阻止事件穿透即可。
+
+```python3
+from nicegui import ui
+
+with ui.button('Item').classes('w-96') as button:
+    button.on_click(lambda :ui.notify('button'))
+    ui.space()
+    icon = ui.icon('delete')
+    icon.on('click',js_handler='(e)=>{e.stopPropagation()}')
+    icon.on('click',lambda :ui.notify('icon'))
+    
+ui.run(native=True)
+```
+
 ### 4.5 ui.page
 
 1，如何通过传参的形式动态修改页面内容？
@@ -2358,7 +2724,7 @@ ui.link('Water', '/icon/water_drop?amount=3')
 ui.run()
 ```
 
-4.6 ui.stepper
+4.6 ui.stepper（更新中）
 
 1，如何使用其他控件模拟ui.step？
 
@@ -2368,8 +2734,32 @@ ui.run()
 
 遍历其中控件的name，或者直接指定中间变量存储第一步和最后一步的name，并绑定按钮的可见性或者使用refreshable装饰。
 
-4.7 ui.icon
+4.7 ui.icon（更新中）
 
 1，想用自定义的LOGO图片（SVG格式）当图标行不行（ui.icon控件或者其他支持icon参数的控件）？
 
 可以，使用'img:path/to/some_image.png'这样的语法，如：`'img:https://cdn.quasar.dev/logo-v2/svg/logo.svg'`
+
+4.8 ui.carousel
+
+1，如何自定义轮播图的控制控件？
+
+修改add_slot('control')，API参考[Quasar官网](https://quasar.dev/vue-components/carousel#qcarouselcontrol-api)。
+
+```python3
+from nicegui import ui
+
+with ui.carousel(animated=True, arrows=True, navigation=True).props('height=180px').classes('bg-green-400') as carousel:
+    with ui.carousel_slide().classes('p-0'):
+        ui.image('https://picsum.photos/id/30/270/180').classes('w-[270px]')
+    with ui.carousel_slide().classes('p-0'):
+        ui.image('https://picsum.photos/id/31/270/180').classes('w-[270px]')
+    with ui.carousel_slide().classes('p-0'):
+        ui.image('https://picsum.photos/id/32/270/180').classes('w-[270px]')
+    with carousel.add_slot('control') ,ui.element('q-carousel-control').props('position="top-right"'):
+        ui.button('prev',on_click=carousel.previous)
+        ui.button('next',on_click=carousel.next)
+
+ui.run(native=True)
+```
+
