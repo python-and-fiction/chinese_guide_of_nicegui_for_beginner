@@ -1835,55 +1835,297 @@ ui.run(native=True)
 
 ### 3.10 其他常用控件（更新中）
 
-#### 3.10.1 ui.button_group
+#### 3.10.1 ui.dropdown_button
 
-按钮组，
+前面在介绍菜单控件的时候，是用按钮内嵌入菜单，实现点击按钮弹出菜单的效果。其实，在NiceGUI中，有个控件可以实现一步到位，无需嵌入，那就是ui.dropdown_button——下拉按钮。
+
+先看示例：
+
+```python3
+from nicegui import ui
+
+with ui.dropdown_button('Open me!', auto_close=True, split=True):
+    ui.item('Item 1', on_click=lambda: ui.notify('You clicked item 1'))
+    ui.item('Item 2', on_click=lambda: ui.notify('You clicked item 2'))
+    
+ui.run(native=True)
+```
+
+![ui_dropdown_button](README_MORE.assets/ui_dropdown_button.png)
+
+可以看到，下拉按钮的弹出效果很像在按钮中嵌入了菜单，但需要的代码更少，结构也更清晰。当然，样式上因为多了一个下拉的三角，没法像嵌入菜单那样灵活，读者可以根据需求自主选择。
+
+下拉按钮支持以下参数：
+
+`text`参数，字符串类型，表示显示在按钮上的文字，和普通按钮一样。
+
+`value`参数，布尔类型，表示下拉按钮的初始状态是否为下拉内容弹出，默认为`False`。
+
+`on_value_change`参数，可调用类型，表示下拉按钮的value变化（即下拉内容弹出状态变化）时执行什么操作。
+
+`on_click`参数，可调用类型，表示点击下拉按钮主体（不是右边的小三角）时执行什么操作，和普通按钮一样。
+
+`color`参数，字符串类型或者None，表示按钮的颜色，支持传入字符串类型的颜色类（Quasar、 Tailwind、CSS的颜色名）或者`None`（即让按钮变成默认颜色），默认为'primary'，即和主题颜色一致。
+
+`icon`参数，字符串类型，表示按钮额外显示的图标，支持传入字符串类型的图标名，和普通按钮一样。
+
+`auto_close`参数，布尔类型，表示点击下拉内容之后是否自动关闭下拉内容的弹出，就和菜单项一样，默认为`False`。
+
+`split`参数，布尔类型，表示是否显示分隔符来区分按钮主体和下拉弹出响应区，默认为`False`。
+
+同样的，下拉按钮也可以嵌入其他控件，实现想要的效果：
+
+```python3
+from nicegui import ui
+
+with ui.dropdown_button('Settings', icon='settings', split=True):
+    with ui.row().classes('p-4 items-center'):
+        ui.icon('volume_up', size='sm')
+        ui.switch().props('color=negative')
+        ui.separator().props('vertical')
+        ui.icon('mic', size='sm')
+        ui.switch().props('color=negative')
+
+ui.run(native=True)
+```
+
+![ui_dropdown_button2](README_MORE.assets/ui_dropdown_button2.png)
+
+想要修改下拉触发区的图标，可以参考[API文档](https://quasar.dev/vue-components/button-dropdown#qbtndropdown-api)，修改'dropdown-icon'属性，
+
+```python3
+from nicegui import ui
+
+with ui.dropdown_button("Open me!", auto_close=True, split=True).props(
+    'no-icon-animation dropdown-icon="menu"'
+):
+    ui.item("Item 1", on_click=lambda: ui.notify("You clicked item 1"))
+    ui.item("Item 2", on_click=lambda: ui.notify("You clicked item 2"))
+
+ui.run(native=True)
+```
+
+![ui_dropdown_button3](README_MORE.assets/ui_dropdown_button3.png)
+
+#### 3.10.2 ui.button_group
+
+下拉按钮看起来就像两个按钮组合到一起，也可以用按钮组控件模拟实现，让右边的按钮支持更多功能：
+
+```python3
+from nicegui import ui
+
+with ui.button_group():
+    ui.button('menu')
+    ui.separator().props('vertical')
+    ui.button(icon='menu')
+
+ui.run(native=True)
+```
+
+![ui_button_group](README_MORE.assets/ui_button_group.png)
+
+下拉按钮也是按钮，一样可以和按钮组组合使用：
+
+```python3
+from nicegui import ui
+
+with ui.button_group():
+    ui.button('One')
+    ui.button('Two')
+    with ui.dropdown_button('Dropdown'):
+        ui.item('Item 1', on_click=lambda: ui.notify('Item 1'))
+        ui.item('Item 2', on_click=lambda: ui.notify('Item 2'))
+
+ui.run(native=True)
+```
+
+![ui_button_group2](README_MORE.assets/ui_button_group2.png)
+
+#### 3.10.3 ui.badge
+
+角标控件，可以在一个控件的上层显示简单的文字，就像手机图标上提示有多少消息未读的角标一样：
+
+```python3
+from nicegui import ui
+
+with ui.button('Button'):
+    ui.badge(text='99+', color='red',text_color='black',outline=False).props('floating')
+
+ui.run(native=True)
+```
+
+![ui_badge](README_MORE.assets/ui_badge.png)
+
+角标控件支持以下参数：
+
+`text`参数，字符串类型，显示在角标内的文字。
+
+`color`参数，字符串类型或者None，表示角标的颜色，支持传入字符串类型的颜色类（Quasar、 Tailwind、CSS的颜色名）或者`None`（即让角标变成默认颜色），默认为'primary'，即和主题颜色一致。
+
+`text_color`参数，字符串类型或者None，表示文字的颜色，支持传入字符串类型的颜色类（Quasar、 Tailwind、CSS的颜色名）或者`None`（即让文字变成默认颜色）。
+
+`outline`参数，布尔类型，是否启用轮廓线风格，默认为`False`即填充风格。
+
+更多角标的设计属性可以参考[API文档](https://quasar.dev/vue-components/badge#qbadge-api)，示例代码中的'floating'就是修改了设计属性，让角标显示在右上角。其他有用的属性有'rounded'、'transparent'、'label'等。
+
+#### 3.10.4 ui.chip
+
+晶片控件，看上去有点像角标，但交互性远远高于角标。可以点击、选择、移除，设计属性也比角标多。先看示例代码：
+
+```python3
+from nicegui import ui
+
+with ui.row().classes("gap-1") as row:
+    ui.chip("Click me", icon="ads_click", on_click=lambda: ui.notify("Clicked"))
+    chip = ui.chip(
+        text="Selectable",
+        selectable=True,
+        icon="bookmark",
+        color="orange",
+        on_selection_change=lambda e: ui.notify(e.sender.selected),
+    )
+    chip2 = ui.chip(
+        text="Removable",
+        removable=True,
+        icon="label",
+        color="indigo-3",
+        on_value_change=lambda e: ui.notify(e.value),
+    )
+    ui.chip("Styled", icon="star", color="green").props("outline square")
+    ui.chip("Disabled", icon="block", color="red").set_enabled(False)
+ui.button("RESET", on_click=lambda: (chip.set_selected(False), chip2.set_value(True)))
+
+ui.run(native=True)
+```
+
+![ui_chip](README_MORE.assets/ui_chip.png)
+
+晶片控件支持以下参数：
+
+`text`参数，字符串类型，显示在控件内的内容。
+
+`icon`参数，字符串类型，控件内的图标。
+
+`color`参数，字符串类型，表示控件的颜色，支持传入字符串类型的颜色类（Quasar、 Tailwind、CSS的颜色名），默认为'primary'，即和主题颜色一致。
+
+`text_color`参数，字符串类型或者None，表示文字的颜色，支持传入字符串类型的颜色类（Quasar、 Tailwind、CSS的颜色名）或者`None`（即让文字变成默认颜色）。
+
+`on_click`参数，可调用类型，当点击控件时执行什么操作。注意，设置此参数，会同时添加控件的'clickable'属性，启用控件的鼠标悬停效果，让控件响应'click'事件。也就是说，如果直接使用`ui.chip('test').on('click',handler=lambda: ui.notify("Clicked"))`设置点击事件响应，这样操作并不能成功，只有`ui.chip('test').props('clickable').on('click',handler=lambda: ui.notify("Clicked"))`这样同时添加'clickable'属性才行。否则，只能用`ui.chip('test').on('mousedown',handler=lambda: ui.notify("Clicked"))`这样直接监听鼠标事件的响应才行，但这样会导致控件没有鼠标悬停效果。
+
+`selectable`参数，布尔类型，控件是否可选择，默认为`False`。
+
+`selected`参数，布尔类型，控件是否已经被选择，默认为`False`。
+
+`on_selection_change`参数，可调用类型，当控件被选择时执行什么操作。
+
+`removable`参数，布尔类型，控件是否可被移除，默认为`False`。如果设置为`True`，控件上会多一个"X"移除按钮。
+
+`on_value_change`参数，可调用类型，当控件的被移除状态变化时执行什么操作。实际上，控件被移除、未被移除，就是将控件的value设置为`False`、`True`。
+
+更多的设计属性可以参考[官方API](https://quasar.dev/vue-components/chip#qchip-api)。
+
+以下是一个动态添加、移除控件的代码示例：
+
+```python3
+from nicegui import ui
+
+def add_chip():
+    with chips:
+        ui.chip(label_input.value, icon='label', color='silver', removable=True)
+    label_input.value = ''
+
+label_input = ui.input('Add label').on('keydown.enter', add_chip)
+with label_input.add_slot('append'):
+    ui.button(icon='add', on_click=add_chip).props('round dense flat')
+
+with ui.row().classes('gap-0') as chips:
+    ui.chip('Label 1', icon='label', color='silver', removable=True)
+
+ui.button('Restore removed chips', icon='unarchive',
+          on_click=lambda: [chip.set_value(True) for chip in chips]) \
+    .props('flat')
+
+ui.run(native=True)
+```
+
+#### 3.10.5 ui.toggle
+
+切换控件，功能上和单选按钮一样，操作起来有点像老式磁带播放机的按钮，每次只能点选一个：
+
+```python3
+from nicegui import ui
+
+toggle1 = ui.toggle(
+    options=[1, 2, 3], value=1, clearable=True, on_change=lambda e: ui.notify(e.value)
+)
+toggle2 = ui.toggle({1: "A", 2: "B", 3: "C"}).bind_value(toggle1, "value")
+
+ui.run(native=True)
+```
+
+![ui_toggle](README_MORE.assets/ui_toggle.png)
+
+切换控件支持以下参数：
+
+`options`参数，列表类型或者字典类型，表示切换控件的所有选项。如果是列表，每个元素既是当前选择的值，也是显示出来的文本。如果是字典，则键（key）是当前选择的值，值（value）是显示出来的文本。
+
+`value`参数，表示控件初始选择的值。
+
+`on_change`参数，可调用类型，当值变化时执行什么操作
+
+`clearable`参数，布尔类型，表示是否可以通过点击当前选择的选项来取消选择，默认为`False`，即默认必须选择一个，没法取消选择。
+
+更多设计属性参考[官方API](https://quasar.dev/vue-components/button-toggle#qbtntoggle-api)。
+
+#### 3.10.6 ui.radio（更新中）
 
 
 
-ui.dropdown_button
+#### 3.10.7 ui.select（更新中）
 
 
 
-ui.badge
+#### 3.10.8 ui.checkbox（更新中）
 
 
 
-ui.chip
-
-ui.toggle
-
-ui.radio
+#### 3.10.9 ui.switch（更新中）
 
 
 
-ui.select
+#### 3.10.10 ui.range（更新中）
 
 
 
-ui.checkbox
+#### 3.10.11 ui.joystick（更新中）
 
 
 
-ui.switch
+#### 3.10.12 ui.textarea（更新中）
 
-ui.range
 
-ui.joystick
 
-ui.textarea
+#### 3.10.13 ui.number（更新中）
 
-ui.number
 
-ui.color_input
 
-ui.color_picker
+#### 3.10.14 ui.color_input（更新中）
 
-ui.date
 
-ui.time
 
-ui.upload
+#### 3.10.15 ui.color_picker（更新中）
+
+
+
+#### 3.10.16 ui.date（更新中）
+
+
+
+#### 3.10.17 ui.time（更新中）
+
+
+
+#### 3.10.18 ui.upload（更新中）
 
 
 
