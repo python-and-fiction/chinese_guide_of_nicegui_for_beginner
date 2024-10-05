@@ -2048,7 +2048,52 @@ ui.button('Restore removed chips', icon='unarchive',
 ui.run(native=True)
 ```
 
-#### 3.10.5 ui.toggle
+#### 3.10.5 ui.radio
+
+单选按钮，每次只能选择其中一个值。
+
+```python3
+from nicegui import ui
+
+radio1 = ui.radio([1, 2, 3], value=1)
+radio2 = ui.radio({1: 'A', 2: 'B', 3: 'C'}).props('inline').bind_value(radio1, 'value')
+
+ui.run(native=True)
+```
+
+![ui_radio](README_MORE.assets/ui_radio.png)
+
+单选按钮的参数很简单：
+
+`options`参数，列表类型或者字典类型，表示单选按钮的所有选项。如果是列表，每个元素既是当前选择的值，也是显示出来的文本。如果是字典，则键（key）是当前选择的值，值（value）是显示出来的文本。
+
+`value`参数，表示控件初始选择的值。
+
+`on_change`参数，可调用类型，当值变化时执行什么操作。
+
+更多设计属性参考[官方API](https://quasar.dev/vue-components/radio#qradio-api)。
+
+除了让选项显示文本，借用ui.teleport功能，还能让选项显示图标：
+
+```python3
+from nicegui import ui
+
+options = ['Star', 'Thump Up', 'Heart']
+radio = ui.radio({x: '' for x in options}, value='Star').props('inline')
+with ui.teleport(f'#c{radio.id} > div:nth-child(1) .q-radio__label'):
+    ui.icon('star', size='md')
+with ui.teleport(f'#c{radio.id} > div:nth-child(2) .q-radio__label'):
+    ui.icon('thumb_up', size='md')
+with ui.teleport(f'#c{radio.id} > div:nth-child(3) .q-radio__label'):
+    ui.icon('favorite', size='md')
+ui.label().bind_text_from(radio, 'value')
+
+ui.run(native=True)
+```
+
+![ui_radio2](README_MORE.assets/ui_radio2.png)
+
+#### 3.10.6 ui.toggle
 
 切换控件，功能上和单选按钮一样，操作起来有点像老式磁带播放机的按钮，每次只能点选一个：
 
@@ -2071,43 +2116,361 @@ ui.run(native=True)
 
 `value`参数，表示控件初始选择的值。
 
-`on_change`参数，可调用类型，当值变化时执行什么操作
+`on_change`参数，可调用类型，当值变化时执行什么操作。
 
 `clearable`参数，布尔类型，表示是否可以通过点击当前选择的选项来取消选择，默认为`False`，即默认必须选择一个，没法取消选择。
 
 更多设计属性参考[官方API](https://quasar.dev/vue-components/button-toggle#qbtntoggle-api)。
 
-#### 3.10.6 ui.radio（更新中）
+#### 3.10.7 ui.select
 
+下拉选择框，同样是一个提供多种选择内容的控件，只不过下拉选择框是弹出可选择的内容，在选择之后，将被选择的内容显示在框内。NiceGUI的下拉选择框支持的参数和设计属性比较多，也让这个看起来简单的选择控件有无数可能。在详细学习之前，先看简单的示例：
 
+```python3
+from nicegui import ui
 
-#### 3.10.7 ui.select（更新中）
+select1 = ui.select([1, 2, 3], value=1)
+select2 = ui.select({1: 'One', 2: 'Two', 3: 'Three'}).bind_value(select1, 'value')
 
+ui.run(native=True)
+```
 
+![ui_select](README_MORE.assets/ui_select.png)
 
-#### 3.10.8 ui.checkbox（更新中）
+下拉选择框支持以下参数：
 
+`options`参数，列表类型或者字典类型，表示控件的所有选项。如果是列表，每个元素既是当前选择的值，也是显示出来的文本。如果是字典，则键（key）是当前选择的值，值（value）是显示出来的文本。
 
+`label`参数，字符串类型，直译的话是标签，表示显示在选择框上方的文本，但不是选择的文本，如果当前选择的内容是空的，点击选择的之前会显示在选择框内，点击之后会移动到选择框上方。
 
-#### 3.10.9 ui.switch（更新中）
+`value`参数，表示控件初始选择的值。
 
+`on_change`参数，可调用类型，当值变化时执行什么操作。
 
+`with_input`参数，布尔类型，表示是否显示一个输入框在选择框内，用输入框内的内容筛选选项，默认为`False`，即不显示输入框。
 
-#### 3.10.10 ui.range（更新中）
+`new_value_mode`参数，字符串类型或`None`，表示在选择框内输入值而不是选择当前定义好的选项，直接回车的话，执行什么样的操作。这个参数只支持'add'、'add-unique'、'toggle'。其中，'add'表示只能添加没有的值，即根据输入的值筛选当前已有的选项，如果有筛选结果，选择第一个，没有筛选结果则添加这个值。'add-unique'表示添加当前值到选项中，哪怕值是相同的，也能添加为新的选项。'toggle'表示没有就添加，和'add-unique'一样的添加；如果有就删除，注意，删除时候需要取消下拉弹出选项的焦点，确保选择框为输入状态，但没有弹出的选项，回车即可删除与当前输入框的内容相同的新增选项。默认为`None`，表示不会添加新的选项。
 
+`multiple`参数，布尔类型，表示是否支持多选。
 
+`clearable`参数，布尔类型，表示是否添加一个清除当前选择的按钮。
 
-#### 3.10.11 ui.joystick（更新中）
+`validation`参数，可调用类型、字典类型或者`None`，表示验证选择的内容是否有效。如果传入可调用类型参数，该参数返回错误信息表示内容无效，返回`None`表示内容有效。如果传入字典类型参数，则字典的键（key）表示错误信息，字典的值（value）为可调用类型参数，字典的值（value）返回`True`表示内容有效，返回`False`则表示内容有效并输出错误信息。默认值为`None`，表示不验证选择的内容。
 
+`key_generator`参数，生成器类型、迭代器类型或者可调用类型，当`options`为字典类型且`new_value_mode`不为`None`时，此参数用于生成字典的键（key）。当此参数为生成器类型和迭代器类型时，每次新添加选项的键（key）就是依次遍历此参数获得，该选项的显示文本就是输入的内容。当此参数不能继续遍历时，新的选项则没法添加。如果此参数为可调用类型，每次新添加选项的键（key）就是将输入内容当做参数、可调用参数返回的执行结果，该选项的显示文本就是输入的内容。注意，当`new_value_mode`为'add'时，此参数必须正确设置，否则会报错。
 
+更多设计属性参考[官方API](https://quasar.dev/vue-components/select#qselect-api)。
 
-#### 3.10.12 ui.textarea（更新中）
+使用添加输入框参数，可以同时启用搜索功能：
 
+```python3
+from nicegui import ui
 
+continents = [
+    'Asia',
+    'Africa',
+    'Antarctica',
+    'Europe',
+    'Oceania',
+    'North America',
+    'South America',
+]
+ui.select(options=continents, with_input=True,
+          on_change=lambda e: ui.notify(e.value)).classes('w-40')
 
-#### 3.10.13 ui.number（更新中）
+ui.run(native=True)
+```
 
+![ui_select](README_MORE.assets/ui_select.gif)
 
+多选功能：
+
+```python3
+from nicegui import ui
+
+names = ['Alice', 'Bob', 'Carol']
+ui.select(names, multiple=True, value=names[:2], label='comma-separated') \
+    .classes('w-64')
+ui.select(names, multiple=True, value=names[:2], label='with chips') \
+    .classes('w-64').props('use-chips')
+
+ui.run(native=True)
+```
+
+![ui_select2](README_MORE.assets/ui_select2.png)
+
+调用set_options方法更新选项：
+
+```python3
+from nicegui import ui
+
+select = ui.select([1, 2, 3], value=1)
+with ui.row():
+    ui.button('4, 5, 6', on_click=lambda: select.set_options([4, 5, 6], value=4))
+    ui.button('1, 2, 3', on_click=lambda: select.set_options([1, 2, 3], value=1))
+
+ui.run(native=True)
+```
+
+两种验证格式：
+
+```python3
+from nicegui import ui
+
+ui.select(
+    options=[1, 2, 3],
+    value=1,
+    validation={
+        "value is less than 3": lambda v: v >= 3
+    }
+).classes("w-48")
+ui.select(
+    options={1: "One", 2: "Two", 3: "Three"},
+    value=1,
+    validation=lambda v: "value is less than 3" if v < 3 else None,
+).classes("w-48")
+
+ui.run(native=True)
+```
+
+![ui_select3](README_MORE.assets/ui_select3.png)
+
+使用生成器和迭代器作为key_generator：
+
+```python3
+from nicegui import ui
+
+select1 = ui.select(
+    options={1: "One", 2: "Two", 3: "Three"},
+    value=1,
+    new_value_mode='add',
+    key_generator=(i for i in ['',4,5,6])
+).classes("w-48")
+
+select2 = ui.select(
+    options={1: "One", 2: "Two", 3: "Three"},
+    value=1,
+    new_value_mode='add',
+    key_generator=iter([4,5,6])
+).classes("w-48")
+
+ui.run(native=True)
+```
+
+注意，如果传入的key_generator是生成器，默认控件会执行一次next，然后才开始执行send方法，会导致生成器第一个生成（yield）值被抛弃，这样做的目的是每一步都能接收到send输入的内容。所以，如果是简易的生成器，不接收send的值，或者不太熟悉生成器语法的话，可以在头部插入任意值用于执行next，也可以使用iter方法转换为迭代器来使用。
+
+#### 3.10.8 ui.checkbox
+
+复选框控件，用于显示一个支持勾选的复选框。
+
+```python3
+from nicegui import ui
+
+checkbox = ui.checkbox('check me')
+ui.label('Check!').bind_visibility_from(checkbox, 'value')
+
+ui.run(native=True)
+```
+
+![ui_checkbox](README_MORE.assets/ui_checkbox.png)
+
+复选框控件的参数很简单：
+
+`text`参数，字符串类型，显示在控件右边的文字内容。
+
+`value`参数，布尔类型，控件初始的勾选状态，默认为`False`，即不勾选。实际上，勾选复选框也就是将控件的value属性设置为`True`，调用控件的set_value方法可以改变勾选状态。
+
+`on_change`参数，可调用类型，当控件的勾选状态变化时执行什么操作。
+
+更多设计属性参考[官方API](https://quasar.dev/vue-components/checkbox#qcheckbox-api)。
+
+#### 3.10.9 ui.switch
+
+开关控件，显示一个像开关一样可以切换开启、关闭状态的控件。
+
+```python3
+from nicegui import ui
+
+switch = ui.switch('switch me')
+ui.label('Switch!').bind_visibility_from(switch, 'value')
+
+ui.run(native=True)
+```
+
+![ui_switch](README_MORE.assets/ui_switch.png)
+
+开关控件的参数很简单：
+
+`text`参数，字符串类型，显示在控件右边的文字内容。
+
+`value`参数，布尔类型，控件初始的开关状态，默认为`False`，即关闭。实际上，切换为打开状态也就是将控件的value属性设置为`True`，调用控件的set_value方法可以改变开关状态。
+
+`on_change`参数，可调用类型，当控件的开关状态变化时执行什么操作。
+
+更多设计属性参考[官方API](https://quasar.dev/vue-components/toggle#qtoggle-api)。
+
+#### 3.10.10 ui.range
+
+范围条控件有点像之前提到的ui.slider，参数都是一样的，只是`value`参数略有差异。
+
+```python3
+from nicegui import ui
+
+min_max_range = ui.range(min=0, max=100, value={'min': 20, 'max': 80})
+ui.label().bind_text_from(min_max_range, 'value',
+                          backward=lambda v: f'min: {v["min"]}, max: {v["max"]}')
+
+ui.run(native=True)
+```
+
+![ui_range](README_MORE.assets/ui_range.png)
+
+范围条控件支持以下参数：
+
+`min`参数，浮点类型，范围条最小值。
+
+`max`参数，浮点类型，范围条最大值。
+
+`step`参数，浮点类型，范围条的步长。
+
+`value`参数，字典类型，范围条当前值。注意，因为范围条有两个滑块，不像ui.slider只有一个，因此，ui.slider值只是一个浮点数，范围条的值是一个字典，{'min': 20, 'max': 80}，键（key）是字符串，必须包含'min'和'max'，对应的值（value）就是左右滑块的当前位置。注意，虽然交互过程中，左边的滑块可以越过右边的滑块位置，不会影响最大值、最小值的输出，但在指定初始值的时候，最小值必须小于等于最大值，否则会显示异常。
+
+`on_change`参数，可调用类型，拖动任一滑块触发的操作。
+
+更多设计属性参考[官方API](https://quasar.dev/vue-components/range#qrange-api)。
+
+#### 3.10.11 ui.joystick
+
+虚拟摇杆控件，生成一个可以交互的虚拟摇杆。
+
+```python3
+from nicegui import ui
+
+ui.joystick(
+    color='blue', size=50,
+    on_move=lambda e: coordinates.set_text(f'{e.x:.3f}, {e.y:.3f}'),
+    on_end=lambda _: coordinates.set_text('0, 0'),
+).classes('bg-slate-300')
+coordinates = ui.label('0, 0')
+
+ui.run(native=True)
+```
+
+![ui_joystick](README_MORE.assets/ui_joystick.png)
+
+虚拟摇杆是使用第三方JavaScript库实现的，NiceGUI提供的显式参数不多，想要了解更多用法的话，只能去[官方文档](https://github.com/yoannmoinet/nipplejs)了解。
+
+虚拟摇杆支持以下参数：
+
+`on_start`参数，可调用类型，当用户开始触摸控件时执行的操作。
+
+`on_move`参数，可调用类型，当用户开始移动摇杆时执行的操作。
+
+`on_end`参数，可调用类型，当用户停止触摸控件（此时虚拟摇杆消失）时执行的操作。
+
+`throttle`参数，浮点类型，检测用户移动事件的间隔，默认为0.05，单位秒。
+
+`options`参数，关键字参数，通过关键字参数的形式传递给此参数，第三方库支持的其他选项，可以参考下表或者[官方文档](https://github.com/yoannmoinet/nipplejs#options)：
+
+```javascript
+var options = {
+    zone: Element,                  // active zone
+    color: String,
+    size: Integer,
+    threshold: Float,               // before triggering a directional event
+    fadeTime: Integer,              // transition time
+    multitouch: Boolean,
+    maxNumberOfNipples: Number,     // when multitouch, what is too many?
+    dataOnly: Boolean,              // no dom element whatsoever
+    position: Object,               // preset position for 'static' mode
+    mode: String,                   // 'dynamic', 'static' or 'semi'
+    restJoystick: Boolean|Object,   // Re-center joystick on rest state
+    restOpacity: Number,            // opacity when not 'dynamic' and rested
+    lockX: Boolean,                 // only move on the X axis
+    lockY: Boolean,                 // only move on the Y axis
+    catchDistance: Number,          // distance to recycle previous joystick in
+                                    // 'semi' mode
+    shape: String,                  // 'circle' or 'square'
+    dynamicPage: Boolean,           // Enable if the page has dynamically visible elements
+    follow: Boolean,                // Makes the joystick follow the thumbstick
+};
+```
+
+常用的选项也就以下几个：
+
+`color`：字符串，虚拟摇杆的颜色。
+
+`size`：整数，虚拟摇杆的大小。
+
+ `mode`：字符串，虚拟摇杆的显示模式。'dynamic'即动态显示，按下的话，不显示虚拟摇杆。'static'是静态显示，无论是否按下，虚拟摇杆都一直显示。'semi'是半动态，不按下之前，不显示，一旦按下，就会在按下位置始终显示。
+
+`shape`：字符串，虚拟摇杆的形状，'circle'圆形或者 'square'方形。
+
+```python3
+from nicegui import ui
+
+ui.joystick(
+    color='blue',
+    size=50,
+    mode='dynamic',
+    shape='square'
+).classes('bg-slate-300')
+
+ui.run(native=True)
+```
+
+#### 3.10.12 ui.textarea
+
+文本区域控件其实就是基于ui.input实现的，大部分参数和ui.input的一样。能用的参数主要有这几个：
+
+`label`参数，字符串类型，直译的话是标签，表示显示在文本区域上方的文本，但不是输入的文本，如果输入的内容是空的，点击输入的之前会显示在文本区域内，点击之后会移动到文本区域上方。
+
+`value`参数，字符串类型，表示文本区域内的内容，也就是文本区域的值。
+
+`on_change`参数，可调用类型，表示文本区域的值变化时执行的函数。
+
+`placeholder`参数，字符串类型，表示文本区域的占位符，即文本区域没有输入之前，显示什么内容。与标签不太一样的是，占位符是文本区域获得焦点时候显示的，标签是文本区域没有获得焦点时候显示的。
+
+`validation`参数，可调用类型、字典类型或者`None`，表示验证输入的内容是否有效。如果传入可调用类型参数，该参数返回错误信息表示内容无效，返回`None`表示内容有效。如果传入字典类型参数，则字典的键（key）表示错误信息，字典的值（value）返回`True`表示内容有效，返回`False`则表示内容有效并输出错误信息。默认值为`None`，表示不验证输入的内容。
+
+#### 3.10.13 ui.number
+
+数字输入框同样是基于ui.input实现的，只不过数字输入框额外支持的几个特有的参数：
+
+`label`参数，字符串类型，直译的话是标签，表示显示在数字输入框上方的文本，但不是输入的文本，如果输入的内容是空的，点击输入的之前会显示在数字输入框内，点击之后会移动到数字输入框上方。
+
+`value`参数，浮点类型，表示数字输入框内的内容，也就是数字输入框的值。
+
+`on_change`参数，可调用类型，表示数字输入框的值变化时执行的函数。
+
+`placeholder`参数，字符串类型，表示数字输入框的占位符，即数字输入框没有内容的话，显示什么内容。
+
+`validation`参数，可调用类型、字典类型或者`None`，表示验证输入的内容是否有效。如果传入可调用类型参数，该参数返回错误信息表示内容无效，返回`None`表示内容有效。如果传入字典类型参数，则字典的键（key）表示错误信息，字典的值（value）返回`True`表示内容有效，返回`False`则表示内容有效并输出错误信息。默认值为`None`，表示不验证输入的内容。
+
+`min`参数，浮点类型，数字输入框允许的最小值。
+
+`max`参数，浮点类型，数字输入框允许的最大值。
+
+`precision`参数，整数类型，数字输入框内数值的精度。如果是正数，表示保留到小数点之后的位数；如果是负数，表示保留到小数点前的位数，默认不限制精度。
+
+`step`参数，浮点型，每次点击增减按钮增加、减少的数值。
+
+`prefix`参数，字符串类型，表示显示在数字前的前缀。
+
+`suffix`参数，字符串类型，表示显示在数字后的后缀。
+
+`format`参数，字符串类型，表示数字的显示格式，该字符串采用类似"%.2f"的旧式%格式字符串。注意，不要尝试其他输出非纯浮点数的格式，会导致显示异常，包括但不限于前导填充、正负号等，数字输入框不支持添加正号的浮点数。
+
+如果改变了数字输入框的数字或者精度，导致显示的内容不符合要求，可以手动调用以下sanitize方法：
+
+```python3
+from nicegui import ui
+
+n = ui.number(value=3.14159265359, precision=5)
+n.sanitize()
+
+ui.run(native=True)
+```
 
 #### 3.10.14 ui.color_input（更新中）
 
