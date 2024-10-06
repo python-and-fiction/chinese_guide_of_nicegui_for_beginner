@@ -1548,7 +1548,7 @@ with ui.stepper(
         with ui.stepper_navigation(wrap=True):
             ui.button('Next', on_click=stepper.next)
             ui.button('Back', on_click=stepper.previous).props('flat')
-    with ui.step(name='last', title='Second step', icon='home') as last:
+    with ui.step(name='last', title='Last step', icon='home') as last:
         ui.label('Do it last.')
         with ui.stepper_navigation(wrap=True):
             ui.button('Done', on_click=lambda: ui.notify(
@@ -1833,7 +1833,7 @@ ui.run(native=True)
 
 ![ui_tooltip](README_MORE.assets/ui_tooltip.png)
 
-### 3.10 其他常用控件（更新中）
+### 3.10 其他常用控件
 
 #### 3.10.1 ui.dropdown_button
 
@@ -2461,7 +2461,7 @@ ui.run(native=True)
 
 `format`参数，字符串类型，表示数字的显示格式，该字符串采用类似"%.2f"的旧式%格式字符串。注意，不要尝试其他输出非纯浮点数的格式，会导致显示异常，包括但不限于前导填充、正负号等，数字输入框不支持添加正号的浮点数。
 
-如果改变了数字输入框的数字或者精度，导致显示的内容不符合要求，可以手动调用以下sanitize方法：
+如果改变了数字输入框的数字或者精度，导致显示的内容不符合要求，可以手动调用sanitize方法：
 
 ```python3
 from nicegui import ui
@@ -2472,23 +2472,232 @@ n.sanitize()
 ui.run(native=True)
 ```
 
-#### 3.10.14 ui.color_input（更新中）
+#### 3.10.14 ui.color_picker
 
+颜色选择器，可以用于选择指定颜色。为了实现弹出效果，颜色选择器是基于Quasar官方的color_picker和menu实现的。
 
+```python3
+from nicegui import ui
 
-#### 3.10.15 ui.color_picker（更新中）
+with ui.button(icon='colorize') as button:
+    ui.color_picker(on_pick=lambda e: button.classes(f'!bg-[{e.color}]'))
+    
+ui.run(native=True)
+```
 
+![ui_color_picker](README_MORE.assets/ui_color_picker.png)
 
+颜色选择器的参数很简单：
 
-#### 3.10.16 ui.date（更新中）
+`on_pick`参数，可调用类型，表示颜色选择器完成选择之后执行的操作。
 
+`value`参数，布尔类型，表示默认颜色选择器的弹出状态，默认为`False`，即不弹出。
 
+更多设计属性参考[官方API](https://quasar.dev/vue-components/color-picker#qcolor-api)。
 
-#### 3.10.17 ui.time（更新中）
+默认的颜色面板提供多种颜色显示模式，想要降低颜色选择复杂度，可以参考API：
 
+```python3
+from nicegui import ui
 
+with ui.button(icon='palette'):
+    picker = ui.color_picker(on_pick=lambda e: ui.notify(f'You chose {e.color}'))
+    picker.q_color.props('default-view=palette no-header no-footer')
 
-#### 3.10.18 ui.upload（更新中）
+ui.run(native=True)
+```
+
+![ui_color_picker2](README_MORE.assets/ui_color_picker2.png)
+
+#### 3.10.15 ui.color_input
+
+颜色输入框则是颜色选择器与输入框的结合体，从参数上看，也有输入框的影子：
+
+`label`参数，字符串类型，表示显示在输入框上方的文本。
+
+`placeholder`参数，字符串类型，表示输入框的占位符，仅在没有颜色值的时候显示。
+
+`value`参数，字符串类型，表示输入框内的内容，也就是当前选择的颜色的值。
+
+`on_change`参数，可调用类型，表示输入框的值变化时执行的函数。
+
+`preview`参数，布尔类型，表示是否让取色器按钮的背景颜色与当前选择的颜色一致，默认为`False`，即不改变按钮的背景颜色。
+
+```python3
+from nicegui import ui
+
+label = ui.label('Change my color!')
+ci = ui.color_input(label='Color', value='#000000',
+                    on_change=lambda e: label.style(f'color:{e.value}'), preview=False)
+
+ui.run(native=True)
+```
+
+![ui_color_input](README_MORE.assets/ui_color_input.png)
+
+从控件的外观上看，控件主要由三部分组成：主体的输入框、右侧取色器图标代表的按钮、点击按钮之后弹出的颜色选择器面板。与之对应的，便是控件本身、控件的button成员、控件的picker成员，如果想要修改对应部分的外观、属性，可以访问对应的对象进行修改。
+
+比如，想要给按钮增加一个工具提示，代码可以这样写：
+
+```python3
+from nicegui import ui
+
+label = ui.label('Change my color!')
+ci = ui.color_input(label='Color', value='#000000',
+                    on_change=lambda e: label.style(f'color:{e.value}'), preview=False)
+ci.button.tooltip('choose color')
+
+ui.run(native=True)
+```
+
+![ui_color_input2](README_MORE.assets/ui_color_input2.png)
+
+#### 3.10.16 ui.date
+
+日期控件支持显示、选择日期，用法简单直观，没有太复杂的用法，只是其中的mask参数需要多看看文档：
+
+```python3
+from nicegui import ui
+
+ui.date(value='2023-01-01', mask='YYYY-MM-DD',
+        on_change=lambda e: result.set_text(e.value))
+result = ui.label()
+
+ui.run(native=True)
+```
+
+![ui_date](README_MORE.assets/ui_date.png)
+
+控件支持以下参数：
+
+`value`参数，字符串类型，控件的初始值。
+
+`on_change`参数，可调用类型，当控件的值发生变化时执行什么操作。
+
+`mask`参数，字符串类型，控件值的格式代码，默认为'YYYY-MM-DD'。
+
+mask支持的格式代码参考[官网文档](https://quasar.dev/quasar-utils/date-utils#format-for-display)或者下表：
+
+| 时间单位              | 格式代码及效果                                               |
+| :-------------------- | :----------------------------------------------------------- |
+| 年                    | **YY**：70，71……29，30<br/>**YYYY**：1970，1971……2029，2030  |
+| 月                    | **M**：1，2……11，12<br/>**Mo**：1st，2nd……11th，12th<br/>**MM**：01，02……11，12<br/>**MMM**：Jan，Feb……Nov，Dec<br/>**MMMM**：January，February……November，December |
+| 季度                  | **Q**：1，2，3，4<br/>**Qo**：1st，2nd，3rd，4th             |
+| 本月第几天            | **D**：1，2……30，31<br/>**Do**：1st，2nd……30th，31st<br/>**DD**：01，02……30，31 |
+| 本年第几天            | **DDD**：1，2……364，365<br/>**DDDo**：1st，2nd……364th，365th<br/>**DDDD**：001，002……364，365 |
+| 本周第几天            | **d**：0，1……5，6<br/>**do**：0th，1st……5th，6th<br/>**dd**：Su，Mo……Fr，Sa<br/>**ddd**：Sun，Mon……Fri，Sat<br/>**dddd**：Sunday，Monday……Friday，Saturday |
+| 本周第几天（ISO标准） | **E**：1，2……6，7                                            |
+| 本年第几周            | **w**：1，2……52，53<br/>**wo**：1st，2nd……52nd，53rd<br/>**ww**：01，02……52，53 |
+
+更多设计属性参考[官方API](https://quasar.dev/vue-components/date#qdate-api)。
+
+#### 3.10.17 ui.time
+
+时间控件支持显示、选择时间，用法简单直观，没有太复杂的用法，只是其中的mask参数需要多看看文档：
+
+```python3
+from nicegui import ui
+
+ui.time(value='12:00', mask='HH:mm',
+        on_change=lambda e: result.set_text(e.value))
+result = ui.label()
+
+ui.run(native=True)
+```
+
+![ui_time](README_MORE.assets/ui_time.png)
+
+控件支持以下参数：
+
+`value`参数，字符串类型，控件的初始值。
+
+`on_change`参数，可调用类型，当控件的值发生变化时执行什么操作。
+
+`mask`参数，字符串类型，控件值的格式代码，默认为'HH:mm'。
+
+mask支持的格式代码参考[官网文档](https://quasar.dev/quasar-utils/date-utils#format-for-display)或者下表：
+
+| 时间单位               | 格式代码及效果                                               |
+| :--------------------- | :----------------------------------------------------------- |
+| 时                     | **H**：0，1……22，23<br/>**HH**：00，01……22，23<br/>**h**：0，1……11，12<br/>**hh**：01，02……11，12 |
+| 分                     | **m**：0，1……58，59<br/>**mm**：00，01……58，59               |
+| 秒                     | **s**：0，1……58，59<br/>**ss**：00，01……58，59               |
+| 小数秒（秒的小数部分） | **S**：0，1……8，9<br/>**SS**：00，01……98，99<br/>**SSS**：000，001……998，999 |
+| 时区                   | **Z**：-07:00，-06:00……+06:00，+07:00<br/>**ZZ**：-0700，-0600……+0600，+0700 |
+| 上下午                 | **A**：AM，PM<br/>**a**：am，pm<br/>**aa**：a.m，p.m         |
+| Unix时间戳             | **X**：1360013296<br/>**x**（毫秒）：1360013296123           |
+
+更多设计属性参考[官方API](https://quasar.dev/vue-components/time#qtime-api)。
+
+#### 3.10.18 ui.upload
+
+之前提到过ui.download文件下载，有下载就有上传，相比于下载操作，上传操作就复杂了一些。
+
+```python3
+from nicegui import ui
+
+ui.upload(on_upload=lambda e: ui.notify(
+    f'Uploaded {e.name}')).classes('max-w-full')
+
+ui.run(native=True)
+```
+
+![ui_upload](README_MORE.assets/ui_upload.png)
+
+点击加号按钮，弹出文件选择窗口，选择文件后点确认，然后点击上传按钮，完成上传。
+
+上传控件支持以下参数：
+
+`multiple`参数，布尔类型，表示是否支持上传多个文件，默认为`False`。	allow uploading multiple files at once (default: False)
+
+`max_file_size`参数，整数类型，上传文件的大小限制，单位字节，默认为0，即不限制。
+
+`max_total_size`参数，整数类型，上传文件的总大小限制，单位字节，默认为0，即不限制。
+
+`max_files`参数，整数类型，上传文件的数量限制，默认为0，即不限制。
+
+`on_upload`参数，可调用类型，完成一个文件上传之后执行的操作。
+
+`on_multi_upload`参数，可调用类型，完成所有文件上传之后执行的操作。
+
+`on_rejected`参数，可调用类型，当文件的上传被拒绝（超出大小限制或者不符合要求的扩展名等）之后执行的操作。
+
+`label`参数，字符串类型，显示在控件上部的说明性文字。
+
+`auto_upload`参数，布尔类型，表示是否开启自动上传，即完成选择之后就上传，默认为`False`。
+
+更多设计属性参考[官方API](https://quasar.dev/vue-components/uploader#quploader-api)。
+
+如果想要读取文件内容，可以读取事件参数的content属性：
+
+```python3
+from nicegui import events, ui
+
+content = ui.textarea().classes('w-96')
+
+def handle_upload(e: events.UploadEventArguments):
+    text = e.content.read().decode('utf-8')
+    content.set_value(text)
+
+ui.upload(on_upload=handle_upload).props('accept=.txt').classes('max-w-full')
+
+ui.run(native=True)
+```
+
+![ui_upload2](README_MORE.assets/ui_upload2.png)
+
+因为底层Starlette库默认文件大小参数的设置，上传大文件可能会导致一些潜在的问题。为了确保更平滑地上传大文件，建议调整Starlette的`MultiPartParser` 类中的参数`max_file_size`，将默认的`1024 * 1024`（1 MB）调大。下面的代码就将该参数调大到5MB，来让更大的文件切片保存到服务器内存中。加大此参数并不是解除大文件的限制，而是让缓存到内存的文件块更大，以便快速处理，不然，文件会直接存入磁盘，可能会产生卡顿现象。另外，此参数也不能无限制加大，此参数过大会导致占用太多的内存，反而会导致内存不足的问题。
+
+```python3
+from nicegui import ui
+from starlette.formparsers import MultiPartParser
+
+MultiPartParser.max_file_size = 1024 * 1024 * 5  # 5 MB
+
+ui.upload(on_upload=lambda e: ui.notify(f'Uploaded {e.name}')).classes('max-w-full')
+
+ui.run(native=True)
+```
 
 
 
@@ -3329,23 +3538,139 @@ ui.link('Water', '/icon/water_drop?amount=3')
 ui.run()
 ```
 
-4.6 ui.stepper（更新中）
+### 4.6 ui.stepper
 
 1，如何使用其他控件模拟ui.step？
 
 给控件增加.props["name"]和.props["title"]即可。
 
-2，将ui.stepper_navigation放置在外，如何识别第一步和最后一步？
+```python3
+from nicegui import ui
+
+with ui.stepper(
+    value='First',
+    on_value_change=lambda e: ui.notify(e.value),
+    keep_alive=True
+).classes('w-full') as stepper:
+    with ui.card() as first:
+        first.props.update(dict(name='First', title='First step', icon='home'))
+        ui.label('Do it fisrt.')
+        with ui.stepper_navigation(wrap=True):
+            ui.button('Next', on_click=stepper.next)
+    with ui.card() as second:
+        second.props.update(dict(name='Second', title='Second step', icon='home'))
+        ui.label('Do it second.')
+        with ui.stepper_navigation(wrap=True):
+            ui.button('Next', on_click=stepper.next)
+            ui.button('Back', on_click=stepper.previous).props('flat')
+    with ui.card() as last:
+        last.props.update(dict(name='last', title='Last step', icon='home'))
+        ui.label('Do it last.')
+        with ui.stepper_navigation(wrap=True):
+            ui.button('Done', on_click=lambda: ui.notify(
+                'Done!', type='positive'))
+            ui.button('Back', on_click=stepper.previous).props('flat')
+
+ui.run(native=True)
+```
+
+2，将ui.stepper的控制按钮放置在外，如何识别第一步和最后一步？
 
 遍历其中控件的name，或者直接指定中间变量存储第一步和最后一步的name，并绑定按钮的可见性或者使用refreshable装饰。
 
-4.7 ui.icon（更新中）
+方法一：
+
+```python3
+from nicegui import ui
+
+def navigation_bar(stepper:ui.stepper=None,on_finish=None,container=None):
+    @ui.refreshable
+    def navigation():
+        with container or ui.element(),ui.row():
+            step_name_list = [i.props['name'] for i in stepper]
+            first_name = step_name_list[0]
+            is_first = stepper.value == first_name
+            is_not_first = not is_first
+            last_name = step_name_list[-1]
+            is_last = stepper.value == last_name
+            is_not_last = not is_last
+            next_btn = ui.button('Next', on_click=stepper.next)
+            next_btn.bind_visibility_from(locals(),'is_not_last')
+            last_btn = ui.button('Done')
+            last_btn.bind_visibility_from(locals(),'is_last')
+            if callable(on_finish):
+                if len(on_finish.__code__.co_varnames) == 0:
+                    last_btn.on_click(on_finish)
+                else:
+                    last_btn.on_click(lambda e:on_finish(e))
+            else:
+                last_btn.on_click(lambda: ui.notify('Done!', type='positive'))
+            back_btn = ui.button('Back', on_click=stepper.previous).props('flat')
+            back_btn.bind_visibility_from(locals(),'is_not_first')
+    if stepper:
+        navigation()
+    stepper.on_value_change(navigation.refresh)
+
+with ui.stepper(
+    value='First',
+    keep_alive=True
+).classes('w-full') as stepper:
+    with ui.step(name='First', title='First step', icon='home') as first:
+        ui.label('Do it fisrt.')
+    with ui.step(name='Second', title='Second step', icon='home') as second:
+        ui.label('Do it second.')
+    with ui.step(name='Last', title='Last step', icon='home') as last:
+        ui.label('Do it last.')
+
+with ui.card():
+    navigation_bar(stepper)
+
+ui.run(native=True)
+```
+
+方法二：
+
+```python3
+from nicegui import ui
+
+with ui.stepper(
+    value='First',
+    keep_alive=True
+).classes('w-full') as stepper:
+    with ui.step(name='First', title='First step', icon='home') as first:
+        ui.label('Do it fisrt.')
+    with ui.step(name='Second', title='Second step', icon='home') as second:
+        ui.label('Do it second.')
+    with ui.step(name='Last', title='Last step', icon='home') as last:
+        ui.label('Do it last.')
+
+with ui.card(),ui.row():
+    next_btn = ui.button('Next', on_click=stepper.next)
+    next_btn.bind_visibility_from(stepper,'value',lambda x:x!=last.props['name'])
+    last_btn = ui.button('Done')
+    last_btn.bind_visibility_from(stepper,'value',lambda x:x==last.props['name'])
+    last_btn.on_click(lambda: ui.notify('Done!', type='positive'))
+    back_btn = ui.button('Back', on_click=stepper.previous).props('flat')
+    back_btn.bind_visibility_from(stepper,'value',lambda x:x!=first.props['name'])
+
+ui.run(native=True)
+```
+
+### 4.7 ui.icon
 
 1，想用自定义的LOGO图片（SVG格式）当图标行不行（ui.icon控件或者其他支持icon参数的控件）？
 
 可以，使用'img:path/to/some_image.png'这样的语法，如：`'img:https://cdn.quasar.dev/logo-v2/svg/logo.svg'`
 
-4.8 ui.carousel
+```python3
+from nicegui import ui
+
+ui.button(text='LOGO',icon='img:https://cdn.quasar.dev/logo-v2/svg/logo.svg')
+
+ui.run(native=True)
+```
+
+### 4.8 ui.carousel
 
 1，如何自定义轮播图的控制控件？
 
