@@ -3298,25 +3298,522 @@ ui.run(native=True)
 
 ![ui_table4](README_MORE.assets/ui_table4.png)
 
-#### 3.14.2 ui.tree（更新中）
+#### 3.14.2 ui.tree
 
+树形图控件，可以用树形图的方式展示给定的数据。
 
+先看示例代码：
 
-#### 3.14.3 ui.log（更新中）
+```python3
+from nicegui import ui
 
+tree = ui.tree(
+    nodes=[
+        {
+            'id': 'numbers',
+            'label': 'numbers',
+            'icon': 'home',
+            'children': [
+                {
+                    'id': '1',
+                    'icon': 'home',
+                    'label': 'one'
+                },
+                {
+                    'id': '2',
+                    'icon': 'home',
+                    'label': 'two'
+                }
+            ]
+        },
+        {
+            'id': 'letters',
+            'label': 'letters',
+            'icon': 'home',
+            'children': [
+                {
+                    'id': 'a',
+                    'icon': 'home',
+                    'label': 'A'
+                },
+                {
+                    'id': 'b',
+                    'icon': 'home',
+                    'label': 'B'
+                }
+            ]
+        },
+    ],
+    node_key='id',
+    label_key='label',
+    children_key='children',
+    on_select=lambda e: ui.notify(f'{e.value} selected.'),
+    on_expand=lambda e: ui.notify(f'{e.value} expanded.'),
+    on_tick=lambda e: ui.notify(f'{e.value} ticked.'),
+    tick_strategy=None
+)
+tree.expand()
+ui.run(native=True)
+```
 
+![ui_tree](README_MORE.assets/ui_tree.png)
 
-#### 3.14.4 ui.editor（更新中）
+树形图控件支持以下参数：
 
+`nodes`参数，字典列表，树的节点层次数据源，通过构建特定结构的数据，可以让树形图按照指定结构显示。列表为根节点，每个列表元素表示一个子节点。在字典中，添加'children'键（key）并设置类似结构的列表为值（value），即可为该节点扩展出子节点。在数据源中，不同的键有不同的含义：
 
+​	`'id'`：表示节点的编号，具有唯一性，不可重复。如果需要获取已经选择、勾选、展开的节点数据，这个键对应的值会用于标识节点，出现在返回的列表中。
 
-#### 3.14.5 ui.codemirror（更新中）
+​	`'label'`：表示节点显示的文字，如果没有对应的值，该节点不会显示文字。
 
+​	`'children'`：表示节点的子节点，如果有对应的值，该节点会变成可以展开的样式。该键的对应值是字典列表，需要与传给`nodes`参数结构保持一致，才能确保子节点显示正常。
 
+​	`'icon'`：表示节点的图标。
 
-#### 3.14.6 ui.json_editor（更新中）
+`node_key`参数，字符串类型，表示`nodes`参数中用于确定节点唯一性的键，默认值是"id"，可以根据实际情况修改为其他值。
 
+`label_key`参数，字符串类型，表示`nodes`参数中用于显示为节点文本的键，默认值是"label"，可以根据实际情况修改为其他值。
 
+`children_key`参数，字符串类型，表示`nodes`参数中用于确定子节点的键，默认值是"children"，可以根据实际情况修改为其他值。
+
+`on_select`参数，可调用类型，当节点的选择状态（点击节点即选择、取消选择该节点）时执行的操作。
+
+`on_expand`参数，可调用类型，当节点的展开状态变化（点击有子节点的节点前的三角形可以展开、收回该节点）时执行的操作。
+
+`on_tick`参数，可调用类型，当节点的展开状态变化（点击有节点前的复选框可以勾选、取消勾选该节点）时执行的操作。注意，只有下面的`tick_strategy`参数不为`None`时，才会显示复选框。
+
+`tick_strategy`参数，字符串类型，表示节点的复选框采用什么勾选策略，支持"leaf"、"leaf-filtered"、 "strict"，默认为`None`，即没有勾选策略，不显示复选框。具体勾选策略的含义可以参考下表或者[官方文档](https://quasar.dev/vue-components/tree#tick-strategy)：
+
+| 策略名          | 含义                                                         |
+| :-------------- | :----------------------------------------------------------- |
+| `leaf`          | 如果勾选了叶子节点，会影响父节点的勾选状态（变成全选或者部分勾选）；如果勾选的是分支节点，会影响父节点的勾选状态（变成全选或者部分勾选）和子节点的勾选状态（可以被勾选子节点会被全选）。 |
+| `leaf-filtered` | 和`leaf`的含义一致，只不过该策略只会影响被过滤之后依然可见的节点。也就是说，对父节点、子节点如果在过滤之后不可见，勾选状态不会改变。 |
+| `strict`        | 只影响被勾选的节点，不影响父节点或子节点的勾选状态。         |
+
+更多设计属性参考[官方API](https://quasar.dev/vue-components/tree#qtree-api)。
+
+两个助手函数，可以帮助读者更好使用树形图控件，一个是确认给定的key是不是树形图数据源的有效key，另一个是根据给定的key获取当前节点、父节点、子节点：
+
+```python3
+#验证key列表是不是有效的key
+#不指定node_keys则获取全部节点的key
+#可以通过指定parent_only来只获取父节点（有子节点的）
+def find_all_node_keys(tree, node_keys=None, parent_only=False):
+    NODES = tree._props['nodes']
+    CHILDREN_KEY = tree._props['children-key']
+    NODE_KEY = tree._props['node-key']
+    def iterate_nodes(nodes=NODES):
+        for node in nodes:
+            if parent_only:
+                if (CHILDREN_KEY in node.keys()):
+                    yield node
+                    yield from iterate_nodes(node.get(CHILDREN_KEY, []))
+                else:
+                    yield
+            else:
+                yield node
+                yield from iterate_nodes(node.get(CHILDREN_KEY, []))
+    finded_nodes = {node[NODE_KEY] for node in iterate_nodes(NODES) if node}
+    return finded_nodes if node_keys is None else {finded_node for finded_node in set(node_keys) if finded_node in finded_nodes}
+#获取指定key的相关节点
+def get_related_nodes(tree, target_key=None):
+    NODES = tree._props['nodes']
+    CHILDREN_KEY = tree._props['children-key']
+    NODE_KEY = tree._props['node-key']
+    result = {'current':None,'parent':None,'children':None}
+    def iterate_node(nodes=NODES,parent = None):
+        for node in nodes:
+            if target_key == node[NODE_KEY]:
+                result['parent'] = parent
+                result['current'] = node
+                if (CHILDREN_KEY in node.keys()):
+                    result['children'] = node.get(CHILDREN_KEY, [])
+            else:
+                if (CHILDREN_KEY in node.keys()):
+                    iterate_node(nodes=node.get(CHILDREN_KEY, []),parent=node)
+        return               
+    iterate_node(NODES)
+    return result
+```
+
+如果想要选择、展开、勾选的方法和获取对应状态的节点，可以参照下表提供的方法：
+
+| 状态 | 设置为该状态的方法                                           | 取消该转态的方法                                             | 获取该状态下的节点   |
+| ---- | ------------------------------------------------------------ | ------------------------------------------------------------ | -------------------- |
+| 选择 | `.select(key)`                                               | `.deselect()`                                                | `.props['selected']` |
+| 展开 | `.expand([key1,...keyn])`<br/>不传入参数的话就是对所有节点生效 | `.collapse([key1,...keyn])`<br/>不传入参数的话就是对所有节点生效 | `.props['expanded']` |
+| 勾选 | `.tick([key1,...keyn])`<br/>不传入参数的话就是对所有节点生效 | `.untick([key1,...keyn])`<br/>不传入参数的话就是对所有节点生效 | `.props['ticked']`   |
+
+```python3
+from nicegui import ui
+
+tree = ui.tree(
+    nodes=[
+        {
+            'id': 'numbers',
+            'label': 'numbers',
+            'icon': 'home',
+            'children': [
+                {
+                    'id': '1',
+                    'icon': 'home',
+                    'label': 'one'
+                },
+                {
+                    'id': '2',
+                    'icon': 'home',
+                    'label': 'two'
+                }
+            ]
+        },
+        {
+            'id': 'letters',
+            'label': 'letters',
+            'icon': 'home',
+            'children': [
+                {
+                    'id': 'a',
+                    'icon': 'home',
+                    'label': 'A'
+                },
+                {
+                    'id': 'b',
+                    'icon': 'home',
+                    'label': 'B'
+                }
+            ]
+        },
+    ],
+    node_key='id',
+    label_key='label',
+    children_key='children',
+    tick_strategy='leaf'
+)
+
+select='1'
+expand=['letters']
+tick=['a']
+with ui.column():
+    with ui.row():
+        ui.label('select:').classes('w-12')
+        ui.button(f'select {select}',on_click=lambda :tree.select(select))
+        ui.button(f'deselect {select}',on_click=lambda :tree.deselect())
+        ui.button(f'get selected',on_click=lambda :ui.notify(tree.props['selected']))
+    with ui.row():
+        ui.label('expend:').classes('w-12')
+        ui.button(f'expand {expand}',on_click=lambda :tree.expand(expand))
+        ui.button(f'collapse {expand}',on_click=lambda :tree.collapse(expand))
+        ui.button(f'get expanded',on_click=lambda :ui.notify(tree.props['expanded']))
+    with ui.row():
+        ui.label('tick:').classes('w-12')
+        ui.button(f'tick {tick}',on_click=lambda :tree.tick(tick))
+        ui.button(f'untick {tick}',on_click=lambda :tree.untick(tick))
+        ui.button(f'get ticked',on_click=lambda :ui.notify(tree.props['ticked']))
+     
+ui.run(native=True)
+```
+
+![ui_tree2](README_MORE.assets/ui_tree2.png)
+
+和table类似，树形图也支持筛选：
+
+```python3
+from nicegui import ui
+
+tree = ui.tree(
+    nodes=[
+        {
+            'id': 'numbers',
+            'label': 'numbers',
+            'icon': 'home',
+            'children': [
+                {
+                    'id': '1',
+                    'icon': 'home',
+                    'label': 'one'
+                },
+                {
+                    'id': '2',
+                    'icon': 'home',
+                    'label': 'two'
+                }
+            ]
+        },
+        {
+            'id': 'letters',
+            'label': 'letters',
+            'icon': 'home',
+            'children': [
+                {
+                    'id': 'a',
+                    'icon': 'home',
+                    'label': 'A'
+                },
+                {
+                    'id': 'b',
+                    'icon': 'home',
+                    'label': 'B'
+                }
+            ]
+        },
+    ],
+    node_key='id',
+    label_key='label',
+    children_key='children',
+    tick_strategy='leaf'
+)
+ui.input('Search').bind_value_to(tree, 'filter')
+
+ui.run(native=True)
+```
+
+![ui_tree3](README_MORE.assets/ui_tree3.png)
+
+#### 3.14.3 ui.log
+
+日志控件，显示新推送的日志消息，并在保留历史日志消息，不需要完整传输历史消息到客户端。
+
+控件只有一个整数参数`max_lines`，代表日志支持的最大行数。
+
+使用push方法将日志消息推送给控件。
+
+```python3
+from datetime import datetime
+from nicegui import ui
+
+log = ui.log(max_lines=10).classes('w-full h-20')
+ui.button('Log time', on_click=lambda: log.push(datetime.now().strftime('%X.%f')[:-5]))
+
+ui.run(native=True)
+```
+
+![ui_log](README_MORE.assets/ui_log.png)
+
+以下代码展示了如何给日志记录模块增加推送到日志控件的操作：
+
+```python3
+import logging
+from datetime import datetime
+from nicegui import ui
+
+logger = logging.getLogger()
+
+class LogElementHandler(logging.Handler):
+    """A logging handler that emits messages to a log element."""
+
+    def __init__(self, element: ui.log, level: int = logging.NOTSET) -> None:
+        self.element = element
+        super().__init__(level)
+
+    def emit(self, record: logging.LogRecord) -> None:
+        try:
+            msg = self.format(record)
+            self.element.push(msg)
+        except Exception:
+            self.handleError(record)
+
+log = ui.log(max_lines=10).classes('w-full')
+handler = LogElementHandler(log)
+logger.addHandler(handler)
+ui.context.client.on_disconnect(lambda: logger.removeHandler(handler))
+ui.button('Log time', on_click=lambda: logger.warning(datetime.now().strftime('%X.%f')[:-5]))
+
+ui.run(native=True)
+```
+
+#### 3.14.4 ui.editor
+
+编辑器控件，可以提供一个简易的文本编辑器。
+
+```python3
+from nicegui import ui
+
+editor = ui.editor(placeholder='Type something here')
+ui.markdown().bind_content_from(editor, 'value',
+                                backward=lambda v: f'HTML code:\n```\n{v}\n```')
+
+ui.run(native=True)
+```
+
+![ui_editor](README_MORE.assets/ui_editor.png)
+
+`placeholder`参数，字符串类型，占位符，和输入框的一样。
+
+`value`参数，字符串类型，编辑器的初始文本。
+
+`on_change`参数，可调用类型，编辑器内文本变化时执行的操作。
+
+更多设计属性参考[官方API](https://quasar.dev/vue-components/editor#qeditor-api)。
+
+修改content-class属性可以自定义内容区域的样式：
+
+```python3
+from nicegui import ui
+
+editor = ui.editor(placeholder='Type something here').props('content-class="bg-green-100"')
+ui.markdown().bind_content_from(editor, 'value',
+                                backward=lambda v: f'HTML code:\n```\n{v}\n```')
+
+ui.run(native=True)
+```
+
+![ui_editor3](README_MORE.assets/ui_editor3.png)
+
+修改toolbar属性可以实现自定义编辑器的快捷工具栏：
+
+```python3
+from nicegui import ui
+
+with ui.editor().props(''':toolbar="[['left','center','right','justify'],['bold','italic','underline','strike'], ['undo','redo'],['color','bgcolor','save']]"''').classes('w-[480px]') as editor:
+    with editor.add_slot("save"):
+        with ui.button(icon="save", on_click=lambda: ui.notify(f'{len(editor.value)} chars saved!')).props("flat dense size=0.8em").classes("text-black p-0"):
+            ui.tooltip('Save text').props('delay=1200 transition-duration=300')
+    with editor.add_slot("color"):
+        with ui.icon('format_color_text', size='1.2em').classes("p-0") as icon:
+            ui.tooltip('Change color').props(
+                'delay=1200 transition-duration=300')
+            picker = ui.color_picker(
+                on_pick=lambda e: editor.run_method('runCmd', 'foreColor', f'{e.color}')
+            ).props('no-focus no-refocus auto-close')
+            picker.q_color.props('no-header no-footer default-view=palette')
+    with editor.add_slot("bgcolor"):
+        with ui.icon('colorize', size='1.2em').classes("text-black py-0 ps-2"):
+            ui.tooltip('Change bgcolor').props(
+                'delay=1200 transition-duration=300')
+            picker = ui.color_picker(on_pick=lambda e:  editor.run_method(
+                'runCmd', 'backColor', f'{e.color}')).props('no-focus no-refocus auto-close')
+            picker.q_color.props('no-header no-footer default-view=palette')
+
+ui.run(native=True)
+```
+
+![ui_editor2](README_MORE.assets/ui_editor2.png)
+
+#### 3.14.5 ui.codemirror
+
+codemirror代码编辑器，功能实现源自[CodeMirror](https://codemirror.net/)，支持超过140种语言的语法高亮（支持列表参考[这里](https://github.com/codemirror/language-data/blob/main/src/language-data.ts)）、超过30种界面主题（支持列表参考[这里](https://github.com/uiwjs/react-codemirror/tree/master/themes/all)）、行号显示、代码折叠、有限的自动补全等等。
+
+```python3
+from nicegui import ui
+
+editor = ui.codemirror('print("Edit me!")', language='Python').classes('h-32')
+ui.select(editor.supported_languages, label='Language', clearable=True) \
+    .classes('w-32').bind_value(editor, 'language')
+ui.select(editor.supported_themes, label='Theme') \
+    .classes('w-32').bind_value(editor, 'theme')
+
+ui.run(native=True)
+```
+
+![ui_codemirror](README_MORE.assets/ui_codemirror.png)
+
+控件支持以下参数：
+
+`value`参数，字符串类型，编辑器的初始值。
+
+`on_change`参数，可调用类型，编辑器的值发生变化时执行的操作。
+
+`language`参数，字符串类型，编辑器的语法高亮方案，默认为`None`。注意，此参数大小写敏感，如果不确定语法的准确名称，可以查询该语言字符串是否在`ui.codemirror.supported_languages`内。
+
+`theme`参数，字符串类型，编辑器的主题，默认为`"basicLight"`。如果不确定主题的准确名称，可以查询`ui.codemirror.supported_themes`。
+
+`indent`参数，字符串类型，代码缩进使用的字符，默认为4个英文空格。
+
+`line_wrapping`参数，布尔类型，表示是否自动换行，默认为`False`。
+
+`highlight_whitespace`参数，布尔类型，表示是否高亮显示出空白字符，默认为`False`。
+
+#### 3.14.6 ui.json_editor
+
+JSON编辑器，功能实现源自[svelte-jsoneditor](https://github.com/josdejong/svelte-jsoneditor)。
+
+JSON（JavaScript Object Notation，JavaScript对象表示法）是基于ECMAScript的一个子集设计的，是一种开放标准的文件格式和数据交换格式，它易于人阅读和编写，同时也易于机器解析和生成。JSON独立于语言设计，很多编程语言都支持JSON格式的数据交换。JSON是一种常用的数据格式，在电子数据交换中有多种用途，包括与服务器之间的Web应用程序的数据交换。其简洁和清晰的层次结构有效地提升了网络传输效率，使其成为理想的数据交换语言。其文件通常使用扩展名.json。
+
+控件示例如下：
+
+```python3
+from nicegui import ui
+
+json = {
+    'array': [1, 2, 3],
+    'boolean': True,
+    'color': '#82b92c',
+    None: None,
+    'number': 123,
+    'object': {
+        'a': 'b',
+        'c': 'd',
+    },
+    'time': 1575599819000,
+    'string': 'Hello World',
+}
+jse = ui.json_editor({'content': {'json': json}},
+               on_select=lambda e: ui.notify(f'Select: {e}'),
+               on_change=lambda e: ui.notify(f'Change: {e}'))
+
+ui.run(native=True)
+```
+
+![ui_json_editor](README_MORE.assets/ui_json_editor.png)
+
+控件支持以下参数：
+
+`properties`参数，字典类型，传入控件的复合属性字典，其键（key）是JSON编辑器支持的属性（参考[官方API](https://github.com/josdejong/svelte-jsoneditor?tab=readme-ov-file#properties)）。以代码为例介绍几个常用属性：
+
+​	`'content'`：表示内容主体（[官方文档](https://github.com/josdejong/svelte-jsoneditor?tab=readme-ov-file#content)），其值同样是字典。字典包含`'json'`和`'text'`两个键，分别代表内容的JSON格式和TEXT格式。
+
+​	`mode`：字符串类型，表示编辑器默认的编辑模式（[官方文档](https://github.com/josdejong/svelte-jsoneditor?tab=readme-ov-file#mode)），支持'tree'、'text'、'table'，默认为'tree'。
+
+​	`mainMenuBar`：布尔类型，表示是否显示编辑器的主菜单栏（[官方文档](https://github.com/josdejong/svelte-jsoneditor?tab=readme-ov-file#mainmenubar)），默认为`True`。
+
+​	`navigationBar`：布尔类型，表示是否显示编辑器的导航栏（[官方文档](https://github.com/josdejong/svelte-jsoneditor?tab=readme-ov-file#navigationbar)），默认为`True`。
+
+​	`statusBar`：布尔类型，表示是否显示编辑器文本模式的状态栏（[官方文档](https://github.com/josdejong/svelte-jsoneditor?tab=readme-ov-file#statusbar)），默认为`True`。
+
+​	`readOnly`：布尔类型，表示是否启用编辑器内容的只读模式（[官方文档](https://github.com/josdejong/svelte-jsoneditor?tab=readme-ov-file#readonly)），默认为`True`。
+
+​	更多属性和用途参考[官方API](https://github.com/josdejong/svelte-jsoneditor?tab=readme-ov-file#properties)。	
+
+`on_select`参数，可调用类型，当控件的内容被选择时执行的操作。
+
+`on_change`参数，可调用类型，当控件的内容被改变时执行的操作。
+
+注意，除了初始化指定`properties`参数外，也可以修改`properties`属性来进而修改控件，但是，在修改属性之后，需要调用update方法才能触发界面更新，否则会导致界面显示与实际数据不一致。
+
+控件对象的run_editor_method方法可以运行JSON编辑器支持的方法（参考[官方API](https://github.com/josdejong/svelte-jsoneditor?tab=readme-ov-file#methods)）。示例代码展示了如何展开、收起节点，如何获取数据。
+
+方法名"expand" 前的":"表示"path => true"是一个JavaScript表达式，该表达式会先在会在客户端计算之后，再传递给方法。
+
+注意，从客户端获取数据（包括其他一切与客户端相关的操作），只能在page页面内执行，不能在auto-index页面内执行。
+
+```python3
+from nicegui import ui
+
+@ui.page('/')
+def page():
+    json = {
+        'Name': 'Alice',
+        'Age': 42,
+        'Address': {
+            'Street': 'Main Street',
+            'City': 'Wonderland',
+        },
+    }
+    editor = ui.json_editor({'content': {'json': json}})
+
+    ui.button('Expand', on_click=lambda: editor.run_editor_method(':expand', 'path => true'))
+    ui.button('Collapse', on_click=lambda: editor.run_editor_method(':expand', 'path => false'))
+    ui.button('Readonly', on_click=lambda: editor.run_editor_method('updateProps', {'readOnly': True}))
+
+    async def get_data() -> None:
+        data = await editor.run_editor_method('get')
+        ui.notify(data)
+    ui.button('Get Data', on_click=get_data)
+
+ui.run(native=True)
+```
+
+![ui_json_editor2](README_MORE.assets/ui_json_editor2.png)
 
 #### 3.14.7 ui.scene（更新中）
 
@@ -3338,7 +3835,7 @@ ui.run(native=True)
 
 3.14.14 ui.plotly
 
-
+3.14.15 ui.leaflet
 
 ## 4 具体示例【随时更新】
 
