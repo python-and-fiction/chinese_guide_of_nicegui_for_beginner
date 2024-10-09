@@ -1284,7 +1284,7 @@ ui.run(native=True)
 
 ![tailwindcss](README_INDEX.assets/tailwindcss.png)
 
-在开发工具中调用控件的`tailwindcss`属性或者创建` Tailwind()`对象之后，再输入`.`，就会弹出子方法提示，选择对应的子方法之后，在输入引号，会进一步弹出参数的提示。
+在开发工具中调用控件的`tailwindcss`属性或者创建` Tailwind()`对象之后，再输入`.`，就会弹出子方法提示，选择对应的子方法之后，再输入引号，会进一步弹出参数的提示。
 
 ##### 2.3.6.3 暗黑模式ui.dark_mode
 

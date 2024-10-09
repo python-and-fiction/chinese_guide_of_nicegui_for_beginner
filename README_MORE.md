@@ -2944,7 +2944,7 @@ ui.keyborad可以在页面添加一个按键事件的响应。
 
 ui.keyborad有以下四个参数：
 
-`on_key`参数，可执行类型，表示发生按键事件之后要执行的函数。
+`on_key`参数，可调用类型，表示发生按键事件之后要执行的函数。
 
 `active`参数，布尔类型，表示是否激活该功能，默认为`True`。
 
@@ -2952,7 +2952,7 @@ ui.keyborad有以下四个参数：
 
 `ignore`参数，字符串列表类型，表示当哪些元素激活时忽略按键事件的响应，默认为['input', 'select', 'button', 'textarea']。
 
-对于`on_key`参数，可以传递一个`KeyEventArguments` 响应对象作为函数的参数，该对象有以下属性：
+对于`on_key`参数，可以传递一个`KeyEventArguments` 响应对象作为可调用对象的参数，该对象有以下属性：
 
 -   `sender`：事件的发送者，即ui.keyboard元素。
 -   `client`：客户端对象。
@@ -3815,13 +3815,412 @@ ui.run(native=True)
 
 ![ui_json_editor2](README_MORE.assets/ui_json_editor2.png)
 
-#### 3.14.7 ui.scene（更新中）
+#### 3.14.7 ui.scene
+
+场景控件可用于显示3D内容，功能实现源于[threejs](https://threejs.org/)。
+
+示例代码中需要的图片文件和模型文件请自行搜索下载，放到代码文件的同目录下，并根据实际的文件名修改代码：
+
+```python3
+from nicegui import ui,app
+import os
+
+app.add_static_file(local_file=f'{os.path.dirname(os.path.abspath(__file__))}/LOGO.png',url_path='/logo')
+app.add_static_file(local_file=f'{os.path.dirname(os.path.abspath(__file__))}/teapot.stl',url_path='/stl')
+app.add_static_file(local_file=f'{os.path.dirname(os.path.abspath(__file__))}/Avocado.glb',url_path='/glp')
+
+with ui.scene().classes('w-full h-96') as scene:
+    scene.axes_helper()
+    scene.sphere().material('#4488ff').move(2, 2)
+    scene.cylinder(1, 0.5, 2, 20).material('#ff8800', opacity=0.5).move(-2, 1)
+    scene.extrusion([[0, 0], [0, 1], [1, 0.5]], 0.1).material('#ff8888').move(2, -1)
+
+    with scene.group().move(z=2):
+        scene.box().move(x=2)
+        scene.box().move(y=2).rotate(0.25, 0.5, 0.75)
+        scene.box(wireframe=True).material('#888888').move(x=2, y=2)
+
+    scene.line([-4, 0, 0], [-4, 2, 0]).material('#ff0000')
+    scene.curve([-4, 0, 0], [-4, -1, 0], [-3, -1, 0], [-3, 0, 0]).material('#008800')
+
+    logo = '/logo'
+    scene.texture(logo, [[[0.5, 2, 0], [2.5, 2, 0]],
+                         [[0.5, 0, 0], [2.5, 0, 0]]]).move(1, -3)
+
+    teapot = '/stl'
+    scene.stl(teapot).scale(1).move(-9, -9)
+
+    avocado = '/glp'
+    scene.gltf(avocado).scale(40).move(-2, -3, 0.5)
+
+    scene.text('2D', 'background: rgba(0, 0, 0, 0.2); border-radius: 5px; padding: 5px').move(z=2)
+    scene.text3d('3D', 'background: rgba(0, 0, 0, 0.2); border-radius: 5px; padding: 5px').move(y=-2).scale(.05)
+
+ui.run(native=True)
+```
+
+![ui_scene](README_MORE.assets/ui_scene.png)
+
+控件支持以下参数：
+
+`width`参数，整数类型，控件的宽度，默认为400，单位是像素。在没有缩放控件的情况下，此参数指定了控件的固定宽度。如果使用CSS样式缩放控件宽度，此参数指定的宽度优先级最低。
+
+`height`参数，整数类型，控件的高度，默认为300，单位是像素。在没有缩放控件的情况下，此参数指定了控件的固定高度。如果使用CSS样式缩放控件高度，此参数指定的高度优先级最低。
+
+`grid`参数，布尔类型或者整数元组类型，表示是否显示辅助网格或者网格的大小。如果为`False`，则不显示辅助网格（显示在地平面的网格，用于确定物体的位置和大小）。如果为`True`，则显示辅助网格。也可以指定一个整数元组来指定尺寸。元组的第一元素表示网格的大小（size），网格为正方形，只需指定边长即可。第二元素表示正方形的边划分为几等分（divisions），这样就可以得到'等分数的平方数'个正方形。网格大小的默认值是``(100,100)`。
+
+`camera`参数，指定场景使用的相机，该参数需要传入`ui.scene.perspective_camera`（透视相机）或 `ui.scene.orthographic_camera`（正交相机）的实例，默认为透视相机。两种相机的参数不同：
+
+​	ui.scene.perspective_camera（[官方文档](https://threejs.org/docs/index.html#api/zh/cameras/PerspectiveCamera)）：
+
+​		`fov`参数，浮点类型，表示视野角（以度为单位），默认为75。
+
+​		`near`参数，浮点类型，表示近裁剪平面距离，默认值为0.1。
+
+​		`far`参数，浮点类型，表示远裁剪平面距离，默认值为1000。
+
+​	ui.scene.orthographic_camera（[官方文档](https://threejs.org/docs/index.html#api/zh/cameras/OrthographicCamera)）：
+
+​		`size`参数，浮点类型，表示视野角，默认为10。此参数与视野角的关系是这样的，[官方文档](https://threejs.org/docs/index.html#api/zh/cameras/OrthographicCamera)中定义正交相机需要的左、右、顶、底四个视锥平面参数，NiceGUI基于此参数，将 `(-size / 2)*控件的宽高比`、`(size / 2) * 控件的宽高比`、`size / 2`、`-size / 2`传递给对应参数。
+
+​		`near`参数，浮点类型，表示近裁剪平面距离，默认值为0.1。
+
+​		`far`参数，浮点类型，表示远裁剪平面距离，默认值为1000。
+
+`on_click`参数，可调用类型，点击3D对象时执行的操作。注意，如果想要响应对应的点击事件，需要在`click_events`参数中添加对应事件的订阅。
+
+`click_events`参数，字符串列表类型，控件订阅的JavaScript事件，默认为`['click', 'dblclick']`。
+
+`on_drag_start`参数，可调用类型，开始拖动3D对象时执行的操作。
+
+`on_drag_end`参数，可调用类型，停止拖动3D对象时执行的操作。
+
+`drag_constraints`参数，字符串类型，表示用于限制被拖动的3D对象位置的JavaScript表达式，比如：`'x = 0, z = y / 2'`。
+
+`background_color`参数，字符串类型，场景的背景颜色，默认为`"#eee"`。
+
+如果想要想要点击事件，可以传递一个函数（或者lambda表达式这样的可调用对象）给场景控件的`on_click`参数。可以传递一个`SceneClickEventArguments`响应对象作为可调用对象的参数，该对象有以下属性：
+
+-   `click_type`：此次响应的点击的类型，"click"（点击）或者"dblclick"（双击）。
+
+-   `button`：鼠标的那个按键被按下，通常是0-4的整数数字（数字含义可以参考[文档](https://developer.mozilla.org/en-US/docs/Web/API/MouseEvent/button#value)），0表示鼠标主要按键（通常是左键），1表示鼠标辅助按键（通常是中键），2表示鼠标次要按键（通常是右键），3表示鼠标第四个按键（如果有的话，一般是浏览器前进功能按键），4表示鼠标第五个按键（如果有的话，一般是浏览器后退功能按键）。注意，如果只是订阅'click'或者'dblclick'事件，没法获取到鼠标主要按键之外的其他按键响应，只有订阅'mousedown'或者'mouseup'事件才能获取到其他鼠标按键的响应。
+
+-   `alt`：Alt键（Mac下的Opt键）是否被按下。
+
+-   `ctrl`：Ctrl键是否被按下。
+-   `meta`：Meta键（WIn的Win键或者Mac下的Cmd键）是否被按下。
+-   `shift`：Shift键是否被按下。
+-   `hits`： 表示被点击的结果。因为控件是二维的，空间是三维的，点击操作会覆盖到不止一个对象，所以结果返回的是一个包含多个`SceneClickEventHit`类型的被点击对象的列表，根据到相机的距离由近到远排序。可以取索引值为0的对象表示第一个被点击的对象。注意，天空不是可以点击的对象。
+
+对于`SceneClickEventHit`对象，该对象有以下属性：
+
+-   `object_id`：被点击对象的id。如果该对象是NiceGUI创建且没有指定id（给对象的id属性赋值即可指定id），id则是自动生成的随机id。
+-   `object_name`：被点击对象的name。如果该对象是NiceGUI创建且没有指定name（给对象的name属性赋值或使用with_name方法即可指定name），name则为`None`。
+-   `x`、`y`、`z`：鼠标点击位置的x、y、z坐标。
+
+```python3
+from nicegui import ui, events
+
+def handle_click(e: events.SceneClickEventArguments):
+    hit = e.hits[0] if e.hits else None
+    name = (hit.object_name or hit.object_id) if hit else 'sky'
+    ui.notify(f'You clicked on the {name} at ({hit.x:.2f}, {hit.y:.2f}, {hit.z:.2f})' if hit else f'You clicked on the {name}')
+
+with ui.scene(width=285, height=220, on_click=handle_click) as scene:
+    scene.sphere().move(x=-1, z=1).with_name('sphere')
+    scene.box().move(x=1, z=1).with_name('box')
+
+ui.run(native=True)
+```
+
+![ui_scene2](README_MORE.assets/ui_scene2.png)
+
+如果想要在物体上呼出右键菜单，需要订阅或者添加订阅'contextmenu'事件。注意，因为右键菜单创建之后属于场景控件，同一个控件只能有一个右键菜单，且菜单不支持动态刷新，如果想要实现右键菜单根据被点击对象显示不同内容，建议清除之前的菜单内容重新添加内容。代码如下：
+
+```python3
+from nicegui import events, ui
+
+def handle_click(e: events.SceneClickEventArguments) -> None:
+    context_menu.clear()
+    name = next((hit.object_name for hit in e.hits if hit.object_name), None)
+    with context_menu:
+            ui.item(name.capitalize()).classes('font-bold')
+            ui.menu_item('inspect')
+            ui.menu_item('open')
+
+with ui.element():
+    context_menu = ui.context_menu()
+    with ui.scene(width=285, height=220, on_click=handle_click,
+                  click_events=['contextmenu']) as scene:
+        scene.sphere().move(x=-1, z=1).with_name('sphere')
+        scene.box().move(x=1, z=1).with_name('box')
+
+ui.run(native=True)
+```
+
+![ui_scene3](README_MORE.assets/ui_scene3.png)
+
+使用3D物体的draggable方法可以让对象变成可拖动对象。可以传递一个函数（或者lambda表达式这样的可调用对象）给场景控件的`on_drag_start `参数和`on_drag_end `参数，来响应可拖动对象的拖动事件。同时，还可以传递一个`SceneDragEventArguments`响应对象作为可调用对象的参数，该对象有以下属性：
+
+-   `type`：此次响应的拖动事件的类型，"dragstart"（拖动开始）或者"dragend"（拖动结束）。
+
+-   `object_id`：被拖动对象的id。如果该对象是NiceGUI创建且没有指定id（给对象的id属性赋值即可指定id），id则是自动生成的随机id。
+-   `object_name`：被拖动对象的name。如果该对象是NiceGUI创建且没有指定name（给对象的name属性赋值或使用with_name方法即可指定name），name则为`None`。
+-   `x`、`y`、`z`：被拖动对象的当前位置的x、y、z坐标。
+
+此外，还可以设置场景控件的`drag_constraints`参数，来限制可拖动对象的运动规则。代码如下：
+
+```python3
+from nicegui import events, ui
+
+def handle_drag(e: events.SceneDragEventArguments):
+    ui.notify(f'You dropped the sphere at ({e.x:.2f}, {e.y:.2f}, {e.z:.2f})')
+
+with ui.scene(width=285, height=220,
+              drag_constraints='z = 1', on_drag_end=handle_drag) as scene:
+    sphere = scene.sphere().move(z=1).draggable()
+
+ui.switch('draggable sphere',
+          value=sphere.draggable_,
+          on_change=lambda e: sphere.draggable(e.value))
+
+ui.run(native=True)
+```
+
+![ui_scene4](README_MORE.assets/ui_scene4.png)
+
+一般来说，为了避免性能问题，拖动物体只会在拖动结束时返回物体的位置等属性。但是，可以使用on方法来显式订阅"drag"事件，以便实时获取物体位置。比如，在下面的代码，长方体的对角位置可以根据两个小球的位置实时刷新：
+
+```python3
+from nicegui import events, ui
+
+with ui.scene(width=285, drag_constraints='z=0') as scene:
+    box = scene.box(1, 1, 0.2).move(0, 0).material('Orange')
+    sphere1 = scene.sphere(0.2).move(0.5, -0.5).material('SteelBlue').draggable()
+    sphere2 = scene.sphere(0.2).move(-0.5, 0.5).material('SteelBlue').draggable()
+
+def handle_drag(e: events.GenericEventArguments) -> None:
+    x1 = sphere1.x if e.args['object_id'] == sphere2.id else e.args['x']
+    y1 = sphere1.y if e.args['object_id'] == sphere2.id else e.args['y']
+    x2 = sphere2.x if e.args['object_id'] == sphere1.id else e.args['x']
+    y2 = sphere2.y if e.args['object_id'] == sphere1.id else e.args['y']
+    box.move((x1 + x2) / 2, (y1 + y2) / 2).scale(x2 - x1, y2 - y1, 1)
+scene.on('drag', handle_drag)
+
+ui.run(native=True)
+```
+
+![ui_scene5](README_MORE.assets/ui_scene5.gif)
+
+可以使用point_cloud对象来渲染点云（具体参见[官方文档](https://threejs.org/docs/index.html#api/en/objects/Points)，但NiceGUI的构造方法与官方有差异）。
+
+point_cloud对象支持三个参数和一个方法：
+
+`points`参数，浮点类型列表的列表，每个浮点类型列表表示点的坐标，比如，`[[1,2,4]]`。
+
+`colors`参数，浮点类型列表的列表，每个浮点类型列表表示点的RGB颜色（每个元素取值0-1），比如，`[[0.5,0。5,0]]` 。
+
+`point_size`参数，浮点类型，表示点的尺寸，默认为1.0。
+
+`set_points`方法可以设置、更新点云的点数据，参数是`points`和`colors`，含义同上。
+
+示例如下：
+
+```python3
+import numpy as np
+from nicegui import ui
+
+def generate_data(frequency: float = 1.0):
+    x, y = np.meshgrid(np.linspace(-3, 3), np.linspace(-3, 3))
+    z = np.sin(x * frequency) * np.cos(y * frequency) + 1
+    points = np.dstack([x, y, z]).reshape(-1, 3)
+    colors = points / [6, 6, 2] + [0.5, 0.5, 0]
+    return points, colors
+
+with ui.scene().classes('w-full h-64') as scene:
+    points, colors = generate_data()
+    point_cloud = scene.point_cloud(points, colors, point_size=0.1)
+
+ui.slider(min=0.1, max=3, step=0.1, value=1) \
+    .on_value_change(lambda e: point_cloud.set_points(*generate_data(e.value)))
+
+ui.run(native=True)
+```
+
+![ui_scene6](README_MORE.assets/ui_scene6.png)
+
+场景控件因为是基于3D渲染插件，加载过程会比一般的控件慢一些。而有的方法需要等待场景完全加载才能执行。所以，在下面的代码中，使用了`await scene.initialized()`来等待场景完成加载，然后再执行移动相机的操作：
+
+```python3
+from nicegui import ui
+
+@ui.page('/')
+async def page():
+    with ui.scene(width=285, height=220) as scene:
+        scene.sphere()
+        await scene.initialized()
+        scene.move_camera(x=1, y=-1, z=1.5, duration=2)
+
+ui.run(native=True)
+```
+
+场景视图控件ui.scene_view可以显示一个指定场景的额外视图。注意，场景视图不同于场景，视图只是显示场景的内容，不能修改场景（无法与场景中的物体、视角交互，比如，拖动和旋转），但可以修改视图的相机来改变视图。此外，目前视图中不能显示2D文字和3D文字。
+
+该控件支持以下参数：
+
+`scene`参数，ui.scene类型，想要在视图内显示哪个场景的内容。
+
+`width`参数，整数类型，视图的宽度。
+
+`height`参数，整数类型，视图的高度。
+
+`camera`参数，视图使用的相机，该参数需要传入`ui.scene.perspective_camera`（透视相机）或 `ui.scene.orthographic_camera`（正交相机）的实例，默认为透视相机。至于两种相机的区别和参数用法，可以参考前面场景的介绍。
+
+`on_click`参数，和场景的`on_click`参数一致，点击视图中的物体时执行什么操作。
+
+示例如下：
+
+```python3
+from nicegui import ui
+
+with ui.grid(columns=2).classes('w-full'):
+    with ui.scene().classes('h-64 col-span-2') as scene:
+        scene.box().scale(4,4,4)
+
+    with ui.scene_view(scene).classes('h-32') as scene_view1:
+        scene_view1.move_camera(x=1, y=-3, z=5)
+
+    with ui.scene_view(scene).classes('h-32') as scene_view2:
+        scene_view2.move_camera(x=0, y=4, z=3)
+
+ui.run(native=True)
+```
+
+![ui_scene7](README_MORE.assets/ui_scene7.png)
+
+使用get_camera方法可以获取当前状态下的相机参数字典，可以从字典中读取position（位置）、rotation（旋转角）、fov（视野角）等信息。完整的字典可以参考下面截取的两种相机的实际数据：
+
+```python3
+{
+    'position': {
+        'x': 0,
+        'y': -2.9999999999999987,
+        'z': 4.999999999999998
+    },
+    'up': {
+        'x': 0,
+        'y': 0,
+        'z': 1
+    },
+    'rotation': {
+        'isEuler': True,
+        '_x': 0.5404195002705839,
+        '_y': 0,
+        '_z': 0,
+        '_order': 'XYZ'
+    },
+    'quaternion': [0.26693358189581146, 0, 0, 0.9637149282107609],
+    'type': 'PerspectiveCamera',
+    'fov': 75,
+    'aspect': 2.5625,
+    'near': 0.1,
+    'far': 1000
+}
+{
+    'position': {
+        'x': -0.9652986025245365,
+        'y': -5.405483811638195,
+        'z': 1.9618724143227206},
+    'up': {
+        'x': 0,
+        'y': 0,
+        'z': 1
+    },
+    'rotation':     {
+        'isEuler': True,
+        '_x': 1.2226394968534156,
+        '_y': -0.16631298807245398,
+        '_z': -0.06001179425981142,
+        '_order': 'XYZ'
+    },
+    'quaternion': [0.5737485637603458, -0.05082729522319045, -0.07213409977360341, 0.8142639886996642],
+    'type': 'OrthographicCamera',
+    'aspect': 2.93359375,
+    'near': 0.1,
+    'far': 1000,
+    'left': -14.66796875,
+    'right': 14.66796875,
+    'top': 5,
+    'bottom': -5
+}
+```
+
+代码则展示了每十秒获取一次相机参数：
+
+```python3
+from nicegui import ui
+
+@ui.page('/')
+async def index():
+    with ui.scene().classes('w-full h-64') as scene:
+        ball = scene.sphere()
+    async def move():
+        camera = await scene.get_camera()
+        if camera is not None:
+            print(camera)
+    ui.timer(10, move)
+
+ui.run(native=True)
+```
+
+对于想要自定义组合3D对象的读者，可以参考下面的代码。示例代码创建了一个自定义类，将模拟三维坐标轴，可以看做是默认axes_helper对象（[官网文档](https://threejs.org/docs/index.html#api/en/helpers/AxesHelper)）的替代方案。
+
+代码如下：
+
+```python3
+import math
+from nicegui import ui
+
+class CoordinateSystem(ui.scene.group):
+
+    def __init__(self, name: str, *, length: float = 1.0) -> None:
+        super().__init__()
+
+        with self:
+            for label, color, rx, ry, rz in [
+                ('x', '#ff0000', 0, 0, -math.pi / 2),
+                ('y', '#00ff00', 0, 0, 0),
+                ('z', '#0000ff', math.pi / 2, 0, 0),
+            ]:
+                with ui.scene.group().rotate(rx, ry, rz):
+                    ui.scene.cylinder(0.02 * length, 0.02 * length, 0.8 * length) \
+                        .move(y=0.4 * length).material(color)
+                    ui.scene.cylinder(0, 0.1 * length, 0.2 * length) \
+                        .move(y=0.9 * length).material(color)
+                    ui.scene.text(label, style=f'color: {color}') \
+                        .move(y=1.1 * length)
+            ui.scene.text(name, style='color: #808080')
+
+with ui.scene().classes('w-full h-64'):
+    CoordinateSystem('origin')
+    CoordinateSystem('custom frame').move(-2, -2, 1).rotate(0.1, 0.2, 0.3)
+
+ui.run(native=True)
+```
+
+![ui_scene8](README_MORE.assets/ui_scene8.png)
 
 
 
 以下内容随缘更新：
 
 3.14.8 ui.aggrid
+
+
+
+https://www.ag-grid.com/vue-data-grid/grid-options/
+
+https://www.ag-grid.com/javascript-data-grid/reference/
 
 3.14.9 ui.highchart
 
@@ -4170,6 +4569,28 @@ with ui.carousel(animated=True, arrows=True, navigation=True).props('height=180p
     with carousel.add_slot('control') ,ui.element('q-carousel-control').props('position="top-right"'):
         ui.button('prev',on_click=carousel.previous)
         ui.button('next',on_click=carousel.next)
+
+ui.run(native=True)
+```
+
+### 4.9 ui.tree
+
+1，如何实现点击树形图的文字部分也能展开子节点？
+
+可以在on('click')中添加对当前节点是否展开的判断，然后展开、收起当前节点。
+
+```python3
+from nicegui import ui
+
+ui.tree([
+    {'id': 'numbers', 'children': [{'id': '1'}, {'id': '2'}]},
+    {'id': 'letters', 'children': [{'id': 'A'}, {'id': 'B'}]},
+], label_key='id').classes('w-full').props('no-selection-unset').on('click',lambda e:e.sender.run_method('setExpanded',e.sender.props['selected'],False if e.sender.props['selected'] in e.sender.props['expanded'] else True ))
+
+ui.tree([
+    {'id': 'numbers', 'children': [{'id': '1'}, {'id': '2'}]},
+    {'id': 'letters', 'children': [{'id': 'A'}, {'id': 'B'}]},
+], label_key='id').classes('w-full').props('no-selection-unset').on('click',lambda e:e.sender.collapse([e.sender.props['selected']]) if e.sender.props['selected'] in e.sender.props['expanded'] else e.sender.expand([e.sender.props['selected']]) )
 
 ui.run(native=True)
 ```
