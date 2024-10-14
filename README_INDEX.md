@@ -110,6 +110,12 @@ chinese_guide_of_nicegui_for_beginner
 pdm add nicegui
 ```
 
+如果运行环境是全局环境或者想用pip安装，可以执行下面的命令安装：
+
+```shell
+pip install nicegui
+```
+
 安装过程取决于网速，耐心等待。
 
 如果后续项目中需要使用其他库，可以使用`pdm add 库对应的pip安装命令中的名字`来添加到项目环境中。
@@ -118,6 +124,14 @@ pdm add nicegui
 
 ```shell
 pdm add pywebview
+```
+
+如果运行环境是全局环境或者想用pip安装，可以执行下面的命令安装：
+
+```shell
+pip install nicegui[native]
+#或者下面这条
+pip install pywebview
 ```
 
 对于没有安装过Microsoft Edge WebView2或者版本较旧的Windows系统，建议访问 [ Microsoft Edge WebView2下载 ](https://developer.microsoft.com/zh-cn/microsoft-edge/webview2 ) 安装最新版本。

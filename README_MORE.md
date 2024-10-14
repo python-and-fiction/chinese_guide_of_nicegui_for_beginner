@@ -361,7 +361,7 @@ ui.run(native=True)
 
 有时候，网页上不同页面、用户需要存储、共享特定数据，依靠自己编程实现的话确实麻烦。好在NiceGUI提供了一种简单有效的数据存储功能，那就是`app.storage`（存储）。 存储有5个子字典，分别对应着不同的空间，有不同的应用范围：
 
--   `app.storage.tab`：存储在服务器的内存中，此字典对于每个选项卡、会话都是唯一的，可以存储任意对象。需要注意的是，在实现 https://github.com/zauberzeug/nicegui/discussions/2841 之前，重启服务器会导致此字典的数据丢失。此外，此字典只能在仅在[`ui.page`](https://nicegui.io/documentation/page)中使用，并且需要等待客户端建立连接（确保读写此字典的操作在异步函数内的 [`await ui.context.client.connected()`](https://nicegui.io/documentation/page#wait_for_client_connection)之后）。
+-   `app.storage.tab`：存储在服务器的内存中，此字典对于每个选项卡、会话都是唯一的，可以存储任意对象。需要注意的是，在实现 https://github.com/zauberzeug/nicegui/discussions/2841 之前，重启服务器会导致此字典的数据丢失。对于使用复制选项卡功能（右键选项卡点复制）创建的新选项卡，二者的tab_id（ui.context.client.tab_id）是相同的，因此，复制的选项卡与原选项卡共享此字典。此外，此字典只能在仅在[`ui.page`](https://nicegui.io/documentation/page)中使用，并且需要等待客户端建立连接（确保读写此字典的操作在异步函数内的 [`await ui.context.client.connected()`](https://nicegui.io/documentation/page#wait_for_client_connection)之后）。
 -   `app.storage.client`：该字典也存储在服务器的内存中，对于每个客户端连接都是唯一的，并且可以存储任意对象。当页面重新加载或用户导航到另一个页面时，数据将被销毁。不同于能在服务器上保存数据好几天的`app.storage.tab`，`app.storage.client`更适合缓存频繁使用、一次性的数据。比如，需要动态更新的数据或者数据库连接，但希望在用户离开页面或关闭浏览器时立即销毁。同样的，这个字典只能在[`ui.page`](https://nicegui.io/documentation/page)中使用。
 -   `app.storage.user`：存储在服务器磁盘中，每个字典都与浏览器cookie中保存的唯一标识符相关联，换句话说，此字典对于每个用户都是唯一的，并与浏览器的其他选项卡共享。可以通过存储在`app.storage.browser['id']`的标识符识别用户、会话。同样的，这个字典只能在[`ui.page`](https://nicegui.io/documentation/page)中使用。此外，这个字典需要设置`ui.run()`的`storage_secret`参数来签名浏览器会话cookie。
 -   `app.storage.general`：该字典也存储在服务器磁盘中，提供了所有用户都可以访问的共享存储空间。
@@ -2883,6 +2883,22 @@ ui.run(native=True)
 
 这三个功能都可以添加CSS代码，只是对应的CSS代码语法规则不同。
 
+ui.add_scss和ui.add_sass依赖的libsass默认不安装，如果想要使用此控件，可以在项目根目录下使用以下命令安装：
+
+```shell
+pdm add nicegui[sass]
+#或者下面这条
+pdm add libsass
+```
+
+如果运行环境是全局环境或者想用pip安装，可以执行下面的命令安装：
+
+```shell
+pip install nicegui[sass]
+#或者下面这条
+pip install libsass
+```
+
 SASS是一款强化 CSS 的辅助工具，它在 CSS 语法的基础上增加了变量 (variables)、嵌套 (nested rules)、混合 (mixins)、导入 (inline imports) 等高级功能，这些拓展令 CSS 更加强大与优雅。简单一点理解的话，SASS是CSS扩展版本。SASS有两种语法风格：以scss为后缀的，是语法风格和CSS一致的版本，即采用大括号表示所属，用分号表示一句内容的结束；以sass为后缀的，是语法风格变成用缩进代替大括号、用换行代替分号的版本。
 
 因此ui.add_css、ui.add_scss、ui.add_sass分别代表可以添加标准CSS代码、scss风格代码、sass风格代码。因为scss语法风格和CSS一致，基本兼容CSS，所以，可以用ui.add_scss添加CSS代码，反之不行。
@@ -3003,9 +3019,9 @@ ui.run(native=True)
 
 <img src="README_MORE.assets/ui_keyboard.png" alt="ui_keyboard" style="zoom: 67%;" />
 
-### 3.14 其他数据展示控件【随时更新】
+### 3.14 其他数据展示控件
 
-因为大部分数据展示控件使用的是第三方扩展库，主要用法、API全在第三方网站上，这里只重点讲一下非第三方扩展库的控件。使用扩展库的控件，只简单过一遍基本用法，更多用法则以问题补充的形式添加，就不在教程中细讲。如果实在没有时间的话，使用扩展库的控件可能就随缘更新了。
+因为大部分数据展示控件使用的是第三方扩展库，主要用法、API全在第三方网站上，这里只重点讲一下非第三方扩展库的控件。使用扩展库的控件，只简单过一遍基本用法，更多用法则以问题补充的形式添加，就不在教程中细讲。
 
 #### 3.14.1 ui.table
 
@@ -4210,31 +4226,1189 @@ ui.run(native=True)
 
 ![ui_scene8](README_MORE.assets/ui_scene8.png)
 
+#### 3.14.8 ui.aggrid
+
+AG网格控件可以显示表格数据，NiceGUI的AG网格控件的功能实现源自于[AG Grid](https://www.ag-grid.com/)（社区版，暂时不支持企业版）。
+
+不同于ui.table，AG网格支持的功能更多，可以使用`run_grid_method`方法和`run_row_method`方法，来与AG网格实例 交互，详细用法可以参考[官方文档](https://www.ag-grid.com/javascript-data-grid/reference/)。
+
+先看示例：
+
+```python3
+from nicegui import ui
+
+grid = ui.aggrid({
+    'defaultColDef': {'flex': 1},
+    'columnDefs': [
+        {'headerName': 'Name', 'field': 'name'},
+        {'headerName': 'Age', 'field': 'age'},
+        {'headerName': 'Parent', 'field': 'parent', 'hide': True},
+    ],
+    'rowData': [
+        {'name': 'Alice', 'age': 18, 'parent': 'David'},
+        {'name': 'Bob', 'age': 21, 'parent': 'Eve'},
+        {'name': 'Carol', 'age': 42, 'parent': 'Frank'},
+    ],
+    'rowSelection': 'multiple',
+}).classes('max-h-40')
+
+def update():
+    grid.options['rowData'][0]['age'] += 1
+    grid.update()
+
+ui.button('Update', on_click=update)
+ui.button('Select all', on_click=lambda: grid.run_grid_method('selectAll'))
+ui.button('Show parent', on_click=lambda: grid.run_grid_method('setColumnsVisible', ['parent'], True))
+
+ui.run(native=True)
+```
+
+![ui_aggrid](README_MORE.assets/ui_aggrid.png)
+
+控件支持以下参数：
+
+`options`参数，字典类型，表示AG网格的选项定义，可以定义网格选项（具体定义内容参考[官网文档](https://www.ag-grid.com/javascript-data-grid/grid-options/)），网格选项中包含列选项（对应的字典键是'columnDefs'，具体定义内容参考[官网文档](https://www.ag-grid.com/javascript-data-grid/column-properties/)）和具体的行数据（对应的字典键是'rowData'）。以示例代码为例，'defaultColDef'表示默认的列定义，适合定义每行都要设置的定义；'rowSelection'表示行的选择方式，可以是单选（'single'）或者多选（'multiple'），也可以采用`{'mode':"singleRow"}`、`{'mode':"multiRow"}`这样的RowSelectionOptions对象定义，支持更多相关样式定义。
+
+`html_columns`参数，整数列表，表示哪些列的数据当作HTML格式渲染，默认为空列表，即所有列的数据不当作HTML格式渲染。
+
+`theme`参数，字符串类型，表示AG网格的显示主题（支持的主题名参考[官网文档](https://www.ag-grid.com/javascript-data-grid/themes/)），默认为'balham'。
+
+`auto_size_columns`参数，布尔类型，表示是否根据表格内容自动调节列宽，默认为`True`。
+
+可以设置列选项的 'checkboxSelection'为`True`添加单选或者多选的复选框，也可以设置网格选项的'rowSelection'为RowSelectionOptions对象格式（[官网文档](https://www.ag-grid.com/javascript-data-grid/grid-options/#reference-selection-rowSelection)），默认会显示复选框。但是，需要注意的是，通过设置网格选项的'rowSelection'得到复选框是单独一列，而不是在指定的列内。选择行之后，可以使用get_selected_rows方法，以字典的形式获取被选择的行。如果是单选，则可以用get_selected_row方法直接获取该行数据或者`None`（如果没有数据被选择时）。实际上，get_selected_row方法就是直接返回get_selected_rows方法结果的第一个（索引值为0）元素，并在判断为空时返回`None`。
+
+代码如下：
+
+```python3
+from nicegui import ui
+
+@ui.page('/')
+def index():
+    grid = ui.aggrid({
+    'columnDefs': [
+        {'headerName': 'Name', 'field': 'name', 'checkboxSelection': True},
+        {'headerName': 'Age', 'field': 'age'},
+    ],
+    'rowData': [
+        {'name': 'Alice', 'age': 18},
+        {'name': 'Bob', 'age': 21},
+        {'name': 'Carol', 'age': 42},
+    ],
+    'rowSelection': 'multiple',
+}).classes('max-h-40')
+
+    async def output_selected_rows():
+        rows = await grid.get_selected_rows()
+        if rows:
+            for row in rows:
+                ui.notify(f"{row['name']}, {row['age']}")
+        else:
+            ui.notify('No rows selected.')
+
+    async def output_selected_row():
+        row = await grid.get_selected_row()
+        if row:
+            ui.notify(f"{row['name']}, {row['age']}")
+        else:
+            ui.notify('No row selected!')
+
+    ui.button('Output selected rows', on_click=output_selected_rows)
+    ui.button('Output selected row', on_click=output_selected_row)
+
+ui.run(native=True)
+```
+
+![ui_aggrid2](README_MORE.assets/ui_aggrid2.png)
+
+在表头添加迷你过滤器（[官网文档](https://www.ag-grid.com/javascript-data-grid/filter-set-mini-filter/)），可以用来筛选对应列下的数据。在下面的代码中，除了添加迷你过滤器（也就是漏斗图标），还启用了浮动显示过滤器（也就是第一行的输入框），这两个参数相关的过滤器选项，可以参考[官网文档](https://www.ag-grid.com/javascript-data-grid/column-properties/#reference-filtering)。过滤的类型可以是"agTextColumnFilter"（文本过滤器）、"agNumberColumnFilter"（数字过滤器）、"agDateColumnFilter"（日期过滤器），除了这三种过滤器，还有两种是企业版功能，这里就不介绍了，相关类型可以参考[官网文档](https://www.ag-grid.com/javascript-data-grid/filtering/#column-filter-types)。
+
+示例如下：
+
+```python3
+from nicegui import ui
+
+ui.aggrid({
+    'columnDefs': [
+        {'headerName': 'Name', 'field': 'name', 'filter': 'agTextColumnFilter', 'floatingFilter': True},
+        {'headerName': 'Age', 'field': 'age', 'filter': 'agNumberColumnFilter', 'floatingFilter': True},
+    ],
+    'rowData': [
+        {'name': 'Alice', 'age': 18},
+        {'name': 'Bob', 'age': 21},
+        {'name': 'Carol', 'age': 42},
+    ],
+}).classes('max-h-40')
+
+ui.run(native=True)
+```
+
+![ui_aggrid3](README_MORE.assets/ui_aggrid3.png)
+
+列定义中的'cellClassRules'可以实现根据网格的数据，设置网格的CSS类。其值是一个字典，字典的键（key）是要应用的CSS类名，字典的值（value）是用作判断条件的JavaScript表达式，更多用法可以参考[官网文档](https://www.ag-grid.com/javascript-data-grid/column-properties/#reference-styling-cellClassRules)。注意，因为字典的值是JavaScript表达式，需要在字典的键的字符串内添加英文冒号':'，启用计算表达式功能。
+
+示例代码如下：
+
+```python3
+ui.aggrid({
+    'columnDefs': [
+        {'headerName': 'Name', 'field': 'name'},
+        {'headerName': 'Age', 'field': 'age', 'cellClassRules': {
+            ':bg-red-300': 'params => params.value < 21',
+            ':bg-green-300': 'params => params.value >= 21',
+        }},
+    ],
+    'rowData': [
+        {'name': 'Alice', 'age': 18},
+        {'name': 'Bob', 'age': 21},
+        {'name': 'Carol', 'age': 42},
+    ],
+})
+
+ui.run(native=True)
+```
+
+![ui_aggrid4](README_MORE.assets/ui_aggrid4.png)
+
+当然，如果不想写得这么复杂，可以使用映射的变量代替完整的JavaScript语法，具体参考[官网文档](https://www.ag-grid.com/javascript-data-grid/cell-styles/#cell-class-rules)：
+
+-   `x`：映射了`value`。
+-   `ctx`：映射了`context`。
+-   `node`：映射了`node`。
+-   `data`：映射了`data`。
+-   `colDef`：映射了`colDef`。
+-   `rowIndex`：映射了`rowIndex`。
+-   `api`：映射了`grid api`。
+
+这样的话，只写简单的逻辑表达式就可以了，简化写法如下：
+
+```python3
+from nicegui import ui
+
+ui.aggrid({
+    'columnDefs': [
+        {'headerName': 'Name', 'field': 'name'},
+        {'headerName': 'Age', 'field': 'age', 'cellClassRules': {
+            'bg-red-300': 'x < 21',
+            'bg-green-300': 'x >= 21',
+        }},
+    ],
+    'rowData': [
+        {'name': 'Alice', 'age': 18},
+        {'name': 'Bob', 'age': 21},
+        {'name': 'Carol', 'age': 42},
+    ],
+})
+
+ui.run(native=True)
+```
+
+AG网格作为一个表格控件，同样支持从pandas中导入数据，使用 from_pandas方法即可：
+
+```python3
+import pandas as pd
+from nicegui import ui
+
+df = pd.DataFrame(data={'col1': [1, 2], 'col2': [3, 4]})
+ui.aggrid.from_pandas(df).classes('max-h-40')
+
+ui.run(native=True)
+```
+
+设定AG网格控件的`html_columns`参数，可以指定哪几列的数据当作HTML格式：
+
+```python3
+from nicegui import ui
+
+ui.aggrid({
+    'columnDefs': [
+        {'headerName': 'Name', 'field': 'name'},
+        {'headerName': 'URL', 'field': 'url'},
+    ],
+    'rowData': [
+        {'name': 'Baidu', 'url': '<a href="https://www.baidu.com/">Baidu</a>'},
+        {'name': 'GitHub', 'url': '<a href="https://github.com/">GitHub</a>'},
+    ],
+}, html_columns=[1])
+
+ui.run(native=True)
+```
+
+![ui_aggrid5](README_MORE.assets/ui_aggrid5.png)
+
+AG网格控件的所有事件（[网格事件](https://www.ag-grid.com/javascript-data-grid/grid-events/)、[列事件](https://www.ag-grid.com/javascript-data-grid/column-events/)、[行事件](https://www.ag-grid.com/javascript-data-grid/row-events/)）都可以使用on方法订阅，使用Python代码编写事件的响应操作：
+
+```python3
+from nicegui import ui
+
+ui.aggrid({
+    'columnDefs': [
+        {'headerName': 'Name', 'field': 'name'},
+        {'headerName': 'Age', 'field': 'age'},
+    ],
+    'rowData': [
+        {'name': 'Alice', 'age': 18},
+        {'name': 'Bob', 'age': 21},
+        {'name': 'Carol', 'age': 42},
+    ],
+}).on('cellClicked', lambda event: ui.notify(f'Cell value: {event.args["value"]}'))
+
+ui.run(native=True)
+```
+
+![ui_aggrid6](README_MORE.assets/ui_aggrid6.png)
+
+如果'rowData'的数据中，键对应的值是字典，则字典被称为子域。那么，列选项的'field'就可以通过英文句号选择'rowData'的子域数据（参考[官网文档](https://www.ag-grid.com/javascript-data-grid/value-getters/#field)）。因此，'rowData'的键（key）不能有英文句号。
+
+示例代码如下：
+
+```python3
+from nicegui import ui
+
+ui.aggrid({
+    'columnDefs': [
+        {'headerName': 'First name', 'field': 'name.first'},
+        {'headerName': 'Last name', 'field': 'name.last'},
+        {'headerName': 'Age', 'field': 'age'}
+    ],
+    'rowData': [
+        {'name': {'first': 'Alice', 'last': 'Adams'}, 'age': 18},
+        {'name': {'first': 'Bob', 'last': 'Brown'}, 'age': 21},
+        {'name': {'first': 'Carol', 'last': 'Clark'}, 'age': 42},
+    ],
+}).classes('max-h-40')
+
+ui.run(native=True)
+```
+
+![ui_aggrid7](README_MORE.assets/ui_aggrid7.png)
+
+行高除了设置网格选项中的'rowHeight'这种统一值，还可以设置'getRowHeight'这种支持表达式的动态值，更多用法参考[官网文档](https://www.ag-grid.com/javascript-data-grid/grid-options/#reference-styling-getRowHeight)。注意，因为表达式是JavaScript语法，在NiceGUI中，需要添加英文冒号':'当前缀，启用计算表达式功能。
+
+示例代码如下：
+
+```python3
+from nicegui import ui
+
+ui.aggrid({
+    'columnDefs': [{'field': 'name'}, {'field': 'age'}],
+    'rowData': [
+        {'name': 'Alice', 'age': '18'},
+        {'name': 'Bob', 'age': '21'},
+        {'name': 'Carol', 'age': '42'},
+    ],
+    ':getRowHeight': 'params => params.data.age > 35 ? 50 : 25',
+}).classes('max-h-40')
+
+ui.run(native=True)
+```
+
+![ui_aggrid8](README_MORE.assets/ui_aggrid8.png)
+
+运行run_row_method方法可以调用AG Grid提供的接口方法（[官网文档](https://www.ag-grid.com/javascript-data-grid/row-object/)）来影响单行数据，这个方法的参数分别是行ID、接口方法名、传给接口方法的参数。行ID可以是字符串类型的行索引值，也可以是网格选项'getRowId'提供的获取唯一ID的方法。比如，在下面的示例中，`':getRowId': '(params) => params.data.name'`就是定义了使用name列的数据当作每行数据的唯一ID。
+
+需要注意的是，在点击'UPDATE'按钮、显示的数据更新的同时，行的选择状态是保留的。但是，如果是使用update方法（NiceGUI提供的，在其他更新数据的情况下，为了确保显示正常，可能需要调用此方法）来更新AG网格控件，选择状态则不会保留。 
+
+示例代码如下：
+
+```python3
+from nicegui import ui
+
+grid = ui.aggrid({
+    'columnDefs': [
+        {'field': 'name', 'checkboxSelection': True},
+        {'field': 'age'},
+    ],
+    'rowData': [
+        {'name': 'Alice', 'age': 18},
+        {'name': 'Bob', 'age': 21},
+        {'name': 'Carol', 'age': 42},
+    ],
+    ':getRowId': '(params) => params.data.name',
+})
+ui.button('Update',
+          on_click=lambda: grid.run_row_method('Alice', 'setDataValue', 'age', 99))
+
+ui.run(native=True)
+```
+
+![ui_aggrid9](README_MORE.assets/ui_aggrid9.gif)
+
+除了传入方法名、方法参数给run\_\*\_method方法来调用接口方法，还可以给方法名传入定义了JavaScript箭头函数（[参考文档](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Functions/Arrow_functions)）的字符串，可以实现在一定程度上自由运行特定方法。
+
+以下面的代码为例，`'g => g.getDisplayedRowAtIndex(0).data'`就是定义了一个JavaScript箭头函数，这种函数的用法和Python的lambda表达式一样，本质上是一个函数，只是没有函数名，可以当做函数用，字符串内的'=>'前是参数，后面是该方法的返回值。这个箭头函数的返回值是获取getDisplayedRowAtIndex（[官网文档](https://www.ag-grid.com/javascript-data-grid/grid-api/#reference-displayedRows-getDisplayedRowAtIndex)）执行结果的data属性。getDisplayedRowAtIndex(0)执行结果是从显示的行中取第一个（索引值为0），其data属性就是这一行的数据，可以看作是`{'name': 'Alice'}`这样的字典，这也就是该行代码执行的结果。
+
+需要注意的是，因为这种方法和客户端数据相关，只能在ui.page内使用，不能用在auto-index页面。
+
+示例代码如下：
+
+```python3
+from nicegui import ui
+
+@ui.page('/')
+def page():
+    grid = ui.aggrid({
+        'columnDefs': [{'field': 'name'}],
+        'rowData': [{'name': 'Alice'}, {'name': 'Bob'}],
+    })
+
+    async def get_first_name() -> None:
+        row = await grid.run_grid_method('g => g.getDisplayedRowAtIndex(0).data')
+        ui.notify(row['name'])
+
+    ui.button('Get First Name', on_click=get_first_name)
+
+ui.run(native=True)
+```
+
+![ui_aggrid10](README_MORE.assets/ui_aggrid10.png)
+
+AG网格有暗黑模式下的主题，但因为是第三方库，所以并不支持Quasar体系的自动切换暗黑模式。但可以使用下面的代码实现手动切换：
+
+```python3
+from nicegui import events, ui
+
+grid = ui.aggrid({})
+dark = ui.dark_mode()
+
+def handle_theme_change(e: events.ValueChangeEventArguments):
+    grid.classes(add='ag-theme-balham-dark' if dark.value else 'ag-theme-balham',
+                 remove='ag-theme-balham ag-theme-balham-dark')
+
+ui.switch('Dark', on_change=handle_theme_change).bind_value_to(dark)
+
+ui.run(native=True)
+```
+
+![ui_aggrid11](README_MORE.assets/ui_aggrid11.gif)
+
+#### 3.14.9 ui.highchart
+
+highchart图表控件可以绘制Highchart图表，功能实现源于[Highcharts](https://www.highcharts.com/)。需要注意的是，该插件商用需要购买商业许可，如有商用需求，请到官网购买许可。同样因为许可限制，NiceGUI将此控件的相关代码放在单独的仓库中维护，如果想要使用此控件，可以在项目根目录下使用以下命令安装：
+
+```shell
+pdm add nicegui[highcharts]
+#或者下面这条
+pdm add nicegui-highcharts
+```
+
+如果运行环境是全局环境或者想用pip安装，可以执行下面的命令安装：
+
+```bash
+pip install nicegui[highcharts]
+#或者下面这条，但需要确保已经安装了nicegui
+pip install nicegui-highcharts
+```
+
+本控件的主要用法需要读者了解Highcharts，如果没有相关基础，可以先去看看Highcharts官网的[入门文档](https://www.highcharts.com/docs/index)。
+
+更新options属性，可以将数据更新推送到图表上。但是，需要注意的是，更新数据之后，需要调用update方法。
+
+先看代码示例：
+
+```python3
+from nicegui import ui
+from random import random
+
+chart = ui.highchart({
+    'title': False,
+    'chart': {'type': 'bar'},
+    'xAxis': {'categories': ['A', 'B']},
+    'series': [
+        {'name': 'Alpha', 'data': [0.1, 0.2]},
+        {'name': 'Beta', 'data': [0.3, 0.4]},
+    ],
+    'credits': {'enabled': False}
+}).classes('w-full h-64')
 
 
-以下内容随缘更新：
+def update():
+    chart.options['series'][0]['data'][0] = random()
+    chart.update()
 
-3.14.8 ui.aggrid
+
+ui.button('Update', on_click=update)
+
+ui.run(native=True)
+```
+
+![ui_highchart](README_MORE.assets/ui_highchart.png)
+
+控件支持以下参数：
+
+`options`参数，字典类型，给Highcharts传入的图表选项定义，具体参考[官网文档](https://api.highcharts.com/highcharts/)。就示例而言，用到的主要是'title'（标题，布尔类型的False为不显示，可以使用子字典定义标题样式和内容，具体见[文档](https://api.highcharts.com/highcharts/title)）、'chart'（图表样式，这里使用子字典定义图表类型使用柱状图'bar'，如果需要设置其他类型，可以参考[绘图选项](https://api.highcharts.com/highcharts/plotOptions)，而其他图表样式具体见[文档](https://api.highcharts.com/highcharts/chart)）、'xAxis'（设定x轴，具体见[文档](https://api.highcharts.com/highcharts/xAxis)）、'series'（具体数据，具体见[文档](https://api.highcharts.com/highcharts/title)）、'credits'（版权信息，具体见[文档](https://api.highcharts.com/highcharts/credits)）。
+
+type参数，字符串类型，表示要绘制的图表大类，默认是"chart"（常规图表），即官网文档中的Highcharts.chart，如果想绘制其他图表。比如Highcharts.stockChart，则需要设置此参数为"stockChart"（股票图）。此参数支持"chart"、"stockChart"、"mapChart"、"ganttChart"等，具体每一种图表大类对应的方法、数据格式均不同，下面仅讲解常规图表。
+
+`extras`参数，字符串列表，表示需要导入的额外依赖（Highcharts将不常用的功能及其依赖做成了插件，按需导入）， 比如"annotations"、"arc-diagram"、"solid-gauge"等。
+
+`on_point_click`参数，可调用类型，表示图表上的点被点击时执行的操作。
+
+`on_point_drag_start`参数，可调用类型，表示图表上的点开始拖动时执行的操作。
+
+`on_point_drag`参数，可调用类型，表示图表上的点处于拖动状态时执行的操作。
+
+`on_point_drop`参数，可调用类型，表示图表上的点放下时执行的操作。
+
+有的图表类型不是常用的类型，需要导入额外依赖，比如下面代码中的'solidgauge'，参考[官网文档](https://api.highcharts.com/highcharts/plotOptions.solidgauge)，可知其需要[`modules/solid-gauge`](https://code.highcharts.com/modules/solid-gauge.js)（没有requires的话说明不需要额外导入），所以需要给`extras`参数传入需要导入的依赖`['solid-gauge']`：
+
+```python3
+from nicegui import ui
+
+ui.highchart({
+    'title': False,
+    'chart': {'type': 'solidgauge'},
+    'yAxis': {
+        'min': 0,
+        'max': 1,
+    },
+    'series': [
+        {'data': [0.42]},
+    ],
+    'credits': {'enabled': False}
+}, extras=['solid-gauge']).classes('w-full h-64')
+
+ui.run(native=True)
+```
+
+![ui_highchart2](README_MORE.assets/ui_highchart2.png)
+
+如果设置图表允许拖动点，则可以注册以下事件来响应拖动操作：
+
+-   `on_point_click`：点击点。
+-   `on_point_drag_start`：开始拖动点。
+-   `on_point_drag`：点被拖动时。
+-   `on_point_drop`：点被放下时。
+
+```python3
+from nicegui import ui
+from nicegui_highcharts import events
+
+def handle_event(e:events.ChartEventArguments):
+    print(f'{e.event_type}: x is {e.point_x if hasattr(e,'point_x') else None}, y is {e.point_y if hasattr(e,'point_y') else None}.')
+ui.highchart(
+    {
+        'title': False,
+        'plotOptions': {
+            'series': {
+                'stickyTracking': False,
+                'dragDrop': {'draggableY': True, 'dragPrecisionY': 1},
+            },
+        },
+        'series': [
+            {'name': 'A', 'data': [[20, 10], [30, 20], [40, 30]]},
+            {'name': 'B', 'data': [[50, 40], [60, 50], [70, 60]]},
+        ],
+        'credits': {'enabled': False}
+    },
+    extras=['draggable-points'],
+    on_point_click=handle_event,
+    on_point_drag_start=handle_event,
+    on_point_drag=handle_event,
+    on_point_drop=handle_event
+).classes('w-full h-64')
+
+ui.run(native=True)
+```
+
+得到的结果输出（部分）如下：
+
+```shell
+point_drag_start: x is None, y is None.
+point_drag: x is 20, y is 22.
+point_drag: x is 20, y is 23.
+point_drag: x is 20, y is 30.
+point_drop: x is 20, y is 30.
+point_drag_start: x is None, y is None.
+point_click: x is 20, y is 30.
+point_drag_start: x is None, y is None.
+point_click: x is 30, y is 43.
+```
+
+可以看到，拖动一个点总是包含拖动开始、拖动时、放下三个动作；如果是点击点，则会触发开始拖动和点击这两个动作。
+
+#### 3.14.10 ui.echart
+
+ui.echart可以绘制echart图表，功能实现源自[ECharts](https://echarts.apache.org/)。
+
+相比于HighCharts，ECharts的许可协议更友好，也不需要购买商用许可，而且官网文档有中文版本，因此更受中国用户喜欢。
+
+本控件的主要用法需要读者了解ECharts，如果没有相关基础，可以先去看看ECharts官网的[入门文档](https://echarts.apache.org/handbook/zh/get-started/)。
+
+更新options属性，可以将数据更新推送到图表上。但是，需要注意的是，更新数据之后，需要调用update方法。
+
+先看代码示例：
+
+```python3
+from nicegui import ui
+from random import random
+
+echart = ui.echart({
+    'xAxis': {'type': 'value'},
+    'yAxis': {'type': 'category', 'data': ['A', 'B'], 'inverse': True},
+    'legend': {'textStyle': {'color': 'gray'}},
+    'series': [
+        {'type': 'bar', 'name': 'Alpha', 'data': [0.1, 0.2]},
+        {'type': 'bar', 'name': 'Beta', 'data': [0.3, 0.4]},
+    ],
+})
+
+
+def update():
+    echart.options['series'][0]['data'][0] = random()
+    echart.update()
+
+ui.button('Update', on_click=update)
+
+ui.run(native=True)
+```
+
+![ui_echart](README_MORE.assets/ui_echart.png)
+
+控件支持以下参数：
+
+`options`参数，字典类型，给ECharts传入的图表选项定义，具体参考[官网文档](https://echarts.apache.org/zh/option.html)。
+
+`on_click_point`参数，可调用类型，当点击数据点时执行的操作。
+
+`enable_3d`参数，布尔类型，是否强制导入echarts-gl库，这样做会启用3D显示效果。
+
+点击事件的响应操作，可以参考以下代码：
+
+```python3
+from nicegui import ui
+
+ui.echart({
+    'xAxis': {'type': 'category'},
+    'yAxis': {'type': 'value'},
+    'series': [{'type': 'line', 'data': [20, 10, 30, 50, 40, 30]}],
+}, on_point_click=ui.notify)
+
+ui.run(native=True)
+```
+
+![ui_echart2](README_MORE.assets/ui_echart2.png)
+
+定义动态属性（即使用JavaScript表达式的内容）的示例代码：
+
+```python3
+from nicegui import ui
+
+ui.echart({
+    'xAxis': {'type': 'category'},
+    'yAxis': {'axisLabel': {':formatter': 'value => "$" + value'}},
+    'series': [{'type': 'line', 'data': [5, 8, 13, 21, 34, 55]}],
+})
+
+ui.run(native=True)
+```
+
+![ui_echart3](README_MORE.assets/ui_echart3.png)
+
+使用from_pyecharts方法，可以基于pyecharts对象创建图表。对于创建动态属性（即使用JavaScript表达式的内容），既可以像之前说的那样在属性名前加英文冒号':'启用计算表达式功能，也可以使用pyecharts.commons.utils的JsCode方法直接传递转换后的对象，这样就不用添加英文冒号了。
+
+示例代码如下：
+
+```python3
+from nicegui import ui
+from pyecharts.charts import Bar
+from pyecharts.commons.utils import JsCode
+from pyecharts.options import AxisOpts
+
+ui.echart.from_pyecharts(
+    Bar()
+    .add_xaxis(['A', 'B', 'C'])
+    .add_yaxis('ratio', [1, 2, 4])
+    .set_global_opts(
+        xaxis_opts=AxisOpts(axislabel_opts={
+            ':formatter': r'(val, idx) => `group ${val}`',
+        }),
+        yaxis_opts=AxisOpts(axislabel_opts={
+            'formatter': JsCode(r'(val, idx) => `${val}%`'),
+        }),
+    )
+)
+ui.run(native=True)
+```
+
+![ui_echart4](README_MORE.assets/ui_echart4.png)
+
+调用run_chart_method方法可以执行ECharts的实例方法（[官网文档](https://echarts.apache.org/zh/api.html#echartsInstance)）。需要注意的是，代码中给实例方法名前面加了英文冒号':'，意思就是后面传给这个实例方法的参数是JavaScript表达式，需要先执行之后再传入。
+
+需要注意的是，因为这种方法和客户端数据相关，只能在ui.page内使用，不能用在auto-index页面。
+
+代码示例如下：
+
+```python3
+from nicegui import ui
+
+@ui.page('/')
+def page():
+    echart = ui.echart({
+        'xAxis': {'type': 'category', 'data': ['Mon', 'Tue', 'Wed', 'Thu', 'Fri']},
+        'yAxis': {'type': 'value'},
+        'series': [{'type': 'line', 'data': [150, 230, 224, 218, 135]}],
+    })
+
+    ui.button('Show Loading', on_click=lambda: echart.run_chart_method('showLoading'))
+    ui.button('Hide Loading', on_click=lambda: echart.run_chart_method('hideLoading'))
+
+    async def get_width():
+        width = await echart.run_chart_method('getWidth')
+        ui.notify(f'Width: {width}')
+    ui.button('Get Width', on_click=get_width)
+
+    ui.button('Set Tooltip', on_click=lambda: echart.run_chart_method(
+        ':setOption', r'{tooltip: {formatter: params => "$" + params.value}}',
+    ))
+
+ui.run(native=True)
+```
+
+![ui_echart5](README_MORE.assets/ui_echart5.png)
 
 
 
-https://www.ag-grid.com/vue-data-grid/grid-options/
 
-https://www.ag-grid.com/javascript-data-grid/reference/
 
-3.14.9 ui.highchart
+想要添加对ECharts的事件响应的话，可以使用on方法，订阅加了"chart:"前缀的ECharts事件名（具体事件名查询[官网文档](https://echarts.apache.org/zh/api.html#events)）。 比如下面的代码，就是监听了ECharts的"selectchanged"事件（[官网文档](https://echarts.apache.org/zh/api.html#events.selectchanged)）：
 
-3.14.10 ui.echart
+```python3
+from nicegui import ui
 
-3.14.11 ui.pyplot
+ui.echart({
+    'toolbox': {'feature': {'brush': {'type': ['rect']}}},
+    'brush': {},
+    'xAxis': {'type': 'category'},
+    'yAxis': {'type': 'value'},
+    'series': [{'type': 'line', 'data': [1, 2, 3]}],
+}).on('chart:selectchanged', lambda e: label.set_text(
+    f'Selected point {e.args["fromActionPayload"]["dataIndexInside"]}'
+))
+label = ui.label()
 
-3.14.12 ui.matplotlib
+ui.run(native=True)
+```
 
-3.14.13 ui.line_plot
+![ui_echart6](README_MORE.assets/ui_echart6.png)
 
-3.14.14 ui.plotly
+一般来说，如果options参数里包含了字符串"3D"，图表会自动启用3D显示。如果没有的话，可以设置`enable_3d`参数为`True`来强制启用：
 
-3.14.15 ui.leaflet
+```python3
+from nicegui import ui
+
+ui.echart({
+    'xAxis3D': {},
+    'yAxis3D': {},
+    'zAxis3D': {},
+    'grid3D': {},
+    'series': [{
+        'type': 'line3D',
+        'data': [[1, 1, 1], [3, 3, 3]],
+    }],
+})
+
+ui.run(native=True)
+```
+
+![ui_echart7](README_MORE.assets/ui_echart7.png)
+
+#### 3.14.11 ui.pyplot
+
+ui.pyplot的用法像是一个控件，但和一般的控件不太一样，它只是创建了一个上下文环境，用于绘制[Matplotlib](https://matplotlib.org/)图形。
+
+控件依赖的matplotlib默认不安装，如果想要使用此控件，可以在项目根目录下使用以下命令安装：
+
+```shell
+pdm add nicegui[matplotlib]
+#或者下面这条
+pdm add matplotlib
+```
+
+如果运行环境是全局环境或者想用pip安装，可以执行下面的命令安装：
+
+```shell
+pip install nicegui[matplotlib]
+#或者下面这条
+pip install matplotlib
+```
+
+控件支持以下参数：
+
+`close`参数，布尔类型，表示退出上下文环境之后，是否关闭图形（figure，对应控件的fig属性），如果后续需要更新图形的话，此参数设置为`False`，默认此参数为`True`。
+
+`kwargs`参数，关键字参数类型，用于给pyplot.figure传入像figsize之类的参数，更多参数支持可以参考[官网文档](https://matplotlib.org/stable/api/_as_gen/matplotlib.pyplot.figure.html)。
+
+示例代码如下：
+
+```python3
+import numpy as np
+from matplotlib import pyplot as plt
+from nicegui import ui
+
+with ui.pyplot(figsize=(3, 2)):
+    x = np.linspace(0.0, 5.0)
+    y = np.cos(2 * np.pi * x) * np.exp(-x)
+    plt.plot(x, y, '-')
+
+ui.run(native=True)
+```
+
+![ui_pyplot](README_MORE.assets/ui_pyplot.png)
+
+#### 3.14.12 ui.matplotlib
+
+ ui.matplotlib用法接近ui.pyplot，绘图库用的也是[Matplotlib](https://matplotlib.org/)，但少了close参数，自然不能在退出上下文之后继续更新图形。
+
+控件依赖的matplotlib默认不安装，如果想要使用此控件，可以在项目根目录下使用以下命令安装：
+
+```shell
+pdm add nicegui[matplotlib]
+#或者下面这条
+pdm add matplotlib
+```
+
+如果运行环境是全局环境或者想用pip安装，可以执行下面的命令安装：
+
+```shell
+pip install nicegui[matplotlib]
+#或者下面这条
+pip install matplotlib
+```
+
+参数只有一个：
+
+`kwargs`参数，关键字参数类型，用于给matplotlib.figure.Figure传入像figsize之类的参数，更多参数支持可以参考[官网文档](https://matplotlib.org/stable/api/figure_api.html#matplotlib.figure.Figure)。
+
+示例代码如下：
+
+```python3
+import numpy as np
+from nicegui import ui
+
+with ui.matplotlib(figsize=(3, 2)).figure as fig:
+    x = np.linspace(0.0, 5.0)
+    y = np.cos(2 * np.pi * x) * np.exp(-x)
+    ax = fig.gca()
+    ax.plot(x, y, '-')
+
+ui.run(native=True)
+```
+
+![ui_matplotlib](README_MORE.assets/ui_matplotlib.png)
+
+#### 3.14.13 ui.line_plot
+
+ui.line_plot可以绘制折线图，使用pyplot实现，但暴露了一些相关参数，方便创建控件时优化显示效果。
+
+将push方法与ui.timer结合，可以做到实时刷新数据。
+
+控件支持以下参数：
+
+`n`参数，整数类型，图内线条的数量。
+
+`limit`参数，整数类型，表示每条线支持的最多几个数据点，即如果达到该数量，新的数据点会把最早的数据点顶掉。	
+
+`update_every`参数，整数类型，表示每push多少次数据才会更新图的显示，用来节省CPU和带宽的占用。
+
+`close`参数，布尔类型，表示退出上下文环境之后，是否关闭图形（figure，对应控件的fig属性），如果后续需要更新图形的话，此参数设置为`False`，默认此参数为`True`。
+
+`kwargs`参数，关键字参数类型，用于给pyplot.figure传入像figsize之类的参数，更多参数支持可以参考[官网文档](https://matplotlib.org/stable/api/_as_gen/matplotlib.pyplot.figure.html)。
+
+示例代码如下：
+
+```python3
+import math
+from datetime import datetime
+from nicegui import ui
+
+line_plot = ui.line_plot(n=2, limit=20, figsize=(3, 2), update_every=5) \
+    .with_legend(['sin', 'cos'], loc='upper center', ncol=2)
+
+def update_line_plot() -> None:
+    now = datetime.now()
+    x = now.timestamp()
+    y1 = math.sin(x)
+    y2 = math.cos(x)
+    line_plot.push([now], [[y1], [y2]])
+
+line_updates = ui.timer(0.1, update_line_plot, active=False)
+line_checkbox = ui.checkbox('active').bind_value(line_updates, 'active')
+
+ui.run(native=True)
+```
+
+![ui_line_plot](README_MORE.assets/ui_line_plot.gif)
+
+#### 3.14.14 ui.plotly
+
+ui.plotly可以绘制Plotly支持的图表，功能实现源自[Plotly](https://plotly.com/graphing-libraries/)。
+
+控件依赖的plotly默认不安装，如果想要使用此控件，可以在项目根目录下使用以下命令安装：
+
+```shell
+pdm add nicegui[plotly]
+#或者下面这条
+pdm add plotly
+```
+
+如果运行环境是全局环境或者想用pip安装，可以执行下面的命令安装：
+
+```shell
+pip install nicegui[plotly]
+#或者下面这条
+pip install plotly
+```
+
+控件支持以下参数：
+
+`figure`参数，字典类型或者plotly.graph_objects.Figure类型（即传入该类型的对象），表示想要Plotly渲染的图形。plotly.graph_objects.Figure类型的用法可以参考[官网文档](https://plotly.com/python/)。字典类型的话，其键（key）就是'data'（文档需要看图形类型，比如type是scatter的话，相关文档就是https://plotly.com/javascript/reference/scatter/）、'layout'（[官网文档](https://plotly.com/javascript/reference/layout/)）、'config'（可选，[官网文档](https://plotly.com/javascript/configuration-options/)）等，具体用法可以参考[官网文档](https://plotly.com/javascript/reference/index/)。
+
+如果想要图形的性能好，最好给`figure`参数传入字典类型。
+
+示例代码如下：
+
+```python3
+import plotly.graph_objects as go
+from nicegui import ui
+
+fig = go.Figure(go.Scatter(x=[1, 2, 3, 4], y=[1, 2, 3, 2.5]))
+fig.update_layout(margin=dict(l=0, r=0, t=0, b=0))
+ui.plotly(fig).classes('w-full h-40')
+
+fig2 = {
+    'data': [
+        {
+            'type': 'scatter',
+            'name': 'Trace 1',
+            'x': [1, 2, 3, 4],
+            'y': [1, 2, 3, 2.5],
+            'line':{'color':'#636EFA'},
+        },
+    ],
+    'layout': {
+        'margin': {'l': 15, 'r': 0, 't': 0, 'b': 15},
+        'plot_bgcolor': '#E5ECF6',
+        'xaxis': {'gridcolor': 'white'},
+        'yaxis': {'gridcolor': 'white'},
+    },
+}
+ui.plotly(fig2).classes('w-full h-40')
+
+ui.run(native=True)
+```
+
+![ui_plotly](README_MORE.assets/ui_plotly.png)
+
+使用plotly.graph_objects.Figure()的add_trace方法（[官网文档](https://plotly.com/python-api-reference/generated/plotly.graph_objects.Figure.html#plotly.graph_objects.Figure.add_trace)）之后，需要调用`plot.update()`或者 `ui.update(plot)`来更新显示，才能让图形更新。
+
+示例代码如下：
+
+```python3
+import plotly.graph_objects as go
+from nicegui import ui
+from random import random
+
+fig = go.Figure()
+fig.update_layout(margin=dict(l=0, r=0, t=0, b=0))
+plot = ui.plotly(fig).classes('w-full h-40')
+
+def add_trace():
+    fig.add_trace(go.Scatter(x=[1, 2, 3], y=[random(), random(), random()]))
+    plot.update()
+
+ui.button('Add trace', on_click=add_trace)
+
+ui.run(native=True)
+```
+
+![ui_plotly2](README_MORE.assets/ui_plotly2.gif)
+
+使用on方法可以监听Plotly的事件（[官网文档](https://plotly.com/javascript/plotlyjs-events/)），目前，ui.plotly支持监听以下事件："plotly_click"、"plotly_legendclick"、"plotly_selecting"、"plotly_selected"、"plotly_hover"、"plotly_unhover"、"plotly_legenddoubleclick"、"plotly_restyle"、"plotly_relayout"、"plotly_webglcontextlost"、"plotly_afterplot"、"plotly_autosize"、"plotly_deselect"、"plotly_doubleclick"、"plotly_redraw"、"plotly_animated"。
+
+示例代码如下：
+
+```python3
+import plotly.graph_objects as go
+from nicegui import ui
+
+fig = go.Figure(go.Scatter(x=[1, 2, 3, 4], y=[1, 2, 3, 2.5]))
+fig.update_layout(margin=dict(l=0, r=0, t=0, b=0))
+plot = ui.plotly(fig).classes('w-full h-40')
+plot.on('plotly_click', ui.notify)
+
+ui.run(native=True)
+```
+
+![ui_plotly3](README_MORE.assets/ui_plotly3.png)
+
+#### 3.14.15 ui.leaflet
+
+ui.leaflet主要生成一个可以交互的地图控件，功能实现源自Leaflet（[官网文档](https://leafletjs.com/reference.html)）。
+
+先看代码示例：
+
+```python3
+from nicegui import ui
+
+m = ui.leaflet(center=(51.505, -0.09),options=dict(attributionControl=False))
+ui.label().bind_text_from(m, 'center', lambda center: f'Center: {center[0]:.3f}, {center[1]:.3f}')
+ui.label().bind_text_from(m, 'zoom', lambda zoom: f'Zoom: {zoom}')
+
+with ui.grid(columns=2):
+    ui.button('London', on_click=lambda: m.set_center((51.505, -0.090)))
+    ui.button('Berlin', on_click=lambda: m.set_center((52.520, 13.405)))
+    ui.button(icon='zoom_in', on_click=lambda: m.set_zoom(m.zoom + 1))
+    ui.button(icon='zoom_out', on_click=lambda: m.set_zoom(m.zoom - 1))
+
+ui.run(native=True)
+```
+
+![ui_leaflet](README_MORE.assets/ui_leaflet.png)
+
+控件支持以下参数：
+
+`center`参数，浮点元组类型，表示地图默认中心位置的经纬度坐标。元组的第一个元素是纬度，第二个元素是经度，默认值是`(0.0, 0.0)`。
+
+`zoom`参数，整数类型，地图的放大等级，默认为13。
+
+`draw_control`参数，布尔类型或者字典类型，是否显示绘图工具栏（实现源自leaflet插件[leaflet-draw](https://github.com/Leaflet/Leaflet.draw)），默认是`False`，也可以传入定义绘图工具栏的字典（[官网文档](https://leaflet.github.io/Leaflet.draw/docs/leaflet-draw-latest.html#l-draw-toolbar)）。
+
+`options`参数，字典类型，传入插件的额外选项，默认为空字典，即不传入任何额外选项。
+
+`hide_drawn_items`参数，布尔类型，是否隐藏画在地图上元素，默认为`False`，即不隐藏。
+
+控件默认的地图风格是OpenStreetMap，但可以在[这里](https://leaflet-extras.github.io/leaflet-providers/preview/)找到其他地图风格。每次设置风格，都是将新的tile_layer图层（[官网文档](https://leafletjs.com/reference.html#tilelayer)）叠加上去，所以需要使用clear_layers方法清除之前的地图图层。
+
+示例代码如下：
+
+```python3
+from nicegui import ui
+
+m = ui.leaflet(center=(51.505, -0.090), zoom=3,options=dict(attributionControl=False))
+m.clear_layers()
+m.tile_layer(
+    url_template=r'https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png',
+    options={
+        'maxZoom': 17,
+    },
+)
+
+ui.run(native=True)
+```
+
+![ui_leaflet2](README_MORE.assets/ui_leaflet2.png)
+
+使用marker方法可以在地图上添加一个标记。以下面的代码为例，通过响应地图的点击事件（所有事件的使用说明参考[官网文档](https://leafletjs.com/reference.html#event)），获取点击位置的经纬度，再将经纬度传给marker方法的latlng参数（获取到的是字典，传入的是元组，所以需要转换）。
+
+需要注意的是，这里响应地图的点击事件名是'map-click'。因为地图的一些事件名和JavaScript中事件名相同，所以NiceGUI做了处理，增加了'map-'前缀用于区分，使得控件依然可以正常响应JavaScript中的同名事件。
+
+示例代码如下：
+
+```python3
+from nicegui import events, ui
+
+m = ui.leaflet(center=(51.505, -0.09),options=dict(attributionControl=False))
+
+def handle_click(e: events.GenericEventArguments):
+    lat = e.args['latlng']['lat']
+    lng = e.args['latlng']['lng']
+    m.marker(latlng=(lat, lng))
+m.on('map-click', handle_click)
+
+ui.run(native=True)
+```
+
+![ui_leaflet3](README_MORE.assets/ui_leaflet3.png)
+
+marker方法返回的是marker对象，marker对象的move方法可以移动标记位置：
+
+```python3
+from nicegui import ui
+
+m = ui.leaflet(center=(51.505, -0.09),options=dict(attributionControl=False))
+
+marker = m.marker(latlng=m.center)
+ui.button('Move marker', on_click=lambda: marker.move(51.51, -0.09))
+
+ui.run(native=True)
+```
+
+使用generic_layer方法可以将矢量元素（[官网文档](https://leafletjs.com/reference.html#:~:text=VideoOverlay-,Vector%20Layers,-Path)）添加到地图中：
+
+```python3
+from nicegui import ui
+
+m = ui.leaflet(center=(51.505, -0.09),options=dict(attributionControl=False))
+m.generic_layer(name='circle', args=[m.center, {'color': 'red', 'radius': 300}])
+
+ui.run(native=True)
+```
+
+![ui_leaflet4](README_MORE.assets/ui_leaflet4.png)
+
+控件还支持配置项（[官网文档](https://leafletjs.com/reference.html#map)），可以实现禁止控件中的地图显示某些内容或者禁止交互，以便于静态展示：
+
+```python3
+from nicegui import ui
+
+options = {
+    'zoomControl': False,
+    'scrollWheelZoom': False,
+    'doubleClickZoom': False,
+    'boxZoom': False,
+    'keyboard': False,
+    'dragging': False,
+    'attributionControl':False
+}
+ui.leaflet(center=(51.505, -0.09), options=options)
+
+ui.run(native=True)
+```
+
+![ui_leaflet5](README_MORE.assets/ui_leaflet5.png)
+
+给`draw_control`参数传入字典可以启用并配置绘图工具栏（[官网文档](https://leaflet.github.io/Leaflet.draw/docs/leaflet-draw-latest.html#l-draw-toolbar)），同时，可以监听‘draw:'为前缀的绘图事件（事件名参考[官网文档](https://leaflet.github.io/Leaflet.draw/docs/leaflet-draw-latest.html#l-draw-event)）来响应绘图操作。
+
+示例代码如下：
+
+```python3
+from nicegui import events, ui
+
+def handle_draw(e: events.GenericEventArguments):
+    layer_type = e.args['layerType']
+    coords = e.args['layer'].get('_latlng') or e.args['layer'].get('_latlngs')
+    ui.notify(f'Drawn a {layer_type} at {coords}')
+
+draw_control = {
+    'draw': {
+        'polygon': True,
+        'marker': True,
+        'circle': True,
+        'rectangle': True,
+        'polyline': True,
+        'circlemarker': True,
+    },
+    'edit': {
+        'edit': True,
+        'remove': True,
+    },
+}
+m = ui.leaflet(center=(51.505, -0.09), draw_control=draw_control,options=dict(attributionControl=False))
+m.classes('h-96')
+m.on('draw:created', handle_draw)
+m.on('draw:edited', lambda: ui.notify('Edit completed'))
+m.on('draw:deleted', lambda: ui.notify('Delete completed'))
+
+ui.run(native=True)
+```
+
+![ui_leaflet6](README_MORE.assets/ui_leaflet6.gif)
+
+
+
+可以响应绘图事件'draw:created'的同时，使用图形的点位数据（`['layer']['_latlngs']`）和自定义的样式选项（[官网文档](https://leafletjs.com/reference.html#path)）绘制同样形状、不同样式的图形。不过，这样绘制出来的图会和默认的绘图重叠，需要将`hide_drawn_items`参数设置为`True`，来隐藏默认绘图。
+
+示例代码如下：
+
+```python3
+from nicegui import events, ui
+
+def handle_draw(e: events.GenericEventArguments):
+    options = {'color': 'red', 'weight': 1}
+    m.generic_layer(name='polygon', args=[e.args['layer']['_latlngs'], options])
+
+draw_control = {
+    'draw': {
+        'polygon': True,
+        'marker': False,
+        'circle': False,
+        'rectangle': False,
+        'polyline': False,
+        'circlemarker': False,
+    },
+    'edit': {
+        'edit': False,
+        'remove': False,
+    },
+}
+m = ui.leaflet(center=(51.5, 0), draw_control=draw_control, hide_drawn_items=True,options=dict(attributionControl=False))
+m.on('draw:created', handle_draw)
+
+ui.run(native=True)
+```
+
+![ui_leaflet7](README_MORE.assets/ui_leaflet7.gif)
+
+控件的run_map_method方法可以运行地图对象支持的方法（[官网文档](https://leafletjs.com/reference.html#map)），示例代码如下：
+
+```python3
+from nicegui import ui
+
+m = ui.leaflet(center=(51.5, 0),options=dict(attributionControl=False))
+ui.button('Fit world', on_click=lambda: m.run_map_method('fitWorld'))
+
+ui.run(native=True)
+```
+
+运行run_layer_method方法，可以执行指定图层的接口方法。该方法的第一个参数是图层id，第二个参数是接口方法名（详见[官网文档](https://leafletjs.com/reference.html#layer)），后面的参数是传给接口参数的参数。不过，需要注意的是，该方法与客户端数据相关，只能在ui.page内执行，不能在auto-index页面内使用。
+
+以下面的代码为例，在地图控件完成初始化之后，先设置默认attribution的前缀，然后清除现有的attribution。点击'Add Attribution'按钮，可以调用接口方法（[官网文档](https://leafletjs.com/reference.html#map-addcontrol)）增加一个attribution，与先前options里设置的attribution合并，显示为两个attribution。但是，layer接口方法'getAttribution'（[官网文档](https://leafletjs.com/reference.html#layer-getattribution)）获取的attribution是options里设置的attribution，因此最后弹出的通知只显示options里设置的attribution。
+
+需要额外注意的是，调用任何接口方法都要等地图完成初始化之后，可以使用异步等待控件的initialized方法，就像下面代码中的`await m.initialized()`，就是为了确保地图确实完成了初始化，而添加的异步等待。
+
+示例代码如下：
+
+```python3
+from nicegui import ui
+
+
+@ui.page('/')
+async def index():
+    m = ui.leaflet(center=(51.505, -0.090), zoom=3)
+    m.clear_layers()
+    layer = m.tile_layer(
+        url_template=r'https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png',
+        options={
+            'maxZoom': 17,
+            'attribution':'test1'
+        },
+    )
+    await m.initialized()
+    m.run_map_method('m => m.attributionControl.setPrefix("Psf")')
+    m.run_map_method('m => m.attributionControl.remove()')
+    ui.button('Add Attribution', on_click=lambda :m.run_map_method(':addControl',"L.control.attribution({prefix:'Psf'}).addAttribution('test2')"))
+    
+    async def handle_layer(e):
+        result = await m.run_layer_method(layer.id,'getAttribution')
+        ui.notify(result)
+    ui.button('Get Attribution', on_click=handle_layer)
+
+ui.run(native=True)
+```
+
+![ui_leaflet8](README_MORE.assets/ui_leaflet8.gif)
+
+### 3.15 杂项技巧【随时更新】
+
+有些技巧是灵感乍现，实在找不到合适的分类，就写在了这里。内容和分类可能会因为后续更新而变动。
+
+高性能计算
+
+subprocess
+
+multiprocessing
+
+threading
+
+run.cpu_bound
+
+run.io_bound
+
+asyncio
+
+termux安装NiceGUI，需要先安装python3、rust（orjson需要）、binutils和libuv（uvloop需要），最后安装NiceGUI。
+
+
 
 ## 4 具体示例【随时更新】
 
