@@ -4267,7 +4267,7 @@ ui.run(native=True)
 
 控件支持以下参数：
 
-`options`参数，字典类型，表示AG网格的选项定义，可以定义网格选项（具体定义内容参考[官网文档](https://www.ag-grid.com/javascript-data-grid/grid-options/)），网格选项中包含列选项（对应的字典键是'columnDefs'，具体定义内容参考[官网文档](https://www.ag-grid.com/javascript-data-grid/column-properties/)）和具体的行数据（对应的字典键是'rowData'）。以示例代码为例，'defaultColDef'表示默认的列定义，适合定义每行都要设置的定义；'rowSelection'表示行的选择方式，可以是单选（'single'）或者多选（'multiple'），也可以采用`{'mode':"singleRow"}`、`{'mode':"multiRow"}`这样的RowSelectionOptions对象定义，支持更多相关样式定义。
+`options`参数，字典类型，表示AG网格的选项定义，可以定义网格选项（具体定义内容参考[官网文档](https://www.ag-grid.com/javascript-data-grid/grid-options/)），网格选项中包含列选项（对应的字典键是'columnDefs'，具体定义内容参考[官网文档](https://www.ag-grid.com/javascript-data-grid/column-properties/)）和具体的行数据（对应的字典键是'rowData'）。以示例代码为例，'defaultColDef'表示默认的列定义，适合定义每行都要设置的定义；'rowSelection'表示行的选择方式，可以是单选（'single'）或者多选（'multiple'）。
 
 `html_columns`参数，整数列表，表示哪些列的数据当作HTML格式渲染，默认为空列表，即所有列的数据不当作HTML格式渲染。
 
@@ -4275,7 +4275,7 @@ ui.run(native=True)
 
 `auto_size_columns`参数，布尔类型，表示是否根据表格内容自动调节列宽，默认为`True`。
 
-可以设置列选项的 'checkboxSelection'为`True`添加单选或者多选的复选框，也可以设置网格选项的'rowSelection'为RowSelectionOptions对象格式（[官网文档](https://www.ag-grid.com/javascript-data-grid/grid-options/#reference-selection-rowSelection)），默认会显示复选框。但是，需要注意的是，通过设置网格选项的'rowSelection'得到复选框是单独一列，而不是在指定的列内。选择行之后，可以使用get_selected_rows方法，以字典的形式获取被选择的行。如果是单选，则可以用get_selected_row方法直接获取该行数据或者`None`（如果没有数据被选择时）。实际上，get_selected_row方法就是直接返回get_selected_rows方法结果的第一个（索引值为0）元素，并在判断为空时返回`None`。
+可以设置列选项的 'checkboxSelection'为`True`添加单选或者多选的复选框。选择行之后，可以使用get_selected_rows方法，以字典的形式获取被选择的行。如果是单选，则可以用get_selected_row方法直接获取该行数据或者`None`（如果没有数据被选择时）。实际上，get_selected_row方法就是直接返回get_selected_rows方法结果的第一个（索引值为0）元素，并在判断为空时返回`None`。
 
 代码如下：
 
