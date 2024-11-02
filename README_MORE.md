@@ -2699,8 +2699,6 @@ ui.upload(on_upload=lambda e: ui.notify(f'Uploaded {e.name}')).classes('max-w-fu
 ui.run(native=True)
 ```
 
-
-
 ### 3.11 多媒体控件的使用技巧
 
 #### 3.11.1 ui.interactive_image的交互技巧
@@ -5405,8 +5403,6 @@ run.cpu_bound
 run.io_bound
 
 asyncio
-
-termux安装NiceGUI，需要先安装python3、rust（orjson需要）、binutils和libuv（uvloop需要），最后安装NiceGUI。
 
 
 
